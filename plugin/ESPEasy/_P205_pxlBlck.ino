@@ -7,7 +7,7 @@
                                                                __/ |
                                                               |___/
      Plugin 205: pxlBlck by Fabian Steppat
-     Infos on www.nerdiy.de/pxlblck
+     Infos on https://www.Nerdiy.de/pxlblck
 
      This program is free software: you can redistribute it and/or modify
      it under the terms of the GNU General Public License as published by
@@ -23,16 +23,18 @@
      along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
      You will find additional information to this project at the following address:
-     https://www.Nerdiy.de/pxlblck
+     General infos: https://www.Nerdiy.de/pxlblck
+     Available Hardware: https://nerdiy.de/tag/pxlblckplattform/
+     Installation Infos: https://nerdiy.de/en/howto-pxlblck-das-pxlblck-plugin-installieren-und-konfigurieren/
+     Command infos: https://nerdiy.de/howto-pxlblck-befehle-zur-konfiguration-des-pxlblck/
+     Configure watch faces: https://nerdiy.de/en/howto-pxlblck-ziffernblaetter-und-bildschirmschoner-konfigurieren/
+     Display Animations: https://nerdiy.de/en/howto-pxlblck-animationen-konfigurieren-und-anzeigen/
+     Display Icons: https://nerdiy.de/en/howto-pxlblck-icons-designen-auf-den-pxlblck-uebertragen-und-anzeigen/
 
      Credits:
-
-     Available commands:
-     - pbconfig,<enabled 1/0>,<brightness 0-255>,<Hr color Red 0-255>,<Hr color Green 0-255>,<Hr color Blue 0-255>,<Min color Red 0-255>,<Min color Green 0-255>,<Min color Blue 0-255>,<Bg color Red 0-255>,<Bg color Green 0-255>,<Bg color Blue 0-255>
-     - pbrntxt,<text color r(0-255)>,<text color g(0-255)>,<text color b(0-255)>,<background color r(0-255)>,<background color g(0-255)>,<background color b(0-255)>,<delay time(0-1000ms)>,<start position(0-matrix.width)>,
-     - pbicon,<selected icon(0-255)>,<in animation(0-255)>,<out animation(0-255)>,<inAnimation duration(0-1000ms)>,<display duration(0-10000ms)>,<outAnim duration(0-1000ms)>,<brightness (0-100)>, <opt: running text>,<repetition (0-10)>,<opt: spiffsIcon Filename>,
-     - pbfaketv,<state (0-1)>
-     - pbtest
+      -ESPEasy
+      - Adafruit
+      - RingClock functionality: The RingClock functionality is heavily inspired from this ESPEasy-Plugin:
 
 */
 
@@ -41,8 +43,6 @@
 #ifdef USES_P205
 
 #ifdef PLUGIN_BUILD_NORMAL //if this plugin is disabled, change it to PLUGIN_BUILD_NORMAL to re-enable it
-
-#define PXLBLCK_MATRIX //neded to activate pxlBlck_Utils
 
 #include <Adafruit_GFX.h>
 #include <Adafruit_NeoMatrix.h>
@@ -105,9 +105,9 @@
 #define PXLBLCK_MATRIX_WIDTH  Plugin_205_matrixWidth
 #define PXLBLCK_LED_COLOR_ORDER Plugin_205_ledColorOrder //NEO_RGBW //NEO_GRB //NEO_GRBW
 
-#define PLUGIN_205_STANDARD_BRIGHTNESS 90
+#define PLUGIN_205_STANDARD_BRIGHTNESS 60
 //WARNING: IT's highly recommended to increase this value only if you are sure that the power supply and distribution of the LED-Matrix is capable of the resulting current.
-//Remember: A full powered(max. brightness) LED-Matrix of 10x10 pixels has a total current consumption of 100x0,06A=6A!
+//Remember: A full powered(max. brightness on all colors) RGB LED-Matrix of 10x10 pixels has a total current consumption of aprox. 100x0,06A=6A!
 
 #define PXLBLCK_MAX_SETABLE_BRIGHTNESS 15.0     //maximal possible value of setable brightness-range(should be smaler than 255)
 #define PLUGIN_205_STANDARD_MATRIX_ROTATION 0
@@ -419,6 +419,19 @@ String Plugin_205_possibleDialList[][PLUGIN_205_MAX_DIAL_NUM][2] = {
 #define PLUGIN_205_DEFINED_NUMBERS 10
 #define PLUGIN_205_5x4_NUMBER_NONE 255 //just a random number that is greater as five which is the highest possible coordinate
 
+#define USED_WIDTH_OF_TWO_DIGITS 8 //defines the number of pixels that are used by two digits in horizontal direction
+#define USED_HEIGHT_OF_ONE_DIGIT 5 //defines the number of pixels that are used by a digits in vertical direction
+
+#define DISPLAY_AREA_WIDTH 8
+#define DISPLAY_AREA_HEIGHT 8
+
+//#define USED_WIDTH_OF_TWO_DIGITS 8
+//#define USED_HEIGHT_OF_ONE_DIGIT 5
+//#define USED_WIDTH_OF_TWO_DIGITS 8
+//#define USED_HEIGHT_OF_ONE_DIGIT 5
+
+//#define USED_WIDTH_OF_TWO_DIGITS 8
+
 //== Defines for Dial-Stuff == End ============================
 
 //== Matrix Type definitions == Start ============================
@@ -429,8 +442,6 @@ String Plugin_205_possibleDialList[][PLUGIN_205_MAX_DIAL_NUM][2] = {
 
    deprecated: Additionaly increase PXLBLCK_MATRIX_KIND_NUM for every additional matrix
 */
-
-//deprecated: #define PXLBLCK_MATRIX_KIND_NUM 13
 
 #define PXLBLCK_8X8_MATRIX_ID 0
 #define PXLBLCK_8X8_MATRIX_WIDTH 8
@@ -3129,9 +3140,6 @@ void Plugin_205_show_rand_pixels_screensaver()
 
 void Plugin_205_show_dial_diagonalMiniNumbers(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t minuteColor, uint32_t bgColor, boolean leadingZerosEnabled)
 {
-#define USED_WIDTH_OF_TWO_DIGITS 8
-#define USED_HEIGHT_OF_ONE_DIGIT 5
-
   pxlBlckUtils_fill_matrix(bgColor);
 
   //prepare show of digits: select all the pixels that need to be switched on. PLUGIN_205_MAX_PIXELS_PER_DIGIT*2 because we want to save the coordinates of two digits per array
@@ -3167,9 +3175,6 @@ void Plugin_205_show_dial_diagonalMiniNumbers(uint8_t hours, uint8_t minutes, ui
 
 void Plugin_205_show_dial_verticalMiniNumbers(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t minuteColor, uint32_t bgColor, boolean leadingZerosEnabled)
 {
-#define USED_WIDTH_OF_TWO_DIGITS 8
-#define USED_HEIGHT_OF_ONE_DIGIT 5
-
   pxlBlckUtils_fill_matrix(bgColor);
 
   //prepare show of digits: select all the pixels that need to be switched on. PLUGIN_205_MAX_PIXELS_PER_DIGIT*2 because we want to save the coordinates of two digits per array
@@ -3207,8 +3212,6 @@ void Plugin_205_show_dial_verticalMiniNumbers(uint8_t hours, uint8_t minutes, ui
 
 void Plugin_205_show_dial_horizontalMiniNumbers(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t minuteColor, uint32_t bgColor, boolean leadingZerosEnabled)
 {
-#define USED_WIDTH_OF_TWO_DIGITS 8
-#define USED_HEIGHT_OF_ONE_DIGIT 5
 
   pxlBlckUtils_fill_matrix(bgColor);
 
@@ -3261,9 +3264,6 @@ void Plugin_205_write_prepared_pixels_to_display(uint8_t pixelsToShow[][PLUGIN_2
 
 void Plugin_205_show_dial_hourNumberAndMinutePoints(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t minuteColor, uint32_t bgColor, boolean leadingZerosEnabled)
 {
-#define DISPLAY_AREA_WIDTH 8
-#define DISPLAY_AREA_HEIGHT 8
-#define USED_WIDTH_OF_TWO_DIGITS 8
   /*
     String hoursOut = String(hours);
     String minutesOut = String(minutes);
@@ -4222,9 +4222,6 @@ void pxlBlckUtils_check_fireSimulation()
   }
 }
 #endif
-
-
-#if defined(PXLBLCK_MATRIX)
 
 //== Variables for fakeTV-data == Start ============================
 
@@ -6599,8 +6596,6 @@ void pxlBlckUtils_check_multi_colored_icon()
 {
   if (PXLBLCK_ICON_STRUCT.iconPending)
   {
-    uint8_t outDelay = 0;
-
     switch (PXLBLCK_ICON_STRUCT.iconState)
     {
       case PXLBLCK_ICON_STATE_START:
@@ -7174,16 +7169,16 @@ void pxlBlckUtils_update_user_vars(struct EventStruct * event, boolean enabled, 
 
 boolean pxlBlckUtils_check_if_icon_file_exists(String desiredFile)
 {
-  fs::Dir dir = SPIFFS.openDir("");
   boolean iconFound = false;
 
+#if defined(ESP8266)
+  fs::Dir dir = SPIFFS.openDir("");
   while (dir.next())
   {
     String fileName = dir.fileName();
-    String filetype = fileName.substring(fileName.indexOf("."));
-    filetype.toLowerCase();
+    // String filetype = fileName.substring(fileName.indexOf("."));
+    // filetype.toLowerCase();
 
-    //if (filetype == ".ppm" && fileName.equals(desiredFile))
     if (fileName.equals(desiredFile))
     {
       fs::File f = dir.openFile("r");
@@ -7198,8 +7193,39 @@ boolean pxlBlckUtils_check_if_icon_file_exists(String desiredFile)
       addLog(LOG_LEVEL_INFO, log);
 
       iconFound = true;
+      break;
     }
   }
+#endif
+#if defined(ESP32)
+  File root = SPIFFS.open("/");
+  File file = root.openNextFile();
+  while (file)
+  {
+    String fileName = file.name();
+    //  String filetype = fileName.substring(fileName.indexOf("."));
+    // filetype.toLowerCase();
+
+    if (fileName.equals(desiredFile))
+    {
+      //fs::File f = dir.openFile("r");
+
+      String log = F(PXLBLCK_DEVICE_NAME);
+      addLog(LOG_LEVEL_INFO, log);
+      log = F("   -Icon-file was found: ");
+      log += fileName;
+      log += F("(");
+      log += file.size();
+      log += F(" bytes)");
+      addLog(LOG_LEVEL_INFO, log);
+
+      iconFound = true;
+      break;
+    }
+    file = root.openNextFile();
+  }
+#endif
+
   return iconFound;
 }
 
@@ -7233,7 +7259,6 @@ boolean pxlBlckUtils_load_ppm_file_to_dynamic_array(String fileName)
 
   uint16_t lastFound = 0;
   uint16_t dataPointer = 0;
-  uint16_t pixelValuesCount = 0;
   uint8_t pixelPointer = 0;
   String actualLine = "";
 
@@ -7638,13 +7663,7 @@ void pxlBlckUtils_check_fakeTV()
   }
 }
 
-
 // == fakeTV == End ===============================================================================================================
-
-#endif
-
-
-#if defined(PXLBLCK_MATRIX) || defined(PXLBLCK_RING_CLOCK)
 
 uint32_t pxlBlckUtils_add_brightness_to_color(uint8_t brightness, uint8_t minimalBrightness, uint32_t color)
 {
@@ -7746,7 +7765,6 @@ void pxlBlckUtils_addFormSubHeaderCaution(const String & header)
   addHtml(str);
 }
 
-//void pxlBlckUtils_addHelpButton(String & str, const String & label, const String & url)
 void pxlBlckUtils_addHelpButton(const String & label, const String & url)
 {
   String completeUrl = "http://www.nerdiy.de/" + url;
@@ -7910,7 +7928,6 @@ uint32_t pxlBlckUtils_color_wheel(uint8_t wheelPos, float brightness)
 
 uint32_t pxlBlckUtils_color_value_update(uint32_t actualStoredColorValue, int16_t red, int16_t green, int16_t blue, int16_t warmWhite)
 {
-
   uint8_t valueRed = pxlBlckUtils_return_red_from_config(actualStoredColorValue);
   uint8_t valueGreen = pxlBlckUtils_return_green_from_config(actualStoredColorValue);
   uint8_t valueBlue = pxlBlckUtils_return_blue_from_config(actualStoredColorValue);
@@ -8193,8 +8210,6 @@ uint16_t pxlBlckUtils_save_boolean_runtime_variables_to_permanent_storage()
   pxlBlckUtils_save_bool_values_in_byte(&byteVariable, boolArray);
   return byteVariable;
 }
-
-#endif
 
 
 #endif

@@ -7,6 +7,7 @@ pxlBlck is a system of hardware and software to set up an event indication syste
 
 - [pxlBlck – An IOT/SmartHome information system](https://nerdiy.de/en/pxlblck/)
 - [pxlBlck – Install and configure the pxlBlck plugin](https://nerdiy.de/en/howto-pxlblck-das-pxlblck-plugin-installieren-und-konfigurieren/)
+- [pxlBlck – Commands to configure the pxlBlck](https://nerdiy.de/en/howto-pxlblck-befehle-zur-konfiguration-des-pxlblck/)
 - [pxlBlck – Configure and display animations](https://nerdiy.de/en/howto-pxlblck-animationen-konfigurieren-und-anzeigen/)
 - [pxlBlck – Configure watch faces and screensavers](https://nerdiy.de/en/howto-pxlblck-ziffernblaetter-und-bildschirmschoner-konfigurieren/)
 - [pxlBlck – Design icons, transfer them to the pxlBlck and display them](https://nerdiy.de/en/howto-pxlblck-icons-designen-auf-den-pxlblck-uebertragen-und-anzeigen/)
