@@ -7,7 +7,7 @@
                                                                __/ |
                                                               |___/
      Plugin 205: pxlBlck by Fabian Steppat
-     Infos on https://www.Nerdiy.de/pxlblck
+     Infos on https://www.Nerdiy.de/en/pxlblck
 
      This program is free software: you can redistribute it and/or modify
      it under the terms of the GNU General Public License as published by
@@ -22,7 +22,9 @@
      You should have received a copy of the GNU General Public License
      along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-     You will find additional information to this project at the following address:
+     You can find additional infos about the licensing here: https://nerdiy.de/en/lizenz/
+
+     You will find additional information to this project at the following addresses:
      General infos: https://www.Nerdiy.de/pxlblck
      Available Hardware: https://nerdiy.de/tag/pxlblckplattform/
      Installation Infos: https://nerdiy.de/en/howto-pxlblck-das-pxlblck-plugin-installieren-und-konfigurieren/
@@ -30,12 +32,14 @@
      Configure watch faces: https://nerdiy.de/en/howto-pxlblck-ziffernblaetter-und-bildschirmschoner-konfigurieren/
      Display Animations: https://nerdiy.de/en/howto-pxlblck-animationen-konfigurieren-und-anzeigen/
      Display Icons: https://nerdiy.de/en/howto-pxlblck-icons-designen-auf-den-pxlblck-uebertragen-und-anzeigen/
+     Example usecases: https://nerdiy.de/tag/pxlblckusecase/
 
      Credits:
-      -ESPEasy
-      - Adafruit
-      - RingClock functionality: The RingClock functionality is heavily inspired from this ESPEasy-Plugin:
-
+      - ESPEasy:  A big thank you to the guys who started, maintain and in general care about whats going on with ESPEasy. This plugin wouldn't have been possible without them. 
+                  See more about it here: https://www.letscontrolit.com/wiki/index.php/ESPEasy
+      - Adafruit: A big thank you to the awesome ladies and gentleman at adafruit.com who made many awesome and important libraries and products.
+                  If you want to thank/support them, buy one(or more) of their products on www.adafruit.com.
+      - RingClock functionality: The RingClock functionality is roughly inspired by the ESPEasy-Plugin: Plugin 070: NeoPixel ring clock
 */
 
 // == Variable, Constants & Object Defintions ===========================================================================================================================
