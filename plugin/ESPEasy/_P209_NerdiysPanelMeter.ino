@@ -200,7 +200,7 @@ boolean Plugin_209(byte function, struct EventStruct *event, String& string)
 
         if (Plugin_209_pixels == NULL)
         {
-          Plugin_209_pixels = new Adafruit_NeoPixel(Plugin_209_pmNum, Settings.TaskDevicePin1[event->TaskIndex], NEO_GRB + NEO_KHZ800);
+          Plugin_209_pixels = new Adafruit_NeoPixel(Plugin_209_pmNum, CONFIG_PIN1, NEO_GRB + NEO_KHZ800);
           Plugin_209_pixels->begin(); // This initializes the NeoPixel library.
           Plugin_209_set_all_leds(PLUGIN_209_STANDARD_LED_COLOR_R, PLUGIN_209_STANDARD_LED_COLOR_G, PLUGIN_209_STANDARD_LED_COLOR_B);
           Plugin_209_update_leds();

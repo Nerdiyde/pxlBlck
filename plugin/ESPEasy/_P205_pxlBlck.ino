@@ -924,7 +924,7 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
           possibleMatrixIds[i] = i;
         }
 
-        pxlBlckUtils_addHelpButton(F("Help"), F("pxlblck"));
+        pxlBlckUtils_addHelpButton(F("Help"), F("en/pxlblck"));
         addFormNote(F("To get more information click on the ?"));
 
         addFormCheckBox(F("Display enabled"), F(PXLBLCK_WEBSERVER_FORM_ID_DISPLAY_ENABLED), Plugin_205_displayEnabled);
@@ -1485,8 +1485,9 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
 
     case PLUGIN_INIT:
       {
+        Plugin_205_initialDebugOutputDone=false;
 
-        //Initialize the "random-number-enerator"
+        //Initialize the "random-number-generator" (used for some screensavers)
         randomSeed(ESP.getCycleCount());
 
         //This stuff is needed to get all the two byte variables back from the uint16 variables.
@@ -1533,7 +1534,7 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
           PXLBLCK_INSTANCE = new Adafruit_NeoMatrix(
             (int)Plugin_205_matrixWidth,
             (int)Plugin_205_matrixHeight,
-            Settings.TaskDevicePin1[event->TaskIndex],
+            CONFIG_PIN1,
             Plugin_205_matrixLayoutStartPosition +
             Plugin_205_matrixArrangement,
             PXLBLCK_LED_COLOR_ORDER +
@@ -1546,7 +1547,7 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
             (int)Plugin_205_matrixHeight,
             Plugin_205_matrixTilesWidth,
             Plugin_205_matrixTilesHeight,
-            Settings.TaskDevicePin1[event->TaskIndex],
+            CONFIG_PIN1,
             Plugin_205_matrixLayoutStartPosition +
             Plugin_205_matrixArrangement,
             PXLBLCK_LED_COLOR_ORDER +
@@ -1601,7 +1602,7 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
           log += String(Plugin_205_matrixHeight);
           addLog(LOG_LEVEL_DEBUG, log);
           log = F("   pin=");
-          log += String(Settings.TaskDevicePin1[event->TaskIndex]);
+          log += String(CONFIG_PIN1);
           addLog(LOG_LEVEL_DEBUG, log);
           log = F("   matrix-start-position=");
           log += String(NEO_MATRIX_TOP + NEO_MATRIX_RIGHT);
