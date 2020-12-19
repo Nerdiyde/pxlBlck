@@ -91,10 +91,9 @@
 #define PXLBLCK_ICON_ANIM_INSTANTLY_OFF 2
 #define PXLBLCK_ICON_ANIM_FLY_OUT_TO_LEFT 3
 
+//Other data
 #define PXLBLCK_ICON_ANIM_NONE_ANIMATION 4
-
 #define PXLBLCK_ICON_ID_SPIFFS 6
-
 #define PXLBLCK_ICON_FADE_STEP_SIZE 0.01
 
 //== Defines for Icon-Stuff == End ============================
@@ -878,7 +877,7 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
       {
         Device[++deviceCount].Number = PLUGIN_ID_205;
         Device[deviceCount].Type = DEVICE_TYPE_SINGLE;
-        Device[deviceCount].VType = SENSOR_TYPE_TRIPLE;
+        Device[deviceCount].VType = Sensor_VType::SENSOR_TYPE_TRIPLE;
         Device[deviceCount].Ports = 0;
         Device[deviceCount].PullUpOption = false;
         Device[deviceCount].InverseLogicOption = false;
@@ -914,7 +913,7 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
         //Start output of Form-parts
         addFormSubHeader(F("pxlBlck configuration"));
 
-        if (!systemTimePresent()) //Add hint for needed NTP configuration
+        if (!node_time.systemTimePresent()) //Add hint for needed NTP configuration
           pxlBlckUtils_addFormSubHeaderCaution(F("A Time-Source is needed: Enable and configure NTP or RTC!"));
 
         static int numberOfElementsInArray = (sizeof(Plugin_205_matrixNamesById) / sizeof(Plugin_205_matrixNamesById[0]));
@@ -2834,10 +2833,10 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
 
 void Plugin_205_update()
 {
-  checkTime(); //updating systemtime-variables first
-  uint8_t hours = hour();
-  uint8_t minutes = minute();
-  int seconds = second();
+  //checkTime(); //updating systemtime-variables first --> removed to adapt to release "ESPEasy-mega-20201130"
+  uint8_t hours = node_time.hour();
+  uint8_t minutes = node_time.minute();
+  int seconds = node_time.second();
 
   if (Plugin_205_previousSecond != seconds || Plugin_205_previousMinute != minutes || Plugin_205_previousHour != hours)
   {
@@ -3425,7 +3424,9 @@ void Plugin_205_show_dial_ringClock(int hours, int minutes, int seconds)
   {
     markPositionsList[i] = 5 * i + (Plugin_205_ringclockClockTopOffset % 5);
   }
-  if (Plugin_205_ringclockThick12markEnabled) {
+  
+  if (Plugin_205_ringclockThick12markEnabled) 
+  {
     if (Plugin_205_ringclockClockTopOffset == 0)
     {
       markPositionsList[12] = 1;
@@ -3462,18 +3463,18 @@ void Plugin_205_show_dial_ringClock(int hours, int minutes, int seconds)
 
   //apply offset to minutes
   if (Plugin_205_ringclockClockDirInversed)
-    minutes = map(minutes, 0, 60, PXLBLCK_MATRIX_HEIGHT, 0) + Plugin_205_ringclockClockTopOffset;
+    minutes = map(minutes, 0, 60, PXLBLCK_MATRIX_HEIGHT-1, 0) + Plugin_205_ringclockClockTopOffset; //"PXLBLCK_MATRIX_HEIGHT-1" because we use zero as bottom border and the led at position PXLBLCK_MATRIX_HEIGHT is physically the same led like the led at position zero
   else
-    minutes = map(minutes, 0, 60, 0, PXLBLCK_MATRIX_HEIGHT) + Plugin_205_ringclockClockTopOffset;
+    minutes = map(minutes, 0, 60, 0, PXLBLCK_MATRIX_HEIGHT-1) + Plugin_205_ringclockClockTopOffset; 
 
   if (minutes > 59)
     minutes =  minutes - 60;
 
   //apply offset to seconds
   if (Plugin_205_ringclockClockDirInversed)
-    seconds = map(seconds, 0, 60, PXLBLCK_MATRIX_HEIGHT, 0) + Plugin_205_ringclockClockTopOffset;
+    seconds = map(seconds, 0, 60, PXLBLCK_MATRIX_HEIGHT-1, 0) + Plugin_205_ringclockClockTopOffset;
   else
-    seconds = map(seconds, 0, 60, 0, PXLBLCK_MATRIX_HEIGHT) + Plugin_205_ringclockClockTopOffset;
+    seconds = map(seconds, 0, 60, 0, PXLBLCK_MATRIX_HEIGHT-1) + Plugin_205_ringclockClockTopOffset;
 
   if (seconds > 59)
     seconds = seconds - 60;
@@ -7812,7 +7813,7 @@ String pxlBlckUtils_convert_32bit_to_hex_string(uint32_t inputNumber)
 
 String pxlBlckUtils_getFormItemString(const String & id)
 {
-  return WebServer.arg(id);
+  return web_server.arg(id);
 }
 
 void pxlBlckUtils_convert_hex_to_rgb(String hexString, uint8_t *r, uint8_t *g, uint8_t *b)
