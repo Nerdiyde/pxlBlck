@@ -1485,7 +1485,7 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
 
     case PLUGIN_INIT:
       {
-        Plugin_205_initialDebugOutputDone=false;
+        Plugin_205_initialDebugOutputDone = false;
 
         //Initialize the "random-number-generator" (used for some screensavers)
         randomSeed(ESP.getCycleCount());
@@ -3417,16 +3417,18 @@ void Plugin_205_add_number_to_pixelsToShow(uint8_t numberToShow, uint8_t x_pos, 
 
 // == pxlBlckRingclock dial functions == start ========================================================================================================
 
-void Plugin_205_show_dial_ringClock(int hours, int minutes, int seconds)
+void Plugin_205_show_dial_ringClock(int16_t hours, int16_t minutes, int16_t seconds)
 {
-  //First calculate mark positions
+  uint8_t hoursInclMinutes = hours * 5 + (minutes / 12.0);
+
+  //calculate mark positions
   uint8_t markPositionsList[14];
   for (int i = 0; i < 12; i++)
   {
-    markPositionsList[i] = 5 * i + (Plugin_205_ringclockClockTopOffset % 5);
+    markPositionsList[i] = Plugin_205_ringclockClockDirInversed ? 5 * i + (Plugin_205_ringclockClockTopOffset % 5)-1 : 5 * i + (Plugin_205_ringclockClockTopOffset % 5);
   }
-  
-  if (Plugin_205_ringclockThick12markEnabled) 
+
+  if (Plugin_205_ringclockThick12markEnabled)
   {
     if (Plugin_205_ringclockClockTopOffset == 0)
     {
@@ -3455,30 +3457,38 @@ void Plugin_205_show_dial_ringClock(int hours, int minutes, int seconds)
 
   //make the hour hand move each 12 minutes and apply the offset
   if (Plugin_205_ringclockClockDirInversed)
-    hours = map((hours * 5 + (minutes / 12)), 0, 60, PXLBLCK_MATRIX_HEIGHT, 0) + Plugin_205_ringclockClockTopOffset;
+    hours = map(hoursInclMinutes, 59, 0, 0, PXLBLCK_MATRIX_HEIGHT - 1) + Plugin_205_ringclockClockTopOffset;
   else
-    hours = map((hours * 5 + (minutes / 12)), 0, 60, 0, PXLBLCK_MATRIX_HEIGHT) + Plugin_205_ringclockClockTopOffset;
+    hours = map(hoursInclMinutes, 0, 59, 0, PXLBLCK_MATRIX_HEIGHT - 1) + Plugin_205_ringclockClockTopOffset;
 
   if (hours > 59)
     hours = hours - 60;
+  else if (hours < 0)
+    hours = hours + 60;
 
   //apply offset to minutes
   if (Plugin_205_ringclockClockDirInversed)
-    minutes = map(minutes, 0, 60, PXLBLCK_MATRIX_HEIGHT-1, 0) + Plugin_205_ringclockClockTopOffset; //"PXLBLCK_MATRIX_HEIGHT-1" because we use zero as bottom border and the led at position PXLBLCK_MATRIX_HEIGHT is physically the same led like the led at position zero
+    minutes = map(minutes, 59, 0, 0, PXLBLCK_MATRIX_HEIGHT - 1) + Plugin_205_ringclockClockTopOffset;
   else
-    minutes = map(minutes, 0, 60, 0, PXLBLCK_MATRIX_HEIGHT-1) + Plugin_205_ringclockClockTopOffset; 
+    minutes = map(minutes, 0, 59, 0, PXLBLCK_MATRIX_HEIGHT - 1) + Plugin_205_ringclockClockTopOffset;
 
   if (minutes > 59)
-    minutes =  minutes - 60;
+    minutes = minutes - 60;
+  else if (minutes < 0)
+    minutes = minutes + 60;
+
 
   //apply offset to seconds
   if (Plugin_205_ringclockClockDirInversed)
-    seconds = map(seconds, 0, 60, PXLBLCK_MATRIX_HEIGHT-1, 0) + Plugin_205_ringclockClockTopOffset;
+    seconds = map(seconds, 59, 0, 0, PXLBLCK_MATRIX_HEIGHT - 1) + Plugin_205_ringclockClockTopOffset;
   else
-    seconds = map(seconds, 0, 60, 0, PXLBLCK_MATRIX_HEIGHT-1) + Plugin_205_ringclockClockTopOffset;
+    seconds = map(seconds, 0, 59, 0, PXLBLCK_MATRIX_HEIGHT - 1) + Plugin_205_ringclockClockTopOffset;
+    //seconds = seconds == 0 ? seconds + Plugin_205_ringclockClockTopOffset : map(seconds, 0, 59, 0, PXLBLCK_MATRIX_HEIGHT - 1) + Plugin_205_ringclockClockTopOffset;
 
   if (seconds > 59)
     seconds = seconds - 60;
+  else if (seconds < 0)
+    seconds = seconds + 60;
 
   //calculate color values of marks back from 24/32bit color value and add brigtness
 
@@ -3488,7 +3498,6 @@ void Plugin_205_show_dial_ringClock(int hours, int minutes, int seconds)
   {
     if ((markPositionsList[i] != hours) && (markPositionsList[i] != minutes) && (markPositionsList[i] != seconds) && (markPositionsList[i] != 255)) //do not draw a mark there is a clock hand in that position
     {
-      //pxlBlckUtils_draw_pixel(0, markPositionsList[i], Plugin_205_marksColor_temp);
       pxlBlckUtils_draw_pixel(0, markPositionsList[i], Plugin_205_marksColor_temp);
     }
   }
