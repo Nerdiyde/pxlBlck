@@ -3548,7 +3548,7 @@ void Plugin_205_show_dial_ringClock(int16_t hours, int16_t minutes, int16_t seco
   for (int i = 0; i < 12; i++)
   {
     markPositionsList[i] = Plugin_205_ringclockClockDirInversed ? 5 * i + (Plugin_205_ringclockClockTopOffset % 5) - 1 : 5 * i + (Plugin_205_ringclockClockTopOffset % 5);
-    
+
     //handle "over- or underflow" of led-matrix-height borders
     if ( markPositionsList[i] < 0)
       markPositionsList[i] =  markPositionsList[i] + 60;
@@ -3568,7 +3568,7 @@ void Plugin_205_show_dial_ringClock(int16_t hours, int16_t minutes, int16_t seco
     }
     else
     {
-      markPositionsList[12] = Plugin_205_ringclockClockDirInversed ? Plugin_205_ringclockClockTopOffset: Plugin_205_ringclockClockTopOffset + 1;
+      markPositionsList[12] = Plugin_205_ringclockClockDirInversed ? Plugin_205_ringclockClockTopOffset : Plugin_205_ringclockClockTopOffset + 1;
       markPositionsList[13] = Plugin_205_ringclockClockDirInversed ? Plugin_205_ringclockClockTopOffset - 2 : Plugin_205_ringclockClockTopOffset - 1;
     }
   } else
@@ -6745,7 +6745,7 @@ void pxlBlckUtils_check_multi_colored_icon()
           log = F("   -Icon state: start");
           addLog(LOG_LEVEL_DEBUG, log);
           log = F("   -brightness: ");
-          log += brightness;
+          log += String(brightness);
           addLog(LOG_LEVEL_DEBUG, log);
 
           switch (PXLBLCK_ICON_STRUCT.inAnimation)
@@ -6789,7 +6789,7 @@ void pxlBlckUtils_check_multi_colored_icon()
                 uint8_t inDelay = PXLBLCK_ICON_STRUCT.inDelay / (brightness / PXLBLCK_ICON_FADE_STEP_SIZE) ;
 
                 log = F("   -inDelay: ");
-                log += inDelay;
+                log += String(inDelay);
                 addLog(LOG_LEVEL_DEBUG, log);
 
                 pxlBlckUtils_clear_matrix();
@@ -6834,7 +6834,7 @@ void pxlBlckUtils_check_multi_colored_icon()
                 uint8_t inDelay = PXLBLCK_ICON_STRUCT.inDelay / PXLBLCK_MATRIX_WIDTH ;
 
                 log = F("   -inDelay: ");
-                log += inDelay;
+                log += String(inDelay);
                 addLog(LOG_LEVEL_DEBUG, log);
 
                 int8_t x = PXLBLCK_MATRIX_WIDTH;
@@ -6881,7 +6881,7 @@ void pxlBlckUtils_check_multi_colored_icon()
                 String log = F(PXLBLCK_DEVICE_NAME);
                 addLog(LOG_LEVEL_INFO, log);
                 log = F("   -icon-routine called with unknown inAnimation: ");
-                log += PXLBLCK_ICON_STRUCT.inAnimation;
+                log += String(PXLBLCK_ICON_STRUCT.inAnimation);
                 addLog(LOG_LEVEL_INFO, log);
               }
               break;
@@ -6911,10 +6911,10 @@ void pxlBlckUtils_check_multi_colored_icon()
 
           String log = F(PXLBLCK_DEVICE_NAME);
           addLog(LOG_LEVEL_DEBUG, log);
-          log = F("   -Icon state: start");
+          log = F("   -Icon state: end");
           addLog(LOG_LEVEL_DEBUG, log);
           log = F("   -brightness: ");
-          log += brightness;
+          log += String(brightness);
           addLog(LOG_LEVEL_DEBUG, log);
 
           switch (PXLBLCK_ICON_STRUCT.outAnimation)
@@ -6930,7 +6930,7 @@ void pxlBlckUtils_check_multi_colored_icon()
                 uint8_t outDelay = PXLBLCK_ICON_STRUCT.outDelay / (brightness / PXLBLCK_ICON_FADE_STEP_SIZE) ;
 
                 log = F("   -outDelay: ");
-                log += outDelay;
+                log += String(outDelay);
                 addLog(LOG_LEVEL_DEBUG, log);
 
                 pxlBlckUtils_clear_matrix();
@@ -6973,16 +6973,18 @@ void pxlBlckUtils_check_multi_colored_icon()
                 uint8_t outDelay = PXLBLCK_ICON_STRUCT.outDelay / PXLBLCK_MATRIX_WIDTH ;
 
                 log = F("   -outDelay: ");
-                log += outDelay;
+                log += String(outDelay);
                 addLog(LOG_LEVEL_DEBUG, log);
-
+                
+                Serial.println("Here1");
+                
                 int8_t x = 0;
                 //if there is also a text displayed the number of steps for moving out the display-content needs to be increased depending on the number of characters of the displayed text
                 int16_t limit = (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1) ? (0 - (PXLBLCK_ICON_WIDTH + (PXLBLCK_ICON_STRUCT.textThatFollows.length() * 6) + 1)) : (0 - PXLBLCK_ICON_WIDTH);
                 while (x >= limit)
                 {
                   pxlBlckUtils_clear_matrix();
-                  for (int row = 0; row <= PXLBLCK_ICON_HEIGHT; row++)
+                  for (int row = 0; row < PXLBLCK_ICON_HEIGHT; row++)
                   {
                     for (int column = 0; column < PXLBLCK_ICON_WIDTH; column++)
                     {

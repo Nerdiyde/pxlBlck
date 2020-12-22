@@ -17,9 +17,12 @@ pxlBlck is a system of hardware and software to set up an event indication syste
 
 ### Known bugs
  (checked=done)
- - [ ] Bug: Outgoing icon animation "fly out to left" crashes on ESP32
+ - [x] Bug: Outgoing icon animation "fly out to left" crashes on ESP32
  - [ ] Improve: replace "paramX" by "pxlBlckUtils_parseString()"
  - [ ] Bug: Color handling (in webmenu) is mixed up at using non standard "GRB" led-configuration
+ 
+### Planned features
+ - Predefined color palletes
 
 ### Trademarks
 All third-party trademarks are the property of their respective owners. More infos here: https://nerdiy.de/en/warenzeichen/
