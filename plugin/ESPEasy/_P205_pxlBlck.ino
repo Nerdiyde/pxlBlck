@@ -655,6 +655,8 @@ unsigned long Plugin_205_animationExecutedTimestamp = 0;
 #define BAR_GRAPH_WIPE_PIXEL_COLOR_GREEN 255 //This sets the green part of the color of the wipe-pixel
 #define BAR_GRAPH_WIPE_PIXEL_COLOR_BLUE 255 //This sets the blue part of the color of the wipe-pixel
 #define BAR_GRAP_MAX_DISPLAY_DURATION 86400000 //Defines the max possible display duration. The value 86400000 is 24hrs in milliseconds. (This should be enough)
+#define BAR_GRAPH_DIRECTION_BOTTOM_TO_TOP_ID 0 //Defines the ID for the display direction "bottom to top"
+#define BAR_GRAPH_DIRECTION_LEFT_TO_RIGHT_ID 1 //Defines the ID for the display direction "left to right"
 
 unsigned long Plugin_205_barGraphDisplayClearTimestamp = 0; //This will hold the timestamp at which the displayed bar graph can be overwritten/cleared by the set or not set dial
 
@@ -2832,11 +2834,15 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
           uint16_t displayDuration = pxlBlckUtils_parseString(string, 2).toInt() <= BAR_GRAP_MAX_DISPLAY_DURATION ? pxlBlckUtils_parseString(string, 2).toInt() : BAR_GRAP_MAX_DISPLAY_DURATION; //First parameter: Defines how long the received bar graphs will be displayed until it will be overwritten by the set (or not set) dial
           boolean mirrored = pxlBlckUtils_parseString(string, 3).toInt() == 1; //Second parameter: Mirrors the display of the values on the vertical axis
           boolean firstBarFilled = pxlBlckUtils_parseString(string, 4).toInt() == 1; //Third parameter: Controls that the first bar graph will displayed in a "filled-way"
+          uint8_t displayDirection = pxlBlckUtils_parseString(string, 5).toInt() > 1 ? BAR_GRAPH_DIRECTION_LEFT_TO_RIGHT_ID : pxlBlckUtils_parseString(string, 5).toInt(); //Fourth parameter: Defines the start/direction of the bargraph. Currently the following settings are available: 0=bottom->top; 1=left->right
 
           int16_t barGraphValues[MAX_BAR_GRAPH_HANDS] = {0}; //This holds the values of the bargraphs that shall be displayed
           uint8_t r[MAX_BAR_GRAPH_HANDS] = {0};
           uint8_t g[MAX_BAR_GRAPH_HANDS] = {0};
           uint8_t b[MAX_BAR_GRAPH_HANDS] = {0};
+
+          //Depending of the displayDirection-setting we have to check which matrix size will be used as boundary
+          uint8_t widthOrHeight = displayDirection == BAR_GRAPH_DIRECTION_BOTTOM_TO_TOP_ID ? (PXLBLCK_MATRIX_HEIGHT - 1) : (PXLBLCK_MATRIX_WIDTH - 1);
 
           String log = F(PXLBLCK_DEVICE_NAME);
           addLog(LOG_LEVEL_DEBUG, log);
@@ -2849,15 +2855,15 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
           //read the values from the received parameters and put them into the correct arrays
           for ( uint8_t i = 0; i < MAX_BAR_GRAPH_HANDS; i++)
           {
-            r[i] = pxlBlckUtils_parseString(string, 6 + (i * 4)).toInt();
-            g[i] = pxlBlckUtils_parseString(string, 7 + (i * 4)).toInt();
-            b[i] = pxlBlckUtils_parseString(string, 8 + (i * 4)).toInt();
+            r[i] = pxlBlckUtils_parseString(string, 7 + (i * 4)).toInt();
+            g[i] = pxlBlckUtils_parseString(string, 8 + (i * 4)).toInt();
+            b[i] = pxlBlckUtils_parseString(string, 9 + (i * 4)).toInt();
 
             if (r[i] == 0 && g[i] == 0 && b[i] == 0) //if no color values are received we can stop here all future iterations here
               break;
 
             //scale the received percent value to the size of the matrix height. This also depends on the setting of the mirror-flag
-            barGraphValues[i] = mirrored ? map(pxlBlckUtils_parseString(string, 5 + (i * 4)).toInt(), 100, 0, 0, PXLBLCK_MATRIX_HEIGHT - 1) : map(pxlBlckUtils_parseString(string, 5 + (i * 4)).toInt(), 0, 100, 0, PXLBLCK_MATRIX_HEIGHT - 1);
+            barGraphValues[i] = mirrored ? map(pxlBlckUtils_parseString(string, 6 + (i * 4)).toInt(), 100, 0, 0, widthOrHeight) : map(pxlBlckUtils_parseString(string, 6 + (i * 4)).toInt(), 0, 100, 0, widthOrHeight);
 
             //limit the values to the max possible values. bottom value limitation is handled by variable type definition(no negative values possible).
             if (barGraphValues[i] > BAR_GRAPH_HANDS_MAX_VALUE)
@@ -2878,16 +2884,23 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
           }
 
           //set the start variable name depending on the mirror-flag setting
-          int16_t j = !mirrored ? 0 : (PXLBLCK_MATRIX_HEIGHT - 1);
+          int16_t j = !mirrored ? 0 : widthOrHeight;
 
           //iterate through all pixels of the matrix height and write color in pixel in row if defined
-          while ((!mirrored && j < PXLBLCK_MATRIX_HEIGHT) || (mirrored && j >= 0))
+          while ((!mirrored && j <= widthOrHeight) || (mirrored && j >= 0))
           {
             //this flag checks if in the actual iteration a color value was written to the actual row
             boolean pixelColored = false;
 
             //this is done to show an animation of a white pixel that wipes through the whole matrix height.
-            pxlBlckUtils_draw_horizontal_bar(j, pxlBlckUtils_convert_color_values_to_32bit(
+            if (displayDirection == BAR_GRAPH_DIRECTION_BOTTOM_TO_TOP_ID)
+              pxlBlckUtils_draw_horizontal_bar(j, pxlBlckUtils_convert_color_values_to_32bit(
+                                                 BAR_GRAPH_WIPE_PIXEL_COLOR_RED,
+                                                 BAR_GRAPH_WIPE_PIXEL_COLOR_GREEN,
+                                                 BAR_GRAPH_WIPE_PIXEL_COLOR_BLUE
+                                               ));
+            else
+              pxlBlckUtils_draw_vertical_bar(j, pxlBlckUtils_convert_color_values_to_32bit(
                                                BAR_GRAPH_WIPE_PIXEL_COLOR_RED,
                                                BAR_GRAPH_WIPE_PIXEL_COLOR_GREEN,
                                                BAR_GRAPH_WIPE_PIXEL_COLOR_BLUE
@@ -2909,14 +2922,20 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
                   )
                  )
               {
-                pxlBlckUtils_draw_horizontal_bar(j, pxlBlckUtils_convert_color_values_to_32bit(r[i], g[i], b[i]));
+                if (displayDirection == BAR_GRAPH_DIRECTION_BOTTOM_TO_TOP_ID)
+                  pxlBlckUtils_draw_horizontal_bar(j, pxlBlckUtils_convert_color_values_to_32bit(r[i], g[i], b[i]));
+                else
+                  pxlBlckUtils_draw_vertical_bar(j, pxlBlckUtils_convert_color_values_to_32bit(r[i], g[i], b[i]));
                 pixelColored = true; //we wrote some color to the current row, so we should remember this by setting this flag.
               }
             }
 
             if (!pixelColored) //in case the actual row was not colored we can clear it
             {
-              pxlBlckUtils_draw_horizontal_bar(j, 0);
+              if (displayDirection == BAR_GRAPH_DIRECTION_BOTTOM_TO_TOP_ID)
+                pxlBlckUtils_draw_horizontal_bar(j, 0);
+              else
+                pxlBlckUtils_draw_vertical_bar(j, 0);
             }
 
             //this handles the decrementation or incrementation of the iteration variable depending on the setting of the mirror flag
@@ -6975,9 +6994,9 @@ void pxlBlckUtils_check_multi_colored_icon()
                 log = F("   -outDelay: ");
                 log += String(outDelay);
                 addLog(LOG_LEVEL_DEBUG, log);
-                
+
                 Serial.println("Here1");
-                
+
                 int8_t x = 0;
                 //if there is also a text displayed the number of steps for moving out the display-content needs to be increased depending on the number of characters of the displayed text
                 int16_t limit = (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1) ? (0 - (PXLBLCK_ICON_WIDTH + (PXLBLCK_ICON_STRUCT.textThatFollows.length() * 6) + 1)) : (0 - PXLBLCK_ICON_WIDTH);
@@ -7121,6 +7140,24 @@ void pxlBlckUtils_draw_horizontal_bar_no_update(uint8_t y, uint32_t color)
   {
     //pxlBlckUtils_draw_pixel(0, i, pxlBlckUtils_convert_color_values_to_32bit(anim_red_on, anim_green_on, anim_blue_on));
     PXLBLCK_INSTANCE->drawPixel(i, y, color);
+  }
+}
+
+void pxlBlckUtils_draw_vertical_bar(uint8_t x, uint32_t color)
+{
+  pxlBlckUtils_draw_vertical_bar_no_update(x, color);
+  pxlBlckUtils_update_matrix();
+}
+
+void pxlBlckUtils_draw_vertical_bar_no_update(uint8_t x, uint32_t color)
+{
+  if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+    PXLBLCK_INSTANCE->setPassThruColor(color);
+
+  for (uint16_t i = 0; i < PXLBLCK_MATRIX_HEIGHT; i++)
+  {
+    //pxlBlckUtils_draw_pixel(0, i, pxlBlckUtils_convert_color_values_to_32bit(anim_red_on, anim_green_on, anim_blue_on));
+    PXLBLCK_INSTANCE->drawPixel(x, i, color);
   }
 }
 
