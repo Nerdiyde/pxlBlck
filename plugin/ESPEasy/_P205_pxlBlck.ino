@@ -35,7 +35,7 @@
      Example usecases: https://nerdiy.de/tag/pxlblckusecase/
 
      Credits:
-      - ESPEasy:  A big thank you to the guys who started, maintain and in general care about whats going on with ESPEasy. This plugin wouldn't have been possible without them. 
+      - ESPEasy:  A big thank you to the guys who started, maintain and in general care about whats going on with ESPEasy. This plugin wouldn't have been possible without them.
                   See more about it here: https://www.letscontrolit.com/wiki/index.php/ESPEasy
       - Adafruit: A big thank you to the awesome ladies and gentleman at adafruit.com who made many awesome and important libraries and products.
                   If you want to thank/support them, buy one(or more) of their products on www.adafruit.com.
@@ -135,6 +135,7 @@
 #define PXLBLCK_COMMAND_SET_BRIGHTNESS "pbbr"
 #define PXLBLCK_COMMAND_SET_BOOLEANS "pbbo"
 #define PXLBLCK_COMMAND_SET_DIAL "pbdia"
+#define PXLBLCK_COMMAND_SET_BAR_GRAPH "pbbar"
 
 //== Defines for Matrix-Stuff == End ============================
 
@@ -645,6 +646,20 @@ unsigned long Plugin_205_animationExecutedTimestamp = 0;
 
 //== Defines for animations == End ============================
 
+//== Defines for bar graph display == Start ============================
+
+#define MAX_BAR_GRAPH_HANDS 5 //This can be changed. It limits the max. displayable bar graphs 
+#define BAR_GRAPH_HANDS_MAX_VALUE 100 //This shouldn't be changed. It's representing the maximum which will be used to scale the received bar-value.
+#define BAR_GRAPH_ANIMATION_DELAY 4 //This delay sets the display time of the "wipe-pixel"
+#define BAR_GRAPH_WIPE_PIXEL_COLOR_RED 255 //This sets the red part of the color of the wipe-pixel
+#define BAR_GRAPH_WIPE_PIXEL_COLOR_GREEN 255 //This sets the green part of the color of the wipe-pixel
+#define BAR_GRAPH_WIPE_PIXEL_COLOR_BLUE 255 //This sets the blue part of the color of the wipe-pixel
+#define BAR_GRAP_MAX_DISPLAY_DURATION 86400000 //Defines the max possible display duration. The value 86400000 is 24hrs in milliseconds. (This should be enough)
+
+unsigned long Plugin_205_barGraphDisplayClearTimestamp = 0; //This will hold the timestamp at which the displayed bar graph can be overwritten/cleared by the set or not set dial
+
+//== Defines for bar graph display == End ============================
+
 //== Wordclock-specific values == Start ============================
 
 //Wordclock Language Values
@@ -670,11 +685,6 @@ uint8_t Plugin_205_ringclockClockTopOffset;    //position of the 12 o'clock LED 
 //== Fiboclock-specific values == Start ============================
 
 uint8_t Plugin_205_bits[PXLBLCK_FIBOCLOCK_MATRIX_HEIGHT];
-
-//== Fiboclock-specific values == End ============================
-
-//== digitClock-specific values == Start ============================
-
 
 //== Fiboclock-specific values == End ============================
 
@@ -2817,6 +2827,110 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
 
           success = true;
 
+        } else if (command == F(PXLBLCK_COMMAND_SET_BAR_GRAPH))
+        {
+          uint16_t displayDuration = pxlBlckUtils_parseString(string, 2).toInt() <= BAR_GRAP_MAX_DISPLAY_DURATION ? pxlBlckUtils_parseString(string, 2).toInt() : BAR_GRAP_MAX_DISPLAY_DURATION; //First parameter: Defines how long the received bar graphs will be displayed until it will be overwritten by the set (or not set) dial
+          boolean mirrored = pxlBlckUtils_parseString(string, 3).toInt() == 1; //Second parameter: Mirrors the display of the values on the vertical axis
+          boolean firstBarFilled = pxlBlckUtils_parseString(string, 4).toInt() == 1; //Third parameter: Controls that the first bar graph will displayed in a "filled-way"
+
+          int16_t barGraphValues[MAX_BAR_GRAPH_HANDS] = {0}; //This holds the values of the bargraphs that shall be displayed
+          uint8_t r[MAX_BAR_GRAPH_HANDS] = {0};
+          uint8_t g[MAX_BAR_GRAPH_HANDS] = {0};
+          uint8_t b[MAX_BAR_GRAPH_HANDS] = {0};
+
+          String log = F(PXLBLCK_DEVICE_NAME);
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   - displayDuration: ");
+          log += displayDuration;
+          addLog(LOG_LEVEL_DEBUG, log);
+
+          pxlBlckUtils_clear_matrix();
+
+          //read the values from the received parameters and put them into the correct arrays
+          for ( uint8_t i = 0; i < MAX_BAR_GRAPH_HANDS; i++)
+          {
+            r[i] = pxlBlckUtils_parseString(string, 6 + (i * 4)).toInt();
+            g[i] = pxlBlckUtils_parseString(string, 7 + (i * 4)).toInt();
+            b[i] = pxlBlckUtils_parseString(string, 8 + (i * 4)).toInt();
+
+            if (r[i] == 0 && g[i] == 0 && b[i] == 0) //if no color values are received we can stop here all future iterations here
+              break;
+
+            //scale the received percent value to the size of the matrix height. This also depends on the setting of the mirror-flag
+            barGraphValues[i] = mirrored ? map(pxlBlckUtils_parseString(string, 5 + (i * 4)).toInt(), 100, 0, 0, PXLBLCK_MATRIX_HEIGHT - 1) : map(pxlBlckUtils_parseString(string, 5 + (i * 4)).toInt(), 0, 100, 0, PXLBLCK_MATRIX_HEIGHT - 1);
+
+            //limit the values to the max possible values. bottom value limitation is handled by variable type definition(no negative values possible).
+            if (barGraphValues[i] > BAR_GRAPH_HANDS_MAX_VALUE)
+              barGraphValues[i] = BAR_GRAPH_HANDS_MAX_VALUE;
+
+            log = F("   - barGraphValues[i]: ");
+            log += barGraphValues[i];
+            addLog(LOG_LEVEL_DEBUG, log);
+            log = F("   - r[i]: ");
+            log += r[i];
+            addLog(LOG_LEVEL_DEBUG, log);
+            log = F("   - g[i]: ");
+            log += g[i];
+            addLog(LOG_LEVEL_DEBUG, log);
+            log = F("   - b[i]: ");
+            log += b[i];
+            addLog(LOG_LEVEL_DEBUG, log);
+          }
+
+          //set the start variable name depending on the mirror-flag setting
+          int16_t j = !mirrored ? 0 : (PXLBLCK_MATRIX_HEIGHT - 1);
+
+          //iterate through all pixels of the matrix height and write color in pixel in row if defined
+          while ((!mirrored && j < PXLBLCK_MATRIX_HEIGHT) || (mirrored && j >= 0))
+          {
+            //this flag checks if in the actual iteration a color value was written to the actual row
+            boolean pixelColored = false;
+
+            //this is done to show an animation of a white pixel that wipes through the whole matrix height.
+            pxlBlckUtils_draw_horizontal_bar(j, pxlBlckUtils_convert_color_values_to_32bit(
+                                               BAR_GRAPH_WIPE_PIXEL_COLOR_RED,
+                                               BAR_GRAPH_WIPE_PIXEL_COLOR_GREEN,
+                                               BAR_GRAPH_WIPE_PIXEL_COLOR_BLUE
+                                             ));
+
+            delay(BAR_GRAPH_ANIMATION_DELAY); //give the white "wipe"-pixel some time to be visible
+
+            //now iterate through all possible set bar values limited by MAX_BAR_GRAPH_HANDS
+            for ( uint8_t i = 0; i < MAX_BAR_GRAPH_HANDS; i++)
+            {
+              if (r[i] == 0 && g[i] == 0 && b[i] == 0) //if no color values are passed we can stop any further iteration here already. :)
+                break;
+
+              //color the actual row if one of the three following conditions is true
+              if (j == barGraphValues[i] ||
+                  (i == 0 &&
+                   firstBarFilled &&
+                   ((!mirrored && j < barGraphValues[i]) || (mirrored && j > barGraphValues[i]))
+                  )
+                 )
+              {
+                pxlBlckUtils_draw_horizontal_bar(j, pxlBlckUtils_convert_color_values_to_32bit(r[i], g[i], b[i]));
+                pixelColored = true; //we wrote some color to the current row, so we should remember this by setting this flag.
+              }
+            }
+
+            if (!pixelColored) //in case the actual row was not colored we can clear it
+            {
+              pxlBlckUtils_draw_horizontal_bar(j, 0);
+            }
+
+            //this handles the decrementation or incrementation of the iteration variable depending on the setting of the mirror flag
+            if (!mirrored)
+              j++;
+            else
+              j--;
+          }
+
+          //now save the actual timestamp including the display duration to remember when to clear the display
+          Plugin_205_barGraphDisplayClearTimestamp = millis() + displayDuration;
+
+
+          success = true;
         }
 
         break;
@@ -2873,8 +2987,12 @@ void Plugin_205_update()
 
     if (PXLBLCK_INSTANCE != NULL)
     {
-      if (Plugin_205_displayEnabled && PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime == 0 && !PXLBLCK_ICON_STRUCT.iconPending && !PXLBLCK_FAKE_TV_STRUCT.running)
-      { //time should only be displayed if there is no running text already "on the run"(this is the case if the PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime is set)
+      if (Plugin_205_displayEnabled //dials are not displayed if the display is disabled
+          && PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime == 0 //time should only be displayed if there is no running text already "on the run"(this is the case if the PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime is set)
+          && !PXLBLCK_ICON_STRUCT.iconPending //no update in case an icon is pending
+          && !PXLBLCK_FAKE_TV_STRUCT.running //no update in case the fake tv screensaver is running. This needs to be handled more often then once per second. So its not handled in this block.
+          && Plugin_205_barGraphDisplayClearTimestamp < millis()) //no update if bar graph display duration is not passed
+      {
 
         uint32_t colorOneTemp = pxlBlckUtils_add_brightness_to_color(Plugin_205_displayBrightness, Plugin_205_minimalBrightness, Plugin_205_colorOne);
         uint32_t colorTwoTemp = pxlBlckUtils_add_brightness_to_color(Plugin_205_displayBrightness, Plugin_205_minimalBrightness, Plugin_205_colorTwo);
@@ -3426,10 +3544,14 @@ void Plugin_205_show_dial_ringClock(int16_t hours, int16_t minutes, int16_t seco
   uint8_t hoursInclMinutes = hours * 5 + (minutes / 12.0);
 
   //calculate mark positions
-  uint8_t markPositionsList[14];
+  int16_t markPositionsList[14] = {200};
   for (int i = 0; i < 12; i++)
   {
-    markPositionsList[i] = Plugin_205_ringclockClockDirInversed ? 5 * i + (Plugin_205_ringclockClockTopOffset % 5)-1 : 5 * i + (Plugin_205_ringclockClockTopOffset % 5);
+    markPositionsList[i] = Plugin_205_ringclockClockDirInversed ? 5 * i + (Plugin_205_ringclockClockTopOffset % 5) - 1 : 5 * i + (Plugin_205_ringclockClockTopOffset % 5);
+    
+    //handle "over- or underflow" of led-matrix-height borders
+    if ( markPositionsList[i] < 0)
+      markPositionsList[i] =  markPositionsList[i] + 60;
   }
 
   if (Plugin_205_ringclockThick12markEnabled)
@@ -3446,8 +3568,8 @@ void Plugin_205_show_dial_ringClock(int16_t hours, int16_t minutes, int16_t seco
     }
     else
     {
-      markPositionsList[12] = Plugin_205_ringclockClockTopOffset + 1;
-      markPositionsList[13] = Plugin_205_ringclockClockTopOffset - 1;
+      markPositionsList[12] = Plugin_205_ringclockClockDirInversed ? Plugin_205_ringclockClockTopOffset: Plugin_205_ringclockClockTopOffset + 1;
+      markPositionsList[13] = Plugin_205_ringclockClockDirInversed ? Plugin_205_ringclockClockTopOffset - 2 : Plugin_205_ringclockClockTopOffset - 1;
     }
   } else
   {
@@ -3456,6 +3578,7 @@ void Plugin_205_show_dial_ringClock(int16_t hours, int16_t minutes, int16_t seco
   }
 
   //Now calculate digit positions
+  //First limit hours to "12-position-format"
   if (hours > 11)
     hours = hours - 12;
 
@@ -3487,7 +3610,7 @@ void Plugin_205_show_dial_ringClock(int16_t hours, int16_t minutes, int16_t seco
     seconds = map(seconds, 59, 0, 0, PXLBLCK_MATRIX_HEIGHT - 1) + Plugin_205_ringclockClockTopOffset;
   else
     seconds = map(seconds, 0, 59, 0, PXLBLCK_MATRIX_HEIGHT - 1) + Plugin_205_ringclockClockTopOffset;
-    //seconds = seconds == 0 ? seconds + Plugin_205_ringclockClockTopOffset : map(seconds, 0, 59, 0, PXLBLCK_MATRIX_HEIGHT - 1) + Plugin_205_ringclockClockTopOffset;
+  //seconds = seconds == 0 ? seconds + Plugin_205_ringclockClockTopOffset : map(seconds, 0, 59, 0, PXLBLCK_MATRIX_HEIGHT - 1) + Plugin_205_ringclockClockTopOffset;
 
   if (seconds > 59)
     seconds = seconds - 60;
@@ -6996,7 +7119,6 @@ void pxlBlckUtils_draw_horizontal_bar_no_update(uint8_t y, uint32_t color)
   {
     //pxlBlckUtils_draw_pixel(0, i, pxlBlckUtils_convert_color_values_to_32bit(anim_red_on, anim_green_on, anim_blue_on));
     PXLBLCK_INSTANCE->drawPixel(i, y, color);
-    //delay(10);
   }
 }
 

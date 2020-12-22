@@ -1,5 +1,12 @@
 # pxlBlck - Changelog
 # Changelog
+### 0.2
+#### Feature:
+- Add functionality to display "bar-graph"-values via command "pbbar"
+#### Fix:
+- Add several fixes and code clean up
+- Add fix missing six a clock hour mark position in ringclock mode and activated direction inversed setting
+
 ### 0.1
 - initial state
 
