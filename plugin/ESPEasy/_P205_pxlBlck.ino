@@ -429,12 +429,9 @@ String Plugin_205_possibleDialList[][PLUGIN_205_MAX_DIAL_NUM][2] = {
 #define DISPLAY_AREA_WIDTH 8
 #define DISPLAY_AREA_HEIGHT 8
 
-//#define USED_WIDTH_OF_TWO_DIGITS 8
-//#define USED_HEIGHT_OF_ONE_DIGIT 5
-//#define USED_WIDTH_OF_TWO_DIGITS 8
-//#define USED_HEIGHT_OF_ONE_DIGIT 5
-
-//#define USED_WIDTH_OF_TWO_DIGITS 8
+//used for displaying normaln number dials
+#define NUMBERS_HORIZONAL_OFFSET_FROM_LEFT_NO_DOTS 0
+#define NUMBERS_HORIZONAL_OFFSET_FROM_LEFT_INCL_DOTS 3
 
 //== Defines for Dial-Stuff == End ============================
 
@@ -2948,7 +2945,6 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
           //now save the actual timestamp including the display duration to remember when to clear the display
           Plugin_205_barGraphDisplayClearTimestamp = millis() + displayDuration;
 
-
           success = true;
         }
 
@@ -3098,7 +3094,7 @@ void Plugin_205_update()
             {
               //this dial shows the time with horizontal numbers using the standard font
               pxlBlckUtils_clear_matrix();
-              Plugin_205_show_dial_numbersHorizontal(hours, minutes, colorOneTemp, colorTwoTemp, colorThreeTemp, colorFourTemp, false);
+              Plugin_205_show_dial_numbersHorizontal(hours, minutes, colorOneTemp, colorTwoTemp, colorThreeTemp, colorFourTemp);
               pxlBlckUtils_update_matrix();
             }
             break;
@@ -3106,7 +3102,6 @@ void Plugin_205_update()
             {
               //this dial shows the time with the mini digits
               pxlBlckUtils_clear_matrix();
-              //Plugin_205_show_dial_numbersHorizontal(hours, minutes, colorOneTemp, colorTwoTemp, colorThreeTemp, colorFourTemp, false);
               Plugin_205_show_dial_horizontalMiniNumbers(hours, minutes, colorOneTemp, colorTwoTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled);
               pxlBlckUtils_update_matrix();
             }
@@ -4201,8 +4196,11 @@ uint32_t Plugin_205_color_value_from_pallete(uint8_t bitNumber)
 
 // == pxlBlck24x8 dial functions == start ===========================================================================================================================
 
-void Plugin_205_show_dial_numbersHorizontal(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t minuteColor, uint32_t dotColor, uint32_t bgColor, bool includingDots)
+void Plugin_205_show_dial_numbersHorizontal(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t minuteColor, uint32_t dotColor, uint32_t bgColor)
 {
+  boolean includingDots = PXLBLCK_MATRIX_WIDTH > 24;
+  uint8_t offsetFromLeft = includingDots ? NUMBERS_HORIZONAL_OFFSET_FROM_LEFT_INCL_DOTS : NUMBERS_HORIZONAL_OFFSET_FROM_LEFT_NO_DOTS;
+
   String hoursOut = String(hours);
   String minutesOut = String(minutes);
 
@@ -4214,39 +4212,52 @@ void Plugin_205_show_dial_numbersHorizontal(uint8_t hours, uint8_t minutes, uint
     minutesOut = "0" + String(minutes);
   }
 
+  //clear display
   pxlBlckUtils_fill_matrix(bgColor);
-
 
   if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
     PXLBLCK_INSTANCE->setPassThruColor(hourColor);
   else
     PXLBLCK_INSTANCE->setTextColor(hourColor);
 
-  PXLBLCK_INSTANCE->setCursor(0, 0);
+  //write hour numbers to display
+  PXLBLCK_INSTANCE->setCursor(offsetFromLeft, 1);
   PXLBLCK_INSTANCE->print(hoursOut);
 
   if (includingDots)
   {
-
     if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
       PXLBLCK_INSTANCE->setPassThruColor(dotColor);
     else
       PXLBLCK_INSTANCE->setTextColor(dotColor);
 
-    PXLBLCK_INSTANCE->setCursor(9, 0);
+    //write dots to display
+    PXLBLCK_INSTANCE->setCursor(offsetFromLeft + 10, 1);
     PXLBLCK_INSTANCE->print(":");
 
-    PXLBLCK_INSTANCE->setCursor(10, 0);
+    PXLBLCK_INSTANCE->setCursor(offsetFromLeft + 11, 1);
     PXLBLCK_INSTANCE->print(":");
+
+    //write the minute number to the display but two pixel more shifted to the right compaed to display without dots
+    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+      PXLBLCK_INSTANCE->setPassThruColor(minuteColor);
+    else
+      PXLBLCK_INSTANCE->setTextColor(minuteColor);
+
+    PXLBLCK_INSTANCE->setCursor(offsetFromLeft + 15, 1);
+    PXLBLCK_INSTANCE->print(minutesOut);
+  } else
+  {
+    //write the minute number to the display (without dots between hour and minute number)
+    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+      PXLBLCK_INSTANCE->setPassThruColor(minuteColor);
+    else
+      PXLBLCK_INSTANCE->setTextColor(minuteColor);
+
+    PXLBLCK_INSTANCE->setCursor(offsetFromLeft + 13, 1);
+    PXLBLCK_INSTANCE->print(minutesOut);
   }
 
-  if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-    PXLBLCK_INSTANCE->setPassThruColor(minuteColor);
-  else
-    PXLBLCK_INSTANCE->setTextColor(minuteColor);
-
-  PXLBLCK_INSTANCE->setCursor(13, 0);
-  PXLBLCK_INSTANCE->print(minutesOut);
 }
 
 
