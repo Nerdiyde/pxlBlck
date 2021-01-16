@@ -26,29 +26,23 @@
      https://www.Nerdiy.de/ds3231syncerplugin
 
      Credits:
-
-     Available commands:
-     ======================================================================================================================================================
-      - pxlblckring,<Enabled 1/0>,<Digits brightness 0-255>,<Mark brightness 0-255>,
-            <Hour Color Red 0-255>,<Hour Color Green 0-255>,<Hour Color Blue 0-255>,
-            <Minute Color Red 0-255>,<Minute Color Green 0-255>,<Minute Color Blue 0-255>,
-            <Second Color Red 0-255>,<Second Color Green 0-255>,<Second Color Blue 0-255>,
-      - ringanimation,<Animation mode (1-6)>,
-            <On Color Red 0-255>,<On Color Green 0-255>,<On Color Blue 0-255>,
-            <Off Color Red 0-255>,<Off Color Green 0-255>,<Off Color Blue 0-255>,
+      - ESPEasy:  A big thank you to the guys who started, maintain and in general care about whats going on with ESPEasy. This plugin wouldn't have been possible without them.
+                  See more about it here: https://www.letscontrolit.com/wiki/index.php/ESPEasy
+      - Adafruit: A big thank you to the awesome ladies and gentleman at adafruit.com who made many awesome and important libraries and products.
+                  If you want to thank/support them, buy one(or more) of their products on www.adafruit.com.
+      - RingClock functionality: The RingClock functionality is roughly inspired by the ESPEasy-Plugin: Plugin 070: NeoPixel ring clock
 
 
-
-  TODO:
-  EInstellcommands um die RTC Uhrzeit manuell einstellen zu können
-  RTC zu systemzeit sync manuell anstoßen
-  UHrzeit auch im menu des plugins einstellbar machen, dazu sollte die zeit in den eingabefeldern aber mitlaufen
+      TODO:
+       - EInstellcommands um die RTC Uhrzeit manuell einstellen zu können
+       - RTC zu systemzeit sync manuell anstoßen
+       - Uhrzeit auch im menu des plugins einstellbar machen, dazu sollte die zeit in den eingabefeldern aber mitlaufen
 
 
 
 */
 
-//#define USES_P216
+#define USES_P216
 #ifdef USES_P216
 
 #define PLUGIN_BUILD_TEST
@@ -329,14 +323,14 @@ void Plugin_216_syncNtpToRtcTime()
 
   boolean wifiGood = WiFiConnected();
   boolean ntpActivated = Settings.UseNTP;
-  boolean ntpFetchSuccessfull = getNtpTime(ntpTime);
+  boolean ntpFetchSuccessfull = node_time.getNtpTime(ntpTime);
 
   if (wifiGood && ntpActivated && ntpFetchSuccessfull)
   {
     Plugin_216_syncNtpToRtcDone = true;
     unsigned long rtcTime = Plugin_216_actualRtcUnixtime();
     struct tm rtcTimeElements;
-    breakTime(rtcTime, rtcTimeElements);
+    node_time.breakTime(rtcTime, rtcTimeElements);
 
     String log = F(PLUGIN_NAME_216);
     addLog(LOG_LEVEL_DEBUG, log);
@@ -363,11 +357,11 @@ void Plugin_216_syncNtpToRtcTime()
 
     Plugin_216_rtcInstance->adjust(DateTime(ntpTime));
     struct tm ntpTimeElemente;
-    breakTime(ntpTime, ntpTimeElemente); //Convert a time_t number to normal date & time. The tm input is a TimeElements variable which breakTime fills with the 7 numbers, computed from the "t" input.
+    node_time.breakTime(ntpTime, ntpTimeElemente); //Convert a time_t number to normal date & time. The tm input is a TimeElements variable which breakTime fills with the 7 numbers, computed from the "t" input.
 
     //collect (updated) data from rtc again
     rtcTime = Plugin_216_actualRtcUnixtime();
-    breakTime(rtcTime, rtcTimeElements);
+    node_time.breakTime(rtcTime, rtcTimeElements);
 
     log = F(PLUGIN_NAME_216);
     addLog(LOG_LEVEL_DEBUG, log);
@@ -422,12 +416,12 @@ void Plugin_216_syncNtpToRtcTime()
 unsigned long Plugin_216_writeRtcTimeToSystemTime(uint16_t pluginIntervalTime)
 {
   //set nextSyncTime so that no NTP-time-update will be started in ESPEasy.now()-function and only the external set time (from the RTC) will be used. This deactivates any future NTP-sync and only the RTC-time will be synced to the system-time.
-  nextSyncTime = (sysTime - (pluginIntervalTime + 10));
+  node_time.nextSyncTime = (node_time.sysTime - (pluginIntervalTime + 10));
 
   unsigned long unixTime = Plugin_216_actualRtcUnixtime();
 
-  externalTimeSource = unixTime;
-
+  node_time.setExternalTimeSource(unixTime, Restore_RTC_time_source);
+  
   return unixTime;
 }
 
