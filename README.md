@@ -33,3 +33,10 @@ You can find additional infos here: https://nerdiy.de/en/lizenz/
 
 ### Videos
 https://www.youtube.com/watch?v=v85Cp-WSeHQ&list=PLBdOzBJ6T0Q4NGt_zj3ziZtrls4c4zjq4
+
+### Credits:
+ - ESPEasy:  A big thank you to the guys who started, maintain and in general care about whats going on with ESPEasy. This plugin wouldn't have been possible without them.
+   See more about it here: https://www.letscontrolit.com/wiki/index.php/ESPEasy
+ - Adafruit: A big thank you to the awesome ladies and gentleman at adafruit.com who made many awesome and important libraries and products.
+   If you want to thank/support them, buy one(or more) of their products on www.adafruit.com.
+ - RingClock functionality: The RingClock functionality is roughly inspired by the ESPEasy-Plugin: Plugin 070: NeoPixel ring clock
