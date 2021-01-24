@@ -2971,7 +2971,8 @@ void Plugin_205_update()
   uint8_t minutes = node_time.minute();
   int seconds = node_time.second();
 
-  if (Plugin_205_previousSecond != seconds || Plugin_205_previousMinute != minutes || Plugin_205_previousHour != hours)
+  //display will be refreshed at every time cahnge or always in case the dial "PXLBLCK_DIAL_NAME_BLANK" is selected.
+  if (Plugin_205_previousSecond != seconds || Plugin_205_previousMinute != minutes || Plugin_205_previousHour != hours || Plugin_205_selectedDial==PXLBLCK_DIAL_NAME_BLANK_ID_INT)
   {
 
     String log = F(PXLBLCK_DEVICE_NAME);
