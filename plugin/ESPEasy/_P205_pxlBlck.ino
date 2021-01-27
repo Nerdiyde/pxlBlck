@@ -2972,7 +2972,7 @@ void Plugin_205_update()
   int seconds = node_time.second();
 
   //display will be refreshed at every time change or ten times per second in case the dial "PXLBLCK_DIAL_NAME_BLANK" is selected.
-  if (Plugin_205_previousSecond != seconds || Plugin_205_previousMinute != minutes || Plugin_205_previousHour != hours || Plugin_205_selectedDial==PXLBLCK_DIAL_NAME_BLANK_ID_INT)
+  if (Plugin_205_previousSecond != seconds || Plugin_205_previousMinute != minutes || Plugin_205_previousHour != hours || Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_BLANK_ID_INT)
   {
 
     String log = F(PXLBLCK_DEVICE_NAME);
@@ -3074,7 +3074,7 @@ void Plugin_205_update()
             {
               //this dial shows the ringclock dial
               pxlBlckUtils_clear_matrix();
-              Plugin_205_show_dial_ringClock(hours, minutes, seconds);
+              Plugin_205_show_dial_ringClock(hours, minutes, seconds, colorOneTemp, colorTwoTemp, colorThreeTemp, colorFourTemp);
               pxlBlckUtils_update_matrix();
             }
             break;
@@ -3560,10 +3560,8 @@ void Plugin_205_add_number_to_pixelsToShow(uint8_t numberToShow, uint8_t x_pos, 
 
 // == pxlBlckRingclock dial functions == start ========================================================================================================
 
-void Plugin_205_show_dial_ringClock(int16_t hours, int16_t minutes, int16_t seconds)
+void Plugin_205_show_dial_ringClock(int16_t hours, int16_t minutes, int16_t seconds, uint32_t hr_color, uint32_t minute_color, uint32_t second_color, uint32_t marks_color)
 {
-  uint8_t hoursInclMinutes = hours * 5 + (minutes / 12.0);
-
   //calculate mark positions
   int16_t markPositionsList[14] = {200};
   for (int i = 0; i < 12; i++)
@@ -3603,6 +3601,8 @@ void Plugin_205_show_dial_ringClock(int16_t hours, int16_t minutes, int16_t seco
   if (hours > 11)
     hours = hours - 12;
 
+  uint8_t hoursInclMinutes = hours * 5 + (minutes / 12.0);
+
   //make the hour hand move each 12 minutes and apply the offset
   if (Plugin_205_ringclockClockDirInversed)
     hours = map(hoursInclMinutes, 59, 0, 0, PXLBLCK_MATRIX_HEIGHT - 1) + Plugin_205_ringclockClockTopOffset;
@@ -3638,35 +3638,29 @@ void Plugin_205_show_dial_ringClock(int16_t hours, int16_t minutes, int16_t seco
   else if (seconds < 0)
     seconds = seconds + 60;
 
-  //calculate color values of marks back from 24/32bit color value and add brigtness
-
-  uint32_t Plugin_205_marksColor_temp = pxlBlckUtils_add_brightness_to_color(Plugin_205_ringclockHourMarksBrightness, Plugin_205_minimalBrightness, Plugin_205_colorFour);
-
-  for (int i = 0 ; i < 14; i ++) //set the hour marks
+  //set the hour marks
+  for (int i = 0 ; i < 14; i ++)
   {
     if ((markPositionsList[i] != hours) && (markPositionsList[i] != minutes) && (markPositionsList[i] != seconds) && (markPositionsList[i] != 255)) //do not draw a mark there is a clock hand in that position
     {
-      pxlBlckUtils_draw_pixel(0, markPositionsList[i], Plugin_205_marksColor_temp);
+      pxlBlckUtils_draw_pixel(0, markPositionsList[i], marks_color);
     }
   }
 
-  uint32_t hr_color_temp = pxlBlckUtils_add_brightness_to_color(Plugin_205_displayBrightness, Plugin_205_minimalBrightness, Plugin_205_colorOne);
-  uint32_t minute_color_temp = pxlBlckUtils_add_brightness_to_color(Plugin_205_displayBrightness, Plugin_205_minimalBrightness, Plugin_205_colorTwo);
-  uint32_t second_color_temp = pxlBlckUtils_add_brightness_to_color(Plugin_205_displayBrightness, Plugin_205_minimalBrightness, Plugin_205_colorThree);
-
-  for (int i = 0; i < PXLBLCK_MATRIX_HEIGHT; i++) //draw the clock hands
+  //draw the clock hands
+  for (int i = 0; i < PXLBLCK_MATRIX_HEIGHT; i++)
   {
     if (i == hours)
     {
-      pxlBlckUtils_draw_pixel(0, i, hr_color_temp);
+      pxlBlckUtils_draw_pixel(0, i, hr_color);
     }
     if (i == minutes)
     {
-      pxlBlckUtils_draw_pixel(0, i, minute_color_temp);
+      pxlBlckUtils_draw_pixel(0, i, minute_color);
     }
-    if (i == seconds && second_color_temp > 0)
+    if (i == seconds && second_color > 0)
     {
-      pxlBlckUtils_draw_pixel(0, i, second_color_temp);
+      pxlBlckUtils_draw_pixel(0, i, second_color);
     }
   }
 }
@@ -7219,12 +7213,12 @@ void pxlBlckUtils_draw_vertical_bar_no_update(uint8_t x, uint32_t color)
   }
 */
 /*
-void pxlBlckUtils_save_color_values_to_runtime_variables(
+  void pxlBlckUtils_save_color_values_to_runtime_variables(
   uint8_t colorOneR, uint8_t colorOneG, uint8_t colorOneB,
   uint8_t colorTwoR, uint8_t colorTwoG, uint8_t colorTwoB,
   uint8_t colorThreeR, uint8_t colorThreeG, uint8_t colorThreeB,
   uint8_t colorFourR, uint8_t colorFourG, uint8_t colorFourB)
-{
+  {
 
   float brightness = 0;
 
@@ -7251,7 +7245,7 @@ void pxlBlckUtils_save_color_values_to_runtime_variables(
     Plugin_205_colorThree = pxlBlckUtils_convert_color_values_to_32bit(brightness * colorThreeR, brightness * colorThreeG, brightness * colorThreeB);
     Plugin_205_colorFour = pxlBlckUtils_convert_color_values_to_32bit(brightness * colorFourR, brightness * colorFourG, brightness * colorFourB);
   }
-}
+  }
 */
 
 
