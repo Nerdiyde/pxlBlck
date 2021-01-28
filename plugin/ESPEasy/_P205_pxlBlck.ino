@@ -2520,13 +2520,13 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
 
                   for (int16_t i = 0; i < PXLBLCK_MATRIX_HEIGHT; i++)
                   {
-                    pxlBlckUtils_draw_horizontal_bar(i, pxlBlckUtils_convert_color_values_to_32bit(anim_red_on, anim_green_on, anim_blue_on));
+                    pxlBlckUtils_draw_horizontal_bar(i, anim_red_on, anim_green_on, anim_blue_on, true);
                     delay(anim_delay);
                   }
 
                   for (int16_t i = (PXLBLCK_MATRIX_HEIGHT - 1); i >= 0; i--)
                   {
-                    pxlBlckUtils_draw_horizontal_bar(i, pxlBlckUtils_convert_color_values_to_32bit(anim_red_off, anim_green_off, anim_blue_off));
+                    pxlBlckUtils_draw_horizontal_bar(i, anim_red_off, anim_green_off, anim_blue_off, true);
                     delay(anim_delay);
                   }
 
@@ -2541,13 +2541,13 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
 
                   for (int16_t i = (PXLBLCK_MATRIX_HEIGHT - 1); i >= 0; i--)
                   {
-                    pxlBlckUtils_draw_horizontal_bar(i, pxlBlckUtils_convert_color_values_to_32bit(anim_red_on, anim_green_on, anim_blue_on));
+                    pxlBlckUtils_draw_horizontal_bar(i, anim_red_on, anim_green_on, anim_blue_on, true);
                     delay(anim_delay);
                   }
 
                   for (int16_t i = 0; i < PXLBLCK_MATRIX_HEIGHT; i++)
                   {
-                    pxlBlckUtils_draw_horizontal_bar(i, pxlBlckUtils_convert_color_values_to_32bit(anim_red_off, anim_green_off, anim_blue_off));
+                    pxlBlckUtils_draw_horizontal_bar(i, anim_red_off, anim_green_off, anim_blue_off, true);
                     delay(anim_delay);
                   }
 
@@ -2566,17 +2566,17 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
                   {
                     if ((i - animationWidthHalf) >= 0)
                     {
-                      pxlBlckUtils_draw_horizontal_bar((i - animationWidthHalf), pxlBlckUtils_convert_color_values_to_32bit(anim_red_on, anim_green_on, anim_blue_on));
+                      pxlBlckUtils_draw_horizontal_bar((i - animationWidthHalf), anim_red_on, anim_green_on, anim_blue_on, true);
                     }
 
                     if (i >= 0 && i < PXLBLCK_MATRIX_HEIGHT)
                     {
-                      pxlBlckUtils_draw_horizontal_bar(i, pxlBlckUtils_convert_color_values_to_32bit(anim_red_on, anim_green_on, anim_blue_on));
+                      pxlBlckUtils_draw_horizontal_bar(i, anim_red_on, anim_green_on, anim_blue_on, true);
                     }
 
                     if ((i + animationWidthHalf) < PXLBLCK_MATRIX_HEIGHT)
                     {
-                      pxlBlckUtils_draw_horizontal_bar((i + animationWidthHalf), pxlBlckUtils_convert_color_values_to_32bit(anim_red_on, anim_green_on, anim_blue_on));
+                      pxlBlckUtils_draw_horizontal_bar((i + animationWidthHalf), anim_red_on, anim_green_on, anim_blue_on, true);
                     }
 
                     delay(anim_delay);
@@ -2587,17 +2587,17 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
                   {
                     if ((i - animationWidthHalf) >= 0)
                     {
-                      pxlBlckUtils_draw_horizontal_bar((i - animationWidthHalf), pxlBlckUtils_convert_color_values_to_32bit(anim_red_off, anim_green_off, anim_blue_off));
+                      pxlBlckUtils_draw_horizontal_bar((i - animationWidthHalf), anim_red_off, anim_green_off, anim_blue_off, true);
                     }
 
                     if (i >= 0 && i < PXLBLCK_MATRIX_HEIGHT)
                     {
-                      pxlBlckUtils_draw_horizontal_bar(i, pxlBlckUtils_convert_color_values_to_32bit(anim_red_off, anim_green_off, anim_blue_off));
+                      pxlBlckUtils_draw_horizontal_bar(i, anim_red_off, anim_green_off, anim_blue_off, true);
                     }
 
                     if ((i + animationWidthHalf) < PXLBLCK_MATRIX_HEIGHT)
                     {
-                      pxlBlckUtils_draw_horizontal_bar(i + animationWidthHalf, pxlBlckUtils_convert_color_values_to_32bit(anim_red_off, anim_green_off, anim_blue_off));
+                      pxlBlckUtils_draw_horizontal_bar(i + animationWidthHalf, anim_red_off, anim_green_off, anim_blue_off, true);
                     }
 
                     delay(anim_delay);
@@ -2619,17 +2619,17 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
                   {
                     if ((i - animationWidthHalf) >= 0)
                     {
-                      pxlBlckUtils_draw_horizontal_bar((i - animationWidthHalf), pxlBlckUtils_convert_color_values_to_32bit(anim_red_off, anim_green_off, anim_blue_off));
+                      pxlBlckUtils_draw_horizontal_bar((i - animationWidthHalf), anim_red_off, anim_green_off, anim_blue_off, true);
                     }
 
                     if (i >= 0 && i < PXLBLCK_MATRIX_HEIGHT)
                     {
-                      pxlBlckUtils_draw_horizontal_bar(i, pxlBlckUtils_convert_color_values_to_32bit(anim_red_off, anim_green_off, anim_blue_off));
+                      pxlBlckUtils_draw_horizontal_bar(i, anim_red_off, anim_green_off, anim_blue_off, true);
                     }
 
                     if ((i + animationWidthHalf) < PXLBLCK_MATRIX_HEIGHT)
                     {
-                      pxlBlckUtils_draw_horizontal_bar(i + animationWidthHalf, pxlBlckUtils_convert_color_values_to_32bit(anim_red_off, anim_green_off, anim_blue_off));
+                      pxlBlckUtils_draw_horizontal_bar(i + animationWidthHalf, anim_red_off, anim_green_off, anim_blue_off, true);
                     }
 
                     delay(anim_delay);
@@ -2640,17 +2640,17 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
                   {
                     if ((i - animationWidthHalf) >= 0)
                     {
-                      pxlBlckUtils_draw_horizontal_bar((i - animationWidthHalf), pxlBlckUtils_convert_color_values_to_32bit(anim_red_on, anim_green_on, anim_blue_on));
+                      pxlBlckUtils_draw_horizontal_bar((i - animationWidthHalf), anim_red_on, anim_green_on, anim_blue_on, true);
                     }
 
                     if (i >= 0 && i < PXLBLCK_MATRIX_HEIGHT)
                     {
-                      pxlBlckUtils_draw_horizontal_bar(i, pxlBlckUtils_convert_color_values_to_32bit(anim_red_on, anim_green_on, anim_blue_on));
+                      pxlBlckUtils_draw_horizontal_bar(i, anim_red_on, anim_green_on, anim_blue_on, true);
                     }
 
                     if ((i + animationWidthHalf) < PXLBLCK_MATRIX_HEIGHT)
                     {
-                      pxlBlckUtils_draw_horizontal_bar((i + animationWidthHalf), pxlBlckUtils_convert_color_values_to_32bit(anim_red_on, anim_green_on, anim_blue_on));
+                      pxlBlckUtils_draw_horizontal_bar((i + animationWidthHalf), anim_red_on, anim_green_on, anim_blue_on, true);
                     }
 
                     delay(anim_delay);
@@ -2669,8 +2669,8 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
 
                   for (int16_t i = 0; i <= (PXLBLCK_MATRIX_HEIGHT / 2) - 1; i++)
                   {
-                    pxlBlckUtils_draw_horizontal_bar(i, pxlBlckUtils_convert_color_values_to_32bit(anim_red_on, anim_green_on, anim_blue_on));
-                    pxlBlckUtils_draw_horizontal_bar(((PXLBLCK_MATRIX_HEIGHT - 1) - i), pxlBlckUtils_convert_color_values_to_32bit(anim_red_on, anim_green_on, anim_blue_on));
+                    pxlBlckUtils_draw_horizontal_bar(i, anim_red_on, anim_green_on, anim_blue_on, true);
+                    pxlBlckUtils_draw_horizontal_bar(((PXLBLCK_MATRIX_HEIGHT - 1) - i), anim_red_on, anim_green_on, anim_blue_on, true);
                     //pxlBlckUtils_update_matrix();
                     delay(anim_delay);
                   }
@@ -2679,8 +2679,8 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
 
                   for (int16_t i = (PXLBLCK_MATRIX_HEIGHT / 2) - 1; i >= 0; i--)
                   {
-                    pxlBlckUtils_draw_horizontal_bar(i, pxlBlckUtils_convert_color_values_to_32bit(anim_red_off, anim_green_off, anim_blue_off));
-                    pxlBlckUtils_draw_horizontal_bar(((PXLBLCK_MATRIX_HEIGHT - 1) - i), pxlBlckUtils_convert_color_values_to_32bit(anim_red_off, anim_green_off, anim_blue_off));
+                    pxlBlckUtils_draw_horizontal_bar(i, anim_red_off, anim_green_off, anim_blue_off, true);
+                    pxlBlckUtils_draw_horizontal_bar(((PXLBLCK_MATRIX_HEIGHT - 1) - i), anim_red_off, anim_green_off, anim_blue_off, true);
                     delay(anim_delay);
                   }
 
@@ -2695,8 +2695,8 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
 
                   for (int16_t i = (PXLBLCK_MATRIX_HEIGHT / 2) - 1; i >= 0; i--)
                   {
-                    pxlBlckUtils_draw_horizontal_bar(i, pxlBlckUtils_convert_color_values_to_32bit(anim_red_off, anim_green_off, anim_blue_off));
-                    pxlBlckUtils_draw_horizontal_bar(((PXLBLCK_MATRIX_HEIGHT - 1) - i), pxlBlckUtils_convert_color_values_to_32bit(anim_red_off, anim_green_off, anim_blue_off));
+                    pxlBlckUtils_draw_horizontal_bar(i, anim_red_off, anim_green_off, anim_blue_off, true);
+                    pxlBlckUtils_draw_horizontal_bar(((PXLBLCK_MATRIX_HEIGHT - 1) - i), anim_red_off, anim_green_off, anim_blue_off, true);
                     delay(anim_delay);
                   }
 
@@ -2704,9 +2704,8 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
 
                   for (int16_t i = 0; i <= (PXLBLCK_MATRIX_HEIGHT / 2) - 1; i++)
                   {
-                    pxlBlckUtils_draw_horizontal_bar(i, pxlBlckUtils_convert_color_values_to_32bit(anim_red_on, anim_green_on, anim_blue_on));
-                    pxlBlckUtils_draw_horizontal_bar(((PXLBLCK_MATRIX_HEIGHT - 1) - i), pxlBlckUtils_convert_color_values_to_32bit(anim_red_on, anim_green_on, anim_blue_on));
-                    //pxlBlckUtils_update_matrix();
+                    pxlBlckUtils_draw_horizontal_bar(i, anim_red_on, anim_green_on, anim_blue_on, true);
+                    pxlBlckUtils_draw_horizontal_bar(((PXLBLCK_MATRIX_HEIGHT - 1) - i), anim_red_on, anim_green_on, anim_blue_on, true);
                     delay(anim_delay);
                   }
 
@@ -2872,7 +2871,7 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
               break;
 
             //scale the received percent value to the size of the matrix height. This also depends on the setting of the mirror-flag
-            barGraphValues[i] = mirrored ? map(pxlBlckUtils_parseString(string, 7 + (i * 4)).toInt(), 100, 0, 0, widthOrHeight) : map(pxlBlckUtils_parseString(string, 6 + (i * 4)).toInt(), 0, 100, 0, widthOrHeight);
+            barGraphValues[i] = mirrored ? map(pxlBlckUtils_parseString(string, 7 + (i * 4)).toInt(), 100, 0, 0, widthOrHeight) : map(pxlBlckUtils_parseString(string, 7 + (i * 4)).toInt(), 0, 100, 0, widthOrHeight);
 
             //limit the values to the max possible values. bottom value limitation is handled by variable type definition(no negative values possible).
             if (barGraphValues[i] > BAR_GRAPH_HANDS_MAX_VALUE)
@@ -2905,17 +2904,17 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
             {
               //this is done to show an animation of a white pixel that wipes through the whole matrix height.
               if (displayDirection == BAR_GRAPH_DIRECTION_BOTTOM_TO_TOP_ID)
-                pxlBlckUtils_draw_horizontal_bar(j, pxlBlckUtils_convert_color_values_to_32bit(
-                                                   BAR_GRAPH_WIPE_PIXEL_COLOR_RED,
-                                                   BAR_GRAPH_WIPE_PIXEL_COLOR_GREEN,
-                                                   BAR_GRAPH_WIPE_PIXEL_COLOR_BLUE
-                                                 ));
-              else
-                pxlBlckUtils_draw_vertical_bar(j, pxlBlckUtils_convert_color_values_to_32bit(
-                                                 BAR_GRAPH_WIPE_PIXEL_COLOR_RED,
+                pxlBlckUtils_draw_horizontal_bar(j, BAR_GRAPH_WIPE_PIXEL_COLOR_RED,
                                                  BAR_GRAPH_WIPE_PIXEL_COLOR_GREEN,
-                                                 BAR_GRAPH_WIPE_PIXEL_COLOR_BLUE
-                                               ));
+                                                 BAR_GRAPH_WIPE_PIXEL_COLOR_BLUE, 
+                                                 !directOutput
+                                                );
+              else
+                pxlBlckUtils_draw_vertical_bar(j, BAR_GRAPH_WIPE_PIXEL_COLOR_RED,
+                                               BAR_GRAPH_WIPE_PIXEL_COLOR_GREEN,
+                                               BAR_GRAPH_WIPE_PIXEL_COLOR_BLUE, 
+                                               !directOutput
+                                              );
 
               delay(BAR_GRAPH_ANIMATION_DELAY); //give the white "wipe"-pixel some time to be visible
             }
@@ -2935,9 +2934,9 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
                  )
               {
                 if (displayDirection == BAR_GRAPH_DIRECTION_BOTTOM_TO_TOP_ID)
-                  pxlBlckUtils_draw_horizontal_bar(j, pxlBlckUtils_convert_color_values_to_32bit(r[i], g[i], b[i]));
+                  pxlBlckUtils_draw_horizontal_bar(j, r[i], g[i], b[i], !directOutput);
                 else
-                  pxlBlckUtils_draw_vertical_bar(j, pxlBlckUtils_convert_color_values_to_32bit(r[i], g[i], b[i]));
+                  pxlBlckUtils_draw_vertical_bar(j, r[i], g[i], b[i], !directOutput);
                 pixelColored = true; //we wrote some color to the current row, so we should remember this by setting this flag.
               }
             }
@@ -2945,9 +2944,9 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
             if (!pixelColored) //in case the actual row was not colored we can clear it
             {
               if (displayDirection == BAR_GRAPH_DIRECTION_BOTTOM_TO_TOP_ID)
-                pxlBlckUtils_draw_horizontal_bar(j, 0);
+                pxlBlckUtils_draw_horizontal_bar(j, 0, !directOutput);
               else
-                pxlBlckUtils_draw_vertical_bar(j, 0);
+                pxlBlckUtils_draw_vertical_bar(j, 0, !directOutput);
             }
 
             //this handles the decrementation or incrementation of the iteration variable depending on the setting of the mirror flag
@@ -2955,6 +2954,11 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
               j++;
             else
               j--;
+          }
+          
+          if(directOutput)
+          {
+            pxlBlckUtils_update_matrix();
           }
 
           //now save the actual timestamp including the display duration to remember when to clear the display
@@ -3024,19 +3028,11 @@ void Plugin_205_update()
           && Plugin_205_barGraphDisplayClearTimestamp < millis()) //no update if bar graph display duration is not passed
       {
 
-        //handle actual set up led type and change colors if needed
-        /*
-        uint32_t colorOneTemp = pxlBlckUtils_exchange_color_values_based_on_led_type(Plugin_205_colorOne);
-        uint32_t colorTwoTemp = pxlBlckUtils_exchange_color_values_based_on_led_type(Plugin_205_colorTwo);
-        uint32_t colorThreeTemp = pxlBlckUtils_exchange_color_values_based_on_led_type(Plugin_205_colorThree);
-        uint32_t colorFourTemp = pxlBlckUtils_exchange_color_values_based_on_led_type(Plugin_205_colorFour);
-        */
-
         //handle actual set up brightness settings and merge them to the output color
-        uint32_t colorOneTemp = pxlBlckUtils_add_brightness_to_color(Plugin_205_displayBrightness, Plugin_205_minimalBrightness, colorOneTemp);
-        uint32_t colorTwoTemp = pxlBlckUtils_add_brightness_to_color(Plugin_205_displayBrightness, Plugin_205_minimalBrightness, colorTwoTemp);
-        uint32_t colorThreeTemp = pxlBlckUtils_add_brightness_to_color(Plugin_205_displayBrightness, Plugin_205_minimalBrightness, colorThreeTemp);
-        uint32_t colorFourTemp = pxlBlckUtils_add_brightness_to_color(Plugin_205_displayBrightness, Plugin_205_minimalBrightness, colorFourTemp);
+        uint32_t colorOneTemp = pxlBlckUtils_add_brightness_to_color(Plugin_205_displayBrightness, Plugin_205_minimalBrightness, Plugin_205_colorOne);
+        uint32_t colorTwoTemp = pxlBlckUtils_add_brightness_to_color(Plugin_205_displayBrightness, Plugin_205_minimalBrightness, Plugin_205_colorTwo);
+        uint32_t colorThreeTemp = pxlBlckUtils_add_brightness_to_color(Plugin_205_displayBrightness, Plugin_205_minimalBrightness, Plugin_205_colorThree);
+        uint32_t colorFourTemp = pxlBlckUtils_add_brightness_to_color(Plugin_205_displayBrightness, Plugin_205_minimalBrightness, Plugin_205_colorFour);
 
         switch (Plugin_205_selectedDial)
         {
@@ -3167,8 +3163,8 @@ void Plugin_205_update()
       } else if (!Plugin_205_displayEnabled)
       {
         //display is disabled so we clear the display
-        pxlBlckUtils_clear_matrix();
-        pxlBlckUtils_update_matrix();
+        //pxlBlckUtils_clear_matrix();
+        //pxlBlckUtils_update_matrix();
       }
 
     } else
@@ -4271,7 +4267,7 @@ void Plugin_205_show_dial_digitClock(uint8_t hours, uint8_t minutes, uint32_t ho
     Plugin_205_display_digitClock_digit(hours / 10, 0, hourColor); //0 is the y coordinate of the matrix that represents the bottom segment of the first digit
   Plugin_205_display_digitClock_digit(hours % 10, 7, hourColor); //7 is the y coordinate of the matrix that represents the bottom segment of the second digit
 
-  pxlBlckUtils_draw_horizontal_bar_no_update(14, dotColor); //dots: Regarding the digitClock matrix pattern the dots are located in row 14
+  pxlBlckUtils_draw_horizontal_bar(14, dotColor, false); //dots: Regarding the digitClock matrix pattern the dots are located in row 14
 
   if ((minutes / 10) > 0 || inclLeadingZeros)
     Plugin_205_display_digitClock_digit(minutes / 10, 15, minuteColor); //15 is the y coordinate of the matrix that represents the bottom segment of the third digit (here is the offset of the dots included.)
@@ -4284,73 +4280,73 @@ void Plugin_205_display_digitClock_digit(uint8_t number, uint8_t baseSegmentOffs
   switch (number)
   {
     case 0:
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset, color); //bottom segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 1, color); //bottom right segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 2, color); //top right segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 3, color); //top segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 4, color); //top left segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 6, color); //bottom left segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset, color, false); //bottom segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 1, color, false); //bottom right segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 2, color, false); //top right segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 3, color, false); //top segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 4, color, false); //top left segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 6, color, false); //bottom left segment
       break;
     case 1:
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 1, color); //bottom right segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 2, color); //top right segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 1, color, false); //bottom right segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 2, color, false); //top right segment
       break;
     case 2:
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset, color); //bottom segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 6, color); //bottom left segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 5, color); //middle segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 2, color); //top right segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 3, color); //top segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset, color, false); //bottom segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 6, color, false); //bottom left segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 5, color, false); //middle segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 2, color, false); //top right segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 3, color, false); //top segment
       break;
     case 3:
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset, color); //bottom segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 1, color); //bottom right segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 2, color); //top right segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 3, color); //top segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 5, color); //middle segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset, color, false); //bottom segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 1, color, false); //bottom right segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 2, color, false); //top right segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 3, color, false); //top segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 5, color, false); //middle segment
       break;
     case 4:
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 1, color); //bottom right segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 2, color); //top right segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 4, color); //top left segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 5, color); //middle segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 1, color, false); //bottom right segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 2, color, false); //top right segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 4, color, false); //top left segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 5, color, false); //middle segment
       break;
     case 5:
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset, color); //bottom segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 1, color); //bottom right segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 3, color); //top segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 4, color); //top left segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 5, color); //middle segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset, color, false); //bottom segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 1, color, false); //bottom right segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 3, color, false); //top segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 4, color, false); //top left segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 5, color, false); //middle segment
       break;
     case 6:
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset, color); //bottom segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 1, color); //bottom right segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 3, color); //top segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 4, color); //top left segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 5, color); //middle segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 6, color); //bottom left segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset, color, false); //bottom segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 1, color, false); //bottom right segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 3, color, false); //top segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 4, color, false); //top left segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 5, color, false); //middle segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 6, color, false); //bottom left segment
       break;
     case 7:
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 1, color); //bottom right segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 2, color); //top right segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 3, color); //top segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 1, color, false); //bottom right segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 2, color, false); //top right segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 3, color, false); //top segment
       break;
     case 8:
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset, color); //bottom segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 1, color); //bottom right segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 2, color); //top right segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 3, color); //top segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 4, color); //top left segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 5, color); //middle segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 6, color); //bottom left segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset, color, false); //bottom segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 1, color, false); //bottom right segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 2, color, false); //top right segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 3, color, false); //top segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 4, color, false); //top left segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 5, color, false); //middle segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 6, color, false); //bottom left segment
       break;
     case 9:
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset, color); //bottom segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 1, color); //bottom right segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 2, color); //top right segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 3, color); //top segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 4, color); //top left segment
-      pxlBlckUtils_draw_horizontal_bar_no_update(baseSegmentOffset + 5, color); //middle segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset, color, false); //bottom segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 1, color, false); //bottom right segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 2, color, false); //top right segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 3, color, false); //top segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 4, color, false); //top left segment
+      pxlBlckUtils_draw_horizontal_bar(baseSegmentOffset + 5, color, false); //middle segment
       break;
   }
 }
@@ -7107,7 +7103,6 @@ uint32_t pxlBlckUtils_add_brightness_to_color(uint8_t brightness, uint8_t minima
   }
 
   return pxlBlckUtils_return_correct_color_value(red, green, blue, warmWhite);
-
 }
 
 uint32_t pxlBlckUtils_return_correct_color_value(uint8_t red, uint8_t green, uint8_t blue)
@@ -7205,6 +7200,8 @@ uint32_t pxlBlckUtils_exchange_color_values_based_on_led_type(uint32_t colorValu
   return pxlBlckUtils_convert_color_values_to_32bit(red, green, blue, warmWhite);
 }
 
+// == Graphic helpers here ==
+
 void pxlBlckUtils_draw_rectangle(uint8_t xPosStart, uint8_t yPosStart, uint8_t width, uint8_t height, uint32_t color)
 {
   if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
@@ -7217,9 +7214,9 @@ void pxlBlckUtils_update_matrix()
   PXLBLCK_INSTANCE->show();
 
   String log = F(PXLBLCK_DEVICE_NAME);
-  addLog(LOG_LEVEL_DEBUG, log);
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
   log = F("   -pxlBlckUtils_update_matrix executed");
-  addLog(LOG_LEVEL_DEBUG, log);
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
 }
 
 void pxlBlckUtils_fill_matrix(uint8_t red, uint8_t green, uint8_t blue)
@@ -7230,10 +7227,10 @@ void pxlBlckUtils_fill_matrix(uint8_t red, uint8_t green, uint8_t blue)
 void pxlBlckUtils_fill_matrix(uint32_t color)
 {
   String log = F(PXLBLCK_DEVICE_NAME);
-  addLog(LOG_LEVEL_DEBUG, log);
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
   log = F("   -Fill matrix: Color: ");
   log += color;
-  addLog(LOG_LEVEL_DEBUG, log);
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
 
   if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
     PXLBLCK_INSTANCE->setPassThruColor(color);
@@ -7247,51 +7244,85 @@ void pxlBlckUtils_clear_matrix()
 
 void pxlBlckUtils_draw_pixel(uint8_t x, uint8_t y, uint8_t r, uint8_t g, uint8_t b)
 {
+  String log = F(PXLBLCK_DEVICE_NAME);
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+  log = F("   -draw_pixel_1: r: ");
+  log += r;
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+  log = F("   -g: ");
+  log += g;
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+  log = F("   -b: ");
+  log += b;
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+  log = F("   - x: ");
+  log += x;
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+  log = F("   - y: ");
+  log += y;
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+
   pxlBlckUtils_draw_pixel(x, y, pxlBlckUtils_convert_color_values_to_32bit(r, g, b));
 }
 
 void pxlBlckUtils_draw_pixel(uint8_t x, uint8_t y, uint32_t color)
 {
+  String log = F(PXLBLCK_DEVICE_NAME);
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+  log = F("   -draw_pixel_2: Color: ");
+  log += color;
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+  log = F("   - x: ");
+  log += x;
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+  log = F("   - y: ");
+  log += y;
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+
+  color = pxlBlckUtils_exchange_color_values_based_on_led_type(color);
+
   if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
     PXLBLCK_INSTANCE->setPassThruColor(color);
-  PXLBLCK_INSTANCE->drawPixel(x, y, pxlBlckUtils_exchange_color_values_based_on_led_type(color));
+  PXLBLCK_INSTANCE->drawPixel(x, y, color);
 }
 
-void pxlBlckUtils_draw_horizontal_bar(uint8_t y, uint32_t color)
+void pxlBlckUtils_draw_horizontal_bar(uint8_t y,  uint8_t r, uint8_t g, uint8_t b, boolean update_it)
+{
+  pxlBlckUtils_draw_horizontal_bar(y, pxlBlckUtils_convert_color_values_to_32bit(r, g, b), update_it);
+}
+
+void pxlBlckUtils_draw_horizontal_bar(uint8_t y, uint32_t color, boolean update_it)
 {
   pxlBlckUtils_draw_horizontal_bar_no_update(y, color);
-  pxlBlckUtils_update_matrix();
+  if (update_it)
+    pxlBlckUtils_update_matrix();
 }
 
 void pxlBlckUtils_draw_horizontal_bar_no_update(uint8_t y, uint32_t color)
 {
-  //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-  //  PXLBLCK_INSTANCE->setPassThruColor(color);
-
   for (uint16_t i = 0; i < PXLBLCK_MATRIX_WIDTH; i++)
   {
-    //pxlBlckUtils_draw_pixel(0, i, pxlBlckUtils_convert_color_values_to_32bit(anim_red_on, anim_green_on, anim_blue_on));
-    //PXLBLCK_INSTANCE->drawPixel(i, y, color);
-    pxlBlckUtils_draw_pixel(0, i, color);
+    pxlBlckUtils_draw_pixel(i, y, color);
   }
 }
 
-void pxlBlckUtils_draw_vertical_bar(uint8_t x, uint32_t color)
+void pxlBlckUtils_draw_vertical_bar(uint8_t y,  uint8_t r, uint8_t g, uint8_t b, boolean update_it)
+{
+  pxlBlckUtils_draw_vertical_bar(y, pxlBlckUtils_convert_color_values_to_32bit(r, g, b), update_it);
+}
+
+void pxlBlckUtils_draw_vertical_bar(uint8_t x, uint32_t color, boolean update_it)
 {
   pxlBlckUtils_draw_vertical_bar_no_update(x, color);
-  pxlBlckUtils_update_matrix();
+  if (update_it)
+    pxlBlckUtils_update_matrix();
 }
 
 void pxlBlckUtils_draw_vertical_bar_no_update(uint8_t x, uint32_t color)
 {
-  // if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-  //  PXLBLCK_INSTANCE->setPassThruColor(color);
-
   for (uint16_t i = 0; i < PXLBLCK_MATRIX_HEIGHT; i++)
   {
-    //pxlBlckUtils_draw_pixel(0, i, pxlBlckUtils_convert_color_values_to_32bit(anim_red_on, anim_green_on, anim_blue_on));
-    //PXLBLCK_INSTANCE->drawPixel(x, i, color);
-    pxlBlckUtils_draw_pixel(0, i, color);
+    pxlBlckUtils_draw_pixel(x, i, color);
   }
 }
 
