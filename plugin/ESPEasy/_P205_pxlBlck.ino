@@ -2831,6 +2831,7 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
           boolean mirrored = pxlBlckUtils_parseString(string, 3).toInt() == 1; //Second parameter: Mirrors the display of the values on the vertical axis
           boolean firstBarFilled = pxlBlckUtils_parseString(string, 4).toInt() == 1; //Third parameter: Controls that the first bar graph will displayed in a "filled-way"
           uint8_t displayDirection = pxlBlckUtils_parseString(string, 5).toInt() > 1 ? BAR_GRAPH_DIRECTION_LEFT_TO_RIGHT_ID : pxlBlckUtils_parseString(string, 5).toInt(); //Fourth parameter: Defines the start/direction of the bargraph. Currently the following settings are available: 0=bottom->top; 1=left->right
+          uint8_t directOutput = pxlBlckUtils_parseString(string, 6).toInt() == 1;
 
           int16_t barGraphValues[MAX_BAR_GRAPH_HANDS] = {0}; //This holds the values of the bargraphs that shall be displayed
           uint8_t r[MAX_BAR_GRAPH_HANDS] = {0};
@@ -2845,21 +2846,33 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
           log = F("   - displayDuration: ");
           log += displayDuration;
           addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   - mirrored: ");
+          log += mirrored;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   - firstBarFilled: ");
+          log += firstBarFilled;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   - displayDirection: ");
+          log += displayDirection;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   - directOutput: ");
+          log += directOutput;
+          addLog(LOG_LEVEL_DEBUG, log);
 
           pxlBlckUtils_clear_matrix();
 
           //read the values from the received parameters and put them into the correct arrays
           for ( uint8_t i = 0; i < MAX_BAR_GRAPH_HANDS; i++)
           {
-            r[i] = pxlBlckUtils_parseString(string, 7 + (i * 4)).toInt();
-            g[i] = pxlBlckUtils_parseString(string, 8 + (i * 4)).toInt();
-            b[i] = pxlBlckUtils_parseString(string, 9 + (i * 4)).toInt();
+            r[i] = pxlBlckUtils_parseString(string, 8 + (i * 4)).toInt();
+            g[i] = pxlBlckUtils_parseString(string, 9 + (i * 4)).toInt();
+            b[i] = pxlBlckUtils_parseString(string, 10 + (i * 4)).toInt();
 
-            if (r[i] == 0 && g[i] == 0 && b[i] == 0) //if no color values are received we can stop here all future iterations here
+            if (r[i] == 0 && g[i] == 0 && b[i] == 0) //if no color values are received we can stop all future iterations here
               break;
 
             //scale the received percent value to the size of the matrix height. This also depends on the setting of the mirror-flag
-            barGraphValues[i] = mirrored ? map(pxlBlckUtils_parseString(string, 6 + (i * 4)).toInt(), 100, 0, 0, widthOrHeight) : map(pxlBlckUtils_parseString(string, 6 + (i * 4)).toInt(), 0, 100, 0, widthOrHeight);
+            barGraphValues[i] = mirrored ? map(pxlBlckUtils_parseString(string, 7 + (i * 4)).toInt(), 100, 0, 0, widthOrHeight) : map(pxlBlckUtils_parseString(string, 6 + (i * 4)).toInt(), 0, 100, 0, widthOrHeight);
 
             //limit the values to the max possible values. bottom value limitation is handled by variable type definition(no negative values possible).
             if (barGraphValues[i] > BAR_GRAPH_HANDS_MAX_VALUE)
@@ -2888,21 +2901,24 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
             //this flag checks if in the actual iteration a color value was written to the actual row
             boolean pixelColored = false;
 
-            //this is done to show an animation of a white pixel that wipes through the whole matrix height.
-            if (displayDirection == BAR_GRAPH_DIRECTION_BOTTOM_TO_TOP_ID)
-              pxlBlckUtils_draw_horizontal_bar(j, pxlBlckUtils_convert_color_values_to_32bit(
+            if (!directOutput)
+            {
+              //this is done to show an animation of a white pixel that wipes through the whole matrix height.
+              if (displayDirection == BAR_GRAPH_DIRECTION_BOTTOM_TO_TOP_ID)
+                pxlBlckUtils_draw_horizontal_bar(j, pxlBlckUtils_convert_color_values_to_32bit(
+                                                   BAR_GRAPH_WIPE_PIXEL_COLOR_RED,
+                                                   BAR_GRAPH_WIPE_PIXEL_COLOR_GREEN,
+                                                   BAR_GRAPH_WIPE_PIXEL_COLOR_BLUE
+                                                 ));
+              else
+                pxlBlckUtils_draw_vertical_bar(j, pxlBlckUtils_convert_color_values_to_32bit(
                                                  BAR_GRAPH_WIPE_PIXEL_COLOR_RED,
                                                  BAR_GRAPH_WIPE_PIXEL_COLOR_GREEN,
                                                  BAR_GRAPH_WIPE_PIXEL_COLOR_BLUE
                                                ));
-            else
-              pxlBlckUtils_draw_vertical_bar(j, pxlBlckUtils_convert_color_values_to_32bit(
-                                               BAR_GRAPH_WIPE_PIXEL_COLOR_RED,
-                                               BAR_GRAPH_WIPE_PIXEL_COLOR_GREEN,
-                                               BAR_GRAPH_WIPE_PIXEL_COLOR_BLUE
-                                             ));
 
-            delay(BAR_GRAPH_ANIMATION_DELAY); //give the white "wipe"-pixel some time to be visible
+              delay(BAR_GRAPH_ANIMATION_DELAY); //give the white "wipe"-pixel some time to be visible
+            }
 
             //now iterate through all possible set bar values limited by MAX_BAR_GRAPH_HANDS
             for ( uint8_t i = 0; i < MAX_BAR_GRAPH_HANDS; i++)
@@ -2954,7 +2970,6 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
       {
         if (PXLBLCK_INSTANCE != NULL)
         {
-          delete PXLBLCK_INSTANCE;
           PXLBLCK_INSTANCE = NULL;
         }
         break;
@@ -3010,16 +3025,18 @@ void Plugin_205_update()
       {
 
         //handle actual set up led type and change colors if needed
+        /*
         uint32_t colorOneTemp = pxlBlckUtils_exchange_color_values_based_on_led_type(Plugin_205_colorOne);
         uint32_t colorTwoTemp = pxlBlckUtils_exchange_color_values_based_on_led_type(Plugin_205_colorTwo);
         uint32_t colorThreeTemp = pxlBlckUtils_exchange_color_values_based_on_led_type(Plugin_205_colorThree);
         uint32_t colorFourTemp = pxlBlckUtils_exchange_color_values_based_on_led_type(Plugin_205_colorFour);
+        */
 
         //handle actual set up brightness settings and merge them to the output color
-        colorOneTemp = pxlBlckUtils_add_brightness_to_color(Plugin_205_displayBrightness, Plugin_205_minimalBrightness, colorOneTemp);
-        colorTwoTemp = pxlBlckUtils_add_brightness_to_color(Plugin_205_displayBrightness, Plugin_205_minimalBrightness, colorTwoTemp);
-        colorThreeTemp = pxlBlckUtils_add_brightness_to_color(Plugin_205_displayBrightness, Plugin_205_minimalBrightness, colorThreeTemp);
-        colorFourTemp = pxlBlckUtils_add_brightness_to_color(Plugin_205_displayBrightness, Plugin_205_minimalBrightness, colorFourTemp);
+        uint32_t colorOneTemp = pxlBlckUtils_add_brightness_to_color(Plugin_205_displayBrightness, Plugin_205_minimalBrightness, colorOneTemp);
+        uint32_t colorTwoTemp = pxlBlckUtils_add_brightness_to_color(Plugin_205_displayBrightness, Plugin_205_minimalBrightness, colorTwoTemp);
+        uint32_t colorThreeTemp = pxlBlckUtils_add_brightness_to_color(Plugin_205_displayBrightness, Plugin_205_minimalBrightness, colorThreeTemp);
+        uint32_t colorFourTemp = pxlBlckUtils_add_brightness_to_color(Plugin_205_displayBrightness, Plugin_205_minimalBrightness, colorFourTemp);
 
         switch (Plugin_205_selectedDial)
         {
@@ -3199,14 +3216,8 @@ void Plugin_205_wandering_pixel_screensaver(uint32_t color, uint32_t backgroundC
 
   for (float i = 0.0; i < brightness; i += 0.01)
   {
-    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-    {
-      pxlBlckUtils_draw_pixel(x, y, pxlBlckUtils_convert_color_values_to_32bit(i * red, i * green, i * blue));
-    } else
-    {
-      pxlBlckUtils_draw_pixel(x, y, PXLBLCK_INSTANCE->Color(i * red, i * green, i * blue));
-    }
-
+    //pxlBlckUtils_draw_pixel(x, y, pxlBlckUtils_convert_color_values_to_32bit(i * red, i * green, i * blue));
+    pxlBlckUtils_draw_pixel(x, y, pxlBlckUtils_convert_color_values_to_32bit(i * red, i * green, i * blue));
     pxlBlckUtils_update_matrix();
     delay(5);
   }
@@ -3268,13 +3279,8 @@ void Plugin_205_show_rand_pixels_screensaver()
 
   for (float i = 0.0; i < brightness; i += 0.01)
   {
-    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-    {
-      pxlBlckUtils_draw_pixel(x, y, pxlBlckUtils_convert_color_values_to_32bit(i * red, i * green, i * blue));
-    } else
-    {
-      pxlBlckUtils_draw_pixel(x, y, PXLBLCK_INSTANCE->Color(i * red, i * green, i * blue));
-    }
+    //pxlBlckUtils_draw_pixel(x, y, pxlBlckUtils_convert_color_values_to_32bit(i * red, i * green, i * blue));
+    pxlBlckUtils_draw_pixel(x, y, pxlBlckUtils_convert_color_values_to_32bit(i * red, i * green, i * blue));
     pxlBlckUtils_update_matrix();
     delay(3);
   }
@@ -3407,18 +3413,6 @@ void Plugin_205_write_prepared_pixels_to_display(uint8_t pixelsToShow[][PLUGIN_2
 
 void Plugin_205_show_dial_hourNumberAndMinutePoints(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t minuteColor, uint32_t bgColor, boolean leadingZerosEnabled)
 {
-  /*
-    String hoursOut = String(hours);
-    String minutesOut = String(minutes);
-
-    if (hours < 10) {
-      hoursOut = "0" + String(hours);
-    }
-
-    if (minutes < 10) {
-      minutesOut = "0" + String(minutes);
-    }
-  */
   pxlBlckUtils_fill_matrix(bgColor);
 
   //the following part should set the pixels within in a specific area
@@ -6793,9 +6787,10 @@ void pxlBlckUtils_check_multi_colored_icon()
                     uint8_t g = PXLBLCK_ICON_STRUCT.logo[1][row][column];
                     uint8_t b = PXLBLCK_ICON_STRUCT.logo[2][row][column];
 
-                    pxlBlckUtils_exchange_color_values_based_on_led_type(&r, &g, &b);
+                    //pxlBlckUtils_exchange_color_values_based_on_led_type(&r, &g, &b);
 
-                    pxlBlckUtils_draw_pixel(column, row, pxlBlckUtils_convert_color_values_to_32bit(brightness * r, brightness * g, brightness * b));
+                    //pxlBlckUtils_draw_pixel(column, row, pxlBlckUtils_convert_color_values_to_32bit(brightness * r, brightness * g, brightness * b));
+                    pxlBlckUtils_draw_pixel(column, row, brightness * r, brightness * g, brightness * b);
                   }
                 }
 
@@ -6835,9 +6830,10 @@ void pxlBlckUtils_check_multi_colored_icon()
                       uint8_t g = PXLBLCK_ICON_STRUCT.logo[1][row][column];
                       uint8_t b = PXLBLCK_ICON_STRUCT.logo[2][row][column];
 
-                      pxlBlckUtils_exchange_color_values_based_on_led_type(&r, &g, &b);
+                      //pxlBlckUtils_exchange_color_values_based_on_led_type(&r, &g, &b);
 
-                      pxlBlckUtils_draw_pixel(column, row, pxlBlckUtils_convert_color_values_to_32bit(i * r, i * g, i * b));
+                      //pxlBlckUtils_draw_pixel(column, row, pxlBlckUtils_convert_color_values_to_32bit(i * r, i * g, i * b));
+                      pxlBlckUtils_draw_pixel(column, row, i * r, i * g, i * b);
                     }
                   }
 
@@ -6882,9 +6878,10 @@ void pxlBlckUtils_check_multi_colored_icon()
                       uint8_t g = PXLBLCK_ICON_STRUCT.logo[1][row][column];
                       uint8_t b = PXLBLCK_ICON_STRUCT.logo[2][row][column];
 
-                      pxlBlckUtils_exchange_color_values_based_on_led_type(&r, &g, &b);
+                      //pxlBlckUtils_exchange_color_values_based_on_led_type(&r, &g, &b);
 
-                      pxlBlckUtils_draw_pixel(column + x, row, pxlBlckUtils_convert_color_values_to_32bit(brightness * r, brightness * g, brightness * b));
+                      //pxlBlckUtils_draw_pixel(column + x, row, pxlBlckUtils_convert_color_values_to_32bit(brightness * r, brightness * g, brightness * b));
+                      pxlBlckUtils_draw_pixel(column + x, row, brightness * r, brightness * g, brightness * b);
                     }
                   }
 
@@ -6977,9 +6974,10 @@ void pxlBlckUtils_check_multi_colored_icon()
                       uint8_t g = PXLBLCK_ICON_STRUCT.logo[1][row][column];
                       uint8_t b = PXLBLCK_ICON_STRUCT.logo[2][row][column];
 
-                      pxlBlckUtils_exchange_color_values_based_on_led_type(&r, &g, &b);
+                      //pxlBlckUtils_exchange_color_values_based_on_led_type(&r, &g, &b);
 
-                      pxlBlckUtils_draw_pixel(column, row, pxlBlckUtils_convert_color_values_to_32bit(i * r, i * g, i * b));
+                      //pxlBlckUtils_draw_pixel(column, row, pxlBlckUtils_convert_color_values_to_32bit(i * r, i * g, i * b));
+                      pxlBlckUtils_draw_pixel(column, row, i * r, i * g, i * b);
                     }
                   }
 
@@ -7024,9 +7022,10 @@ void pxlBlckUtils_check_multi_colored_icon()
                       uint8_t g = PXLBLCK_ICON_STRUCT.logo[1][row][column];
                       uint8_t b = PXLBLCK_ICON_STRUCT.logo[2][row][column];
 
-                      pxlBlckUtils_exchange_color_values_based_on_led_type(&r, &g, &b);
+                      //pxlBlckUtils_exchange_color_values_based_on_led_type(&r, &g, &b);
 
-                      pxlBlckUtils_draw_pixel(column + x, row, pxlBlckUtils_convert_color_values_to_32bit(brightness * r, brightness * g, brightness * b));
+                      //pxlBlckUtils_draw_pixel(column + x, row, pxlBlckUtils_convert_color_values_to_32bit(brightness * r, brightness * g, brightness * b));
+                      pxlBlckUtils_draw_pixel(column + x, row, brightness * r, brightness * g, brightness * b);
                     }
                   }
 
@@ -7084,11 +7083,127 @@ void pxlBlckUtils_check_multi_colored_icon()
   }
 }
 
-// == icon handling == end ===========================================================================================================================
+// == Icon handling == end ===========================================================================================================================
 
-// == Matrix helper functions == start ===============================================================================================================
+// == Matrix helper functions and color handling == start ============================================================================================
 
 
+uint32_t pxlBlckUtils_add_brightness_to_color(uint8_t brightness, uint8_t minimalBrightness, uint32_t color)
+{
+  float brightnessFactor = 0;
+  if (brightness >= 1)
+    brightnessFactor = (float)brightness / PXLBLCK_MAX_SETABLE_BRIGHTNESS;
+  else //Plugin_203_displayBrightness is set to zero so we will use Plugin_203_minimalBrightness-value instead
+    brightnessFactor = (float)minimalBrightness / 255.0;
+
+  uint8_t red = pxlBlckUtils_return_red_from_config(color) * brightnessFactor;
+  uint8_t green = pxlBlckUtils_return_green_from_config(color) * brightnessFactor;
+  uint8_t blue = pxlBlckUtils_return_blue_from_config(color) * brightnessFactor;
+
+  uint8_t warmWhite = 0;
+  if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW)
+  {
+    warmWhite = pxlBlckUtils_return_warmwhite_from_config(color) * brightnessFactor;
+  }
+
+  return pxlBlckUtils_return_correct_color_value(red, green, blue, warmWhite);
+
+}
+
+uint32_t pxlBlckUtils_return_correct_color_value(uint8_t red, uint8_t green, uint8_t blue)
+{
+  return pxlBlckUtils_return_correct_color_value(red, green, blue, 0);
+}
+
+uint32_t pxlBlckUtils_return_correct_color_value(uint8_t red, uint8_t green, uint8_t blue, uint8_t warmWhite)
+{
+  /*
+    if (!PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+    {
+    if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW)
+    {
+      return pxlBlckUtils_convert_color_values_to_32bit(red, green, blue, warmWhite);
+    } else
+    {
+      return PXLBLCK_INSTANCE->Color(red, green, blue);
+    }
+    } else
+    {*/
+  if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW)
+  {
+    return pxlBlckUtils_convert_color_values_to_32bit(red, green, blue, warmWhite);
+  } else
+  {
+    return pxlBlckUtils_convert_color_values_to_32bit(red, green, blue);
+  }
+  //}
+}
+
+uint32_t pxlBlckUtils_convert_color_values_to_32bit(uint8_t r, uint8_t g, uint8_t b)
+{
+  //Here we convert the single rgb values to one 24bit value like it is done with the neopixel color information. In fact the neomatrix color information only needs 16 bit.
+  //Problem: It is not possible to convert back from the 16bit value to every single rgb value because the conversion 24->16bit brings an accuracy loss.
+  //Solution: color value is stored in the confguration as a 24bit value and only converted to a 16bit value for the runtime variable
+
+  //Magic conversion of single rgb values to 24bit color value
+  return (uint32_t)(((uint32_t)r << 16) | ((uint32_t)g << 8) | b);
+}
+
+uint32_t pxlBlckUtils_convert_color_values_to_32bit(uint8_t r, uint8_t g, uint8_t b, uint8_t ww)
+{
+  //Here we convert the single rgb values to one 24bit value like it is done with the neopixel color information. In fact the neomatrix color information only needs 16 bit.
+  //Problem: It is not possible to convert back from the 16bit value to every single rgb value because the conversion 24->16bit brings an accuracy loss.
+  //Solution: color value is stored in the confguration as a 24bit value and only converted to a 16bit value for the runtime variable
+
+  //Magic conversion of single rgb values to 24bit color value
+  return (((uint32_t)ww << 24) | ((uint32_t)r << 16) | ((uint32_t)g << 8) | b);
+}
+
+uint8_t pxlBlckUtils_return_red_from_config(uint32_t encodedColor)
+{
+  return (uint8_t)(encodedColor >> 16);
+}
+
+uint8_t pxlBlckUtils_return_green_from_config(uint32_t encodedColor)
+{
+  return (uint8_t)(encodedColor >> 8);
+}
+
+uint8_t pxlBlckUtils_return_blue_from_config(uint32_t encodedColor)
+{
+  return (uint8_t)(encodedColor >> 0);
+}
+
+uint8_t pxlBlckUtils_return_warmwhite_from_config(uint32_t encodedColor)
+{
+  return (uint8_t)(encodedColor >> 24);
+}
+
+void pxlBlckUtils_exchange_color_values_based_on_led_type(uint8_t *redValue, uint8_t *greenValue, uint8_t *blueValue)
+{
+  //This function helps to exchange the values of "redValue", "greenValue" or blueValue. This is needed because in case of (for example) an "RGB"-LedType an exchange of the red and green values is needed
+  //because the .Color function which is used to convert the single RGB values to one color-value expects an GRB-sequence.
+  if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW || PXLBLCK_LED_COLOR_ORDER == NEO_RGB)
+  {
+    uint8_t tempColorValue = *redValue;
+    *redValue = *greenValue;
+    *greenValue = tempColorValue;
+  }
+}
+
+uint32_t pxlBlckUtils_exchange_color_values_based_on_led_type(uint32_t colorValue)
+{
+  //This function helps to exchange the color values based on the color order of the set up led type
+
+  uint8_t red = pxlBlckUtils_return_red_from_config(colorValue);
+  uint8_t green = pxlBlckUtils_return_green_from_config(colorValue);
+  uint8_t blue = pxlBlckUtils_return_blue_from_config(colorValue);
+  uint8_t warmWhite = pxlBlckUtils_return_warmwhite_from_config(colorValue);
+
+  pxlBlckUtils_exchange_color_values_based_on_led_type(&red, &green, &blue);
+
+  return pxlBlckUtils_convert_color_values_to_32bit(red, green, blue, warmWhite);
+}
 
 void pxlBlckUtils_draw_rectangle(uint8_t xPosStart, uint8_t yPosStart, uint8_t width, uint8_t height, uint32_t color)
 {
@@ -7130,11 +7245,16 @@ void pxlBlckUtils_clear_matrix()
   pxlBlckUtils_fill_matrix(0);
 }
 
+void pxlBlckUtils_draw_pixel(uint8_t x, uint8_t y, uint8_t r, uint8_t g, uint8_t b)
+{
+  pxlBlckUtils_draw_pixel(x, y, pxlBlckUtils_convert_color_values_to_32bit(r, g, b));
+}
+
 void pxlBlckUtils_draw_pixel(uint8_t x, uint8_t y, uint32_t color)
 {
   if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
     PXLBLCK_INSTANCE->setPassThruColor(color);
-  PXLBLCK_INSTANCE->drawPixel(x, y, color);
+  PXLBLCK_INSTANCE->drawPixel(x, y, pxlBlckUtils_exchange_color_values_based_on_led_type(color));
 }
 
 void pxlBlckUtils_draw_horizontal_bar(uint8_t y, uint32_t color)
@@ -7145,13 +7265,14 @@ void pxlBlckUtils_draw_horizontal_bar(uint8_t y, uint32_t color)
 
 void pxlBlckUtils_draw_horizontal_bar_no_update(uint8_t y, uint32_t color)
 {
-  if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-    PXLBLCK_INSTANCE->setPassThruColor(color);
+  //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+  //  PXLBLCK_INSTANCE->setPassThruColor(color);
 
   for (uint16_t i = 0; i < PXLBLCK_MATRIX_WIDTH; i++)
   {
     //pxlBlckUtils_draw_pixel(0, i, pxlBlckUtils_convert_color_values_to_32bit(anim_red_on, anim_green_on, anim_blue_on));
-    PXLBLCK_INSTANCE->drawPixel(i, y, color);
+    //PXLBLCK_INSTANCE->drawPixel(i, y, color);
+    pxlBlckUtils_draw_pixel(0, i, color);
   }
 }
 
@@ -7163,151 +7284,18 @@ void pxlBlckUtils_draw_vertical_bar(uint8_t x, uint32_t color)
 
 void pxlBlckUtils_draw_vertical_bar_no_update(uint8_t x, uint32_t color)
 {
-  if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-    PXLBLCK_INSTANCE->setPassThruColor(color);
+  // if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+  //  PXLBLCK_INSTANCE->setPassThruColor(color);
 
   for (uint16_t i = 0; i < PXLBLCK_MATRIX_HEIGHT; i++)
   {
     //pxlBlckUtils_draw_pixel(0, i, pxlBlckUtils_convert_color_values_to_32bit(anim_red_on, anim_green_on, anim_blue_on));
-    PXLBLCK_INSTANCE->drawPixel(x, i, color);
+    //PXLBLCK_INSTANCE->drawPixel(x, i, color);
+    pxlBlckUtils_draw_pixel(0, i, color);
   }
 }
 
-// == Matrix helper functions == end ===============================================================================================================
-
-/*
-  void pxlBlckUtils_save_color_values_to_runtime_variables(uint8_t r, uint8_t g, uint8_t b)
-  {
-  //this function is used by the wordclock matrix plugin
-  float brightness = (float)Plugin_205_displayBrightness / PXLBLCK_MAX_SETABLE_BRIGHTNESS;
-  if (!PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-  {
-    //runtime color-variable gets the 16bit value
-    PXLBLCK_DISPLAY_COLOR = PXLBLCK_INSTANCE->Color(brightness * r, brightness * g, brightness * b);
-
-              Plugin_205_colorOne = PXLBLCK_INSTANCE->Color(brightness * r, brightness * g, brightness * b);
-  } else
-  {
-    PXLBLCK_DISPLAY_COLOR = pxlBlckUtils_convert_color_values_to_32bit(brightness * r, brightness * g, brightness * b);
-  }
-
-  String log = F(PXLBLCK_DEVICE_NAME);
-  addLog(LOG_LEVEL_INFO, log);
-  log = F("   -PXLBLCK_DISPLAY_COLOR: ");
-  log += PXLBLCK_DISPLAY_COLOR;
-  addLog(LOG_LEVEL_INFO, log);
-  }
-*/
-
-/*
-  void pxlBlckUtils_save_color_values_to_runtime_variables(
-  uint8_t hr_r, uint8_t hr_g, uint8_t hr_b,
-  uint8_t mn_r, uint8_t mn_g, uint8_t mn_b,
-  uint8_t bg_r, uint8_t bg_g, uint8_t bg_b)
-  {
-  pxlBlckUtils_save_color_values_to_runtime_variables(
-    hr_r,  hr_g,  hr_b,
-    mn_r,  mn_g,  mn_b,
-    bg_r,  bg_g,  bg_b,
-    0,  0,  0);
-  }
-*/
-/*
-  void pxlBlckUtils_save_color_values_to_runtime_variables(
-  uint8_t colorOneR, uint8_t colorOneG, uint8_t colorOneB,
-  uint8_t colorTwoR, uint8_t colorTwoG, uint8_t colorTwoB,
-  uint8_t colorThreeR, uint8_t colorThreeG, uint8_t colorThreeB,
-  uint8_t colorFourR, uint8_t colorFourG, uint8_t colorFourB)
-  {
-
-  float brightness = 0;
-
-  if (Plugin_205_displayBrightness > 0)
-  {
-    brightness = (float)Plugin_205_displayBrightness / PXLBLCK_MAX_SETABLE_BRIGHTNESS;
-
-  } else //pxlBlckUtils_displayBrightness is set to zero so we will use pxlBlckUtils_minimalBrightness-value instead
-  {
-    brightness = (float)PXLBLCK_MINIMAL_BRIGHTNESS / 255.0;
-  }
-
-  if (!PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-  {
-    Plugin_205_colorOne = PXLBLCK_INSTANCE->Color(brightness * colorOneR, brightness * colorOneG, brightness * colorOneB);
-    Plugin_205_colorTwo = PXLBLCK_INSTANCE->Color(brightness * colorTwoR, brightness * colorTwoG, brightness * colorTwoB);
-    Plugin_205_colorThree = PXLBLCK_INSTANCE->Color(brightness * colorThreeR, brightness * colorThreeG, brightness * colorThreeB);
-    Plugin_205_colorFour = PXLBLCK_INSTANCE->Color(brightness * colorFourR, brightness * colorFourG, brightness * colorFourB);
-
-  } else
-  {
-    Plugin_205_colorOne = pxlBlckUtils_convert_color_values_to_32bit(brightness * colorOneR, brightness * colorOneG, brightness * colorOneB);
-    Plugin_205_colorTwo = pxlBlckUtils_convert_color_values_to_32bit(brightness * colorTwoR, brightness * colorTwoG, brightness * colorTwoB);
-    Plugin_205_colorThree = pxlBlckUtils_convert_color_values_to_32bit(brightness * colorThreeR, brightness * colorThreeG, brightness * colorThreeB);
-    Plugin_205_colorFour = pxlBlckUtils_convert_color_values_to_32bit(brightness * colorFourR, brightness * colorFourG, brightness * colorFourB);
-  }
-  }
-*/
-
-
-
-
-/*
-  //this function is used by the 10x10 matrix plugin
-  //runtime color-variable gets the 16bit value
-  Plugin_205_colorOne = PXLBLCK_INSTANCE->Color(((float)Plugin_205_displayBrightness / PXLBLCK_MAX_SETABLE_BRIGHTNESS) * hr_r, ((float)Plugin_205_displayBrightness / PXLBLCK_MAX_SETABLE_BRIGHTNESS) * hr_g, ((float)Plugin_205_displayBrightness / PXLBLCK_MAX_SETABLE_BRIGHTNESS) * hr_b);
-  Plugin_205_colorTwo = PXLBLCK_INSTANCE->Color(((float)Plugin_205_displayBrightness / PXLBLCK_MAX_SETABLE_BRIGHTNESS) * mn_r, ((float)Plugin_205_displayBrightness / PXLBLCK_MAX_SETABLE_BRIGHTNESS) * mn_g, ((float)Plugin_205_displayBrightness / PXLBLCK_MAX_SETABLE_BRIGHTNESS) * mn_b);
-  Plugin_205_colorThree = PXLBLCK_INSTANCE->Color(((float)Plugin_205_displayBrightness / PXLBLCK_MAX_SETABLE_BRIGHTNESS) * hr_bg_r, ((float)Plugin_205_displayBrightness / PXLBLCK_MAX_SETABLE_BRIGHTNESS) * hr_bg_g, ((float)Plugin_205_displayBrightness / PXLBLCK_MAX_SETABLE_BRIGHTNESS) * hr_bg_b);
-
-  #ifdef PXLBLCK_DEBUG_OUTPUT
-  String log = F(PXLBLCK_DEVICE_NAME);
-  addLog(LOG_LEVEL_INFO, log);
-  log = F("   -Plugin_205_colorOne: ");
-  log += Plugin_205_colorOne;
-  addLog(LOG_LEVEL_INFO, log);
-  log = F("   -Plugin_205_colorTwo: ");
-  log += Plugin_205_colorTwo;
-  addLog(LOG_LEVEL_INFO, log);
-  log = F("   -Plugin_205_colorThree: ");
-  log += Plugin_205_colorThree;
-  addLog(LOG_LEVEL_INFO, log);
-  #endif
-*/
-
-/*
-  void pxlBlckUtils_save_color_values_to_runtime_variables(
-  uint8_t hr_r, uint8_t hr_g, uint8_t hr_b,
-  uint8_t mn_r, uint8_t mn_g, uint8_t mn_b,
-  uint8_t hr_bg_r, uint8_t hr_bg_g, uint8_t hr_bg_b,
-  uint8_t mn_bg_r, uint8_t mn_bg_g, uint8_t mn_bg_b)
-  {
-  float brightness = 0;
-  if (pxlBlckUtils_displayBrightness > 0)
-  {
-    brightness = (float)pxlBlckUtils_displayBrightness / PLUGIN_203_MAX_SETABLE_BRIGHTNESS;
-
-  } else //pxlBlckUtils_displayBrightness is set to zero so we will use pxlBlckUtils_minimalBrightness-value instead
-  {
-    brightness = (float)pxlBlckUtils_minimalBrightness / 255.0;
-  }
-  if (!pxlBlckUtils_higherColorResultionEnabled)
-  {
-    //runtime color-variable gets the 16bit value
-    pxlBlckUtils_hourColor = pxlBlckUtils_matrix->Color(brightness * hr_r, brightness * hr_g, brightness * hr_b);
-    pxlBlckUtils_minuteColor = pxlBlckUtils_matrix->Color(brightness * mn_r, brightness * mn_g, brightness * mn_b);
-    pxlBlckUtils_hourBgColor = pxlBlckUtils_matrix->Color(brightness * hr_bg_r, brightness * hr_bg_g, brightness * hr_bg_b);
-    pxlBlckUtils_minuteBgColor = pxlBlckUtils_matrix->Color(brightness * mn_bg_r, brightness * mn_bg_g, brightness * mn_bg_b);
-  } else
-  {
-    pxlBlckUtils_hourColor = pxlBlckUtils_return_high_res_color(brightness * hr_r, brightness * hr_g, brightness * hr_b);
-    pxlBlckUtils_minuteColor = pxlBlckUtils_return_high_res_color(brightness * mn_r, brightness * mn_g, brightness * mn_b);
-    pxlBlckUtils_hourBgColor = pxlBlckUtils_return_high_res_color(brightness * hr_bg_r, brightness * hr_bg_g, brightness * hr_bg_b);
-    pxlBlckUtils_minuteBgColor = pxlBlckUtils_return_high_res_color(brightness * mn_bg_r, brightness * mn_bg_g, brightness * mn_bg_b);
-  }
-  }
-
-*/
-
-
+// == Matrix helper functions and color handling == end ========================================================================================
 
 void pxlBlckUtils_update_user_vars(struct EventStruct * event, boolean enabled, uint32_t color, uint8_t brightness)
 {
@@ -7348,6 +7336,7 @@ boolean pxlBlckUtils_check_if_icon_file_exists(String desiredFile)
     }
   }
 #endif
+
 #if defined(ESP32)
   File root = SPIFFS.open("/");
   File file = root.openNextFile();
@@ -7569,145 +7558,6 @@ String pxlBlckUtils_read_file(String name)
 
 void pxlBlckUtils_show_start_animation(uint16_t delay_time)
 {
-  /*
-    pxlBlckUtils_clear_matrix();
-    for (int xAndY = 0; xAndY < (PXLBLCK_MATRIX_HEIGHT / 2); xAndY++)
-    {
-    uint8_t wheelPosition = ((float)xAndY / (float)(PXLBLCK_MATRIX_HEIGHT / 2)) * 255;
-    PXLBLCK_INSTANCE->drawRect(xAndY, xAndY, (PXLBLCK_MATRIX_HEIGHT - (xAndY * 2)), (PXLBLCK_MATRIX_HEIGHT - (xAndY * 2)), pxlBlckUtils_color_wheel(wheelPosition));
-    pxlBlckUtils_update_matrix();
-    delay(1000);
-    }
-  */
-
-  /*
-    pxlBlckUtils_clear_matrix();
-    uint8_t animationProgress = 0;
-    for (int xAndY = 0; xAndY < PXLBLCK_MATRIX_HEIGHT; xAndY++)
-    {
-      animationProgress++;
-      uint8_t wheelPosition = ((float)animationProgress / 32.0) * 255; //32.0 because this is 4*PXLBLCK_MATRIX_HEIGHT
-      PXLBLCK_INSTANCE->drawLine(xAndY, 0, xAndY, PXLBLCK_MATRIX_HEIGHT, pxlBlckUtils_color_wheel(wheelPosition));
-      pxlBlckUtils_update_matrix();
-      delay(40);
-    }
-    for (int xAndY = 0; xAndY < PXLBLCK_MATRIX_HEIGHT; xAndY++)
-    {
-      animationProgress++;
-      uint8_t wheelPosition = ((float)animationProgress / 32.0) * 255; //32.0 because this is 4*PXLBLCK_MATRIX_HEIGHT
-      PXLBLCK_INSTANCE->drawLine(0, xAndY, PXLBLCK_MATRIX_HEIGHT, xAndY, pxlBlckUtils_color_wheel(wheelPosition));
-      pxlBlckUtils_update_matrix();
-      delay(40);
-    }
-    for (int xAndY = (PXLBLCK_MATRIX_HEIGHT-1); xAndY >= 0; xAndY--)
-    {
-      animationProgress++;
-      uint8_t wheelPosition = ((float)animationProgress / 32.0) * 255; //32.0 because this is 4*PXLBLCK_MATRIX_HEIGHT
-      PXLBLCK_INSTANCE->drawLine(xAndY, 0, xAndY, PXLBLCK_MATRIX_HEIGHT, pxlBlckUtils_color_wheel(wheelPosition));
-      pxlBlckUtils_update_matrix();
-      delay(40);
-    }
-    for (int xAndY = (PXLBLCK_MATRIX_HEIGHT-1); xAndY >= 0; xAndY--)
-    {
-      animationProgress++;
-      uint8_t wheelPosition = ((float)animationProgress / 32.0) * 255; //32.0 because this is 4*PXLBLCK_MATRIX_HEIGHT
-      PXLBLCK_INSTANCE->drawLine(0, xAndY, PXLBLCK_MATRIX_HEIGHT, xAndY, pxlBlckUtils_color_wheel(wheelPosition));
-      pxlBlckUtils_update_matrix();
-      delay(40);
-    }*/
-
-  /*
-
-    pxlBlckUtils_clear_matrix();
-    uint8_t animationProgress = 0;
-    uint8_t lineCounter = 0;
-    for (int xAndY = 0; xAndY < PXLBLCK_MATRIX_HEIGHT; xAndY++)
-    {
-      uint8_t wheelPosition = ((float)animationProgress / 64.0) * 255; //32.0 because this is 4*PXLBLCK_MATRIX_HEIGHT
-      //PXLBLCK_INSTANCE->drawLine(xAndY, 0, xAndY, PXLBLCK_MATRIX_HEIGHT, pxlBlckUtils_color_wheel(wheelPosition));
-      while (true)
-      {
-
-        pxlBlckUtils_draw_pixel(xAndY, lineCounter, pxlBlckUtils_color_wheel(wheelPosition));
-        pxlBlckUtils_update_matrix();
-
-        if ((xAndY % 2) == 0)
-        {
-          if (lineCounter < (PXLBLCK_MATRIX_HEIGHT - 1))
-            lineCounter++;
-          else
-            break;
-        } else
-        {
-          if (lineCounter > 0)
-            lineCounter--;
-          else
-            break;
-        }
-
-
-        animationProgress++;
-      delay(20);
-
-      }
-    }
-      delay(2000);
-
-  */
-  /*
-          pxlBlckUtils_clear_matrix();
-          pxlBlckUtils_update_matrix();
-    uint8_t animationProgress = 0;
-    uint8_t coordinates[16][2] = {{0, 0}, {6, 6}, {0, 6}, {6, 0}, {2, 2},  {4, 2},    {2, 0}, {6, 4}, {2, 6}, {4, 0},  {4, 4}, {6, 2},   {0, 4},   {2, 4},    {4, 6}, {0, 2}  };
-
-    for (int nr = 0; nr < 16; nr++)
-    {
-    uint8_t wheelPosition = ((float)animationProgress / 16.0) * 255;
-    PXLBLCK_INSTANCE->drawRect(coordinates[nr][0], coordinates[nr][1], 2, 2, pxlBlckUtils_color_wheel(wheelPosition));
-    pxlBlckUtils_update_matrix();
-    animationProgress++;
-    delay(delay_time);
-    }
-  */
-  /*
-    pxlBlckUtils_clear_matrix();
-    pxlBlckUtils_update_matrix();
-    uint8_t animationProgress = 0;
-
-    for (int nr = 0; nr < 100; nr++)
-    {
-      uint8_t wheelPosition = ((float)animationProgress / 100) * 255;
-      pxlBlckUtils_draw_pixel(random(0, 8), random(0, 8), pxlBlckUtils_color_wheel(random(0, 255)));
-      pxlBlckUtils_update_matrix();
-      animationProgress++;
-      delay(delay_time);
-    }
-
-    pxlBlckUtils_clear_matrix();
-    for (int xAndY = 0; xAndY < PXLBLCK_MATRIX_HEIGHT; xAndY++)
-    {
-    uint8_t wheelPosition = ((float)xAndY / (float)PXLBLCK_MATRIX_HEIGHT) * 255;
-    for (float brghtns = 0.0; brghtns < 1.0; brghtns += 0.1)
-    {
-      PXLBLCK_INSTANCE->drawLine(0, xAndY, PXLBLCK_MATRIX_WIDTH - 1, xAndY, pxlBlckUtils_color_wheel(wheelPosition, brghtns));
-      pxlBlckUtils_update_matrix();
-      delay(delay_time);
-    }
-    }
-    for (int xAndY = (PXLBLCK_MATRIX_HEIGHT - 1); xAndY >= -1; xAndY--)
-    {
-    uint8_t wheelPosition = ((float)xAndY / (float)PXLBLCK_MATRIX_HEIGHT) * 255;
-    for (float brghtns = 1.0; brghtns > 0.0; brghtns -= 0.1)
-    {
-      PXLBLCK_INSTANCE->drawLine(0, xAndY, PXLBLCK_MATRIX_WIDTH - 1, xAndY, pxlBlckUtils_color_wheel(wheelPosition, brghtns));
-      pxlBlckUtils_update_matrix();
-      delay(delay_time);
-    }
-    PXLBLCK_INSTANCE->drawLine(0, xAndY, PXLBLCK_MATRIX_WIDTH - 1, xAndY, 0);
-    }
-  */
-
-
   pxlBlckUtils_clear_matrix();
   for (int xAndY = 0; xAndY < PXLBLCK_MATRIX_HEIGHT; xAndY++)
   {
@@ -7816,96 +7666,6 @@ void pxlBlckUtils_check_fakeTV()
 
 // == fakeTV == End ===============================================================================================================
 
-uint32_t pxlBlckUtils_add_brightness_to_color(uint8_t brightness, uint8_t minimalBrightness, uint32_t color)
-{
-  float brightnessFactor = 0;
-  if (brightness >= 1)
-    brightnessFactor = (float)brightness / PXLBLCK_MAX_SETABLE_BRIGHTNESS;
-  else //Plugin_203_displayBrightness is set to zero so we will use Plugin_203_minimalBrightness-value instead
-    brightnessFactor = (float)minimalBrightness / 255.0;
-
-  uint8_t red = pxlBlckUtils_return_red_from_config(color) * brightnessFactor;
-  uint8_t green = pxlBlckUtils_return_green_from_config(color) * brightnessFactor;
-  uint8_t blue = pxlBlckUtils_return_blue_from_config(color) * brightnessFactor;
-
-  uint8_t warmWhite = 0;
-  if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW)
-  {
-    warmWhite = pxlBlckUtils_return_warmwhite_from_config(color) * brightnessFactor;
-  }
-
-  return pxlBlckUtils_return_correct_color_value(red, green, blue, warmWhite);
-
-}
-
-uint32_t pxlBlckUtils_return_correct_color_value(uint8_t red, uint8_t green, uint8_t blue)
-{
-  return pxlBlckUtils_return_correct_color_value(red, green, blue, 0);
-}
-
-uint32_t pxlBlckUtils_return_correct_color_value(uint8_t red, uint8_t green, uint8_t blue, uint8_t warmWhite)
-{
-  if (!PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-  {
-    if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW)
-    {
-      return pxlBlckUtils_convert_color_values_to_32bit(red, green, blue, warmWhite);
-    } else
-    {
-      return PXLBLCK_INSTANCE->Color(red, green, blue);
-    }
-  } else
-  {
-    if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW)
-    {
-      return pxlBlckUtils_convert_color_values_to_32bit(red, green, blue, warmWhite);
-    } else
-    {
-      return pxlBlckUtils_convert_color_values_to_32bit(red, green, blue);
-    }
-  }
-}
-
-uint32_t pxlBlckUtils_convert_color_values_to_32bit(uint8_t r, uint8_t g, uint8_t b)
-{
-  //Here we convert the single rgb values to one 24bit value like it is done with the neopixel color information. In fact the neomatrix color information only needs 16 bit.
-  //Problem: It is not possible to convert back from the 16bit value to every single rgb value because the conversion 24->16bit brings an accuracy loss.
-  //Solution: color value is stored in the confguration as a 24bit value and only converted to a 16bit value for the runtime variable
-
-  //Magic conversion of single rgb values to 24bit color value
-  return (uint32_t)(((uint32_t)r << 16) | ((uint32_t)g << 8) | b);
-}
-
-uint32_t pxlBlckUtils_convert_color_values_to_32bit(uint8_t r, uint8_t g, uint8_t b, uint8_t ww)
-{
-  //Here we convert the single rgb values to one 24bit value like it is done with the neopixel color information. In fact the neomatrix color information only needs 16 bit.
-  //Problem: It is not possible to convert back from the 16bit value to every single rgb value because the conversion 24->16bit brings an accuracy loss.
-  //Solution: color value is stored in the confguration as a 24bit value and only converted to a 16bit value for the runtime variable
-
-  //Magic conversion of single rgb values to 24bit color value
-  return (((uint32_t)ww << 24) | ((uint32_t)r << 16) | ((uint32_t)g << 8) | b);
-}
-
-uint8_t pxlBlckUtils_return_red_from_config(uint32_t encodedColor)
-{
-  return (uint8_t)(encodedColor >> 16);
-}
-
-uint8_t pxlBlckUtils_return_green_from_config(uint32_t encodedColor)
-{
-  return (uint8_t)(encodedColor >> 8);
-}
-
-uint8_t pxlBlckUtils_return_blue_from_config(uint32_t encodedColor)
-{
-  return (uint8_t)(encodedColor >> 0);
-}
-
-uint8_t pxlBlckUtils_return_warmwhite_from_config(uint32_t encodedColor)
-{
-  return (uint8_t)(encodedColor >> 24);
-}
-
 // == Misc functions == start ===============================================================================================================
 
 void pxlBlckUtils_addFormSubHeaderCaution(const String & header)
@@ -7942,15 +7702,6 @@ void pxlBlckUtils_addColorPicker(const String & id, String selectedColor)
 String pxlBlckUtils_convert_32bit_to_hex_string(uint32_t inputNumber)
 {
   String actualColorInHex = String(inputNumber, HEX);
-  /*
-    if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW || PXLBLCK_LED_COLOR_ORDER == NEO_RGB)
-    {
-      uint8_t r = pxlBlckUtils_return_red_from_config(inputNumber);
-      uint8_t g = pxlBlckUtils_return_green_from_config(inputNumber);
-      uint8_t b = pxlBlckUtils_return_blue_from_config(inputNumber);
-
-      actualColorInHex = String(pxlBlckUtils_convert_color_values_to_32bit(g, r, b), HEX);
-    }*/
 
   uint8_t numberOfMissingZeros = 6 - actualColorInHex.length();
   for (uint8_t i = 0; i < numberOfMissingZeros; i++)
@@ -7959,7 +7710,6 @@ String pxlBlckUtils_convert_32bit_to_hex_string(uint32_t inputNumber)
   }
   return actualColorInHex;
 }
-
 
 String pxlBlckUtils_getFormItemString(const String & id)
 {
@@ -7989,14 +7739,7 @@ void pxlBlckUtils_select_color_values_from_color_picker_or_number_input(String h
   uint8_t oldR = pxlBlckUtils_return_red_from_config(actualColorValue);
   uint8_t oldG = pxlBlckUtils_return_green_from_config(actualColorValue);
   uint8_t oldB = pxlBlckUtils_return_blue_from_config(actualColorValue);
-  /*
-    if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW || PXLBLCK_LED_COLOR_ORDER == NEO_RGB)
-    {
-      uint8_t tempColorValue = oldR;
-      oldR = oldG;
-      oldG = tempColorValue;
-    }
-  */
+
   *newR = inputR;
   *newG = inputG;
   *newB = inputB;
@@ -8054,26 +7797,17 @@ uint32_t pxlBlckUtils_color_wheel(uint8_t wheelPos, float brightness)
   //Takes the input value whelPos and uses it as the degree on a colorWheel. Then uses the associated colors and returns them.
   if (wheelPos < 85)
   {
-    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-      return pxlBlckUtils_convert_color_values_to_32bit(brightness * (float)(wheelPos * 3), brightness * (float)(255 - wheelPos * 3), 0);
-    else
-      return PXLBLCK_INSTANCE->Color(brightness * (float)(wheelPos * 3), brightness * (float)(255 - wheelPos * 3), 0);
+    return pxlBlckUtils_convert_color_values_to_32bit(brightness * (float)(wheelPos * 3), brightness * (float)(255 - wheelPos * 3), 0);
   }
   else if (wheelPos < 170)
   {
     wheelPos -= 85;
-    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-      return pxlBlckUtils_convert_color_values_to_32bit(brightness * (float)(255 - wheelPos * 3), 0, brightness * (float)(wheelPos * 3));
-    else
-      return PXLBLCK_INSTANCE->Color(brightness * (float)(255 - wheelPos * 3), 0, brightness * (float)(wheelPos * 3));
+    return pxlBlckUtils_convert_color_values_to_32bit(brightness * (float)(255 - wheelPos * 3), 0, brightness * (float)(wheelPos * 3));
   }
   else
   {
     wheelPos -= 170;
-    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-      return pxlBlckUtils_convert_color_values_to_32bit(0, brightness * (float)(wheelPos * 3), brightness * (float)(255 - wheelPos * 3));
-    else
-      return PXLBLCK_INSTANCE->Color(0, brightness * (float)(wheelPos * 3), brightness * (float)(255 - wheelPos * 3));
+    return pxlBlckUtils_convert_color_values_to_32bit(0, brightness * (float)(wheelPos * 3), brightness * (float)(255 - wheelPos * 3));
   }
 }
 
@@ -8101,38 +7835,8 @@ uint32_t pxlBlckUtils_color_value_update(uint32_t actualStoredColorValue, int16_
     valueWarmWhite = warmWhite;
   }
 
-  //pxlBlckUtils_exchange_color_values_based_on_led_type(&valueRed, &valueGreen);
-
   return pxlBlckUtils_return_correct_color_value(valueRed, valueGreen, valueBlue, valueWarmWhite);
 }
-
-void pxlBlckUtils_exchange_color_values_based_on_led_type(uint8_t *redValue, uint8_t *greenValue, uint8_t *blueValue)
-{
-  //This function helps to exchange the values of "redValue", "greenValue" or blueValue. This is needed because in case of (for example) an "RGB"-LedType an exchange of the red and green values is needed
-  //because the .Color function which is used to convert the single RGB values to one color-value expects an GRB-sequence.
-  if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW || PXLBLCK_LED_COLOR_ORDER == NEO_RGB)
-  {
-    uint8_t tempColorValue = *redValue;
-    *redValue = *greenValue;
-    *greenValue = tempColorValue;
-  }
-}
-
-uint32_t pxlBlckUtils_exchange_color_values_based_on_led_type(uint32_t colorValue)
-{
-  //This function helps to exchange the color values based on the color order of the set up led type
-
-  uint8_t red = pxlBlckUtils_return_red_from_config(colorValue);
-  uint8_t green = pxlBlckUtils_return_green_from_config(colorValue);
-  uint8_t blue = pxlBlckUtils_return_blue_from_config(colorValue);
-  uint8_t warmWhite = pxlBlckUtils_return_warmwhite_from_config(colorValue);
-
-  pxlBlckUtils_exchange_color_values_based_on_led_type(&red, &green, &blue);
-
-  return pxlBlckUtils_convert_color_values_to_32bit(red, green, blue, warmWhite);
-}
-
-
 
 void pxlBlckUtils_test_matrix()
 {
@@ -8222,8 +7926,6 @@ void pxlBlckUtils_save_bool_values_in_byte(uint8_t *byteVariable, uint8_t boolAr
     if (boolArray[i] == 0 || boolArray[i] == 1)
     {
       *byteVariable = *byteVariable | boolArray[i] << i;
-
-      // return (uint32_t)(((uint32_t)r << 16) | ((uint32_t)g << 8) | b);
     }
     log = F("   parameter \"");
     log += String(i);
@@ -8301,8 +8003,6 @@ void pxlBlckUtils_add_color_values_to_debug_log(String colorName)
 
 void pxlBlckUtils_handle_and_save_new_color_values(String hexString, uint32_t *actualColorValue, uint8_t *newR, uint8_t *newG, uint8_t *newB, uint8_t inputR, uint8_t inputG, uint8_t inputB, uint8_t inputWW)
 {
-  //pxlBlckUtils_exchange_color_values_based_on_led_type(newR, newG);
-
   pxlBlckUtils_select_color_values_from_color_picker_or_number_input(
     hexString,
     *actualColorValue,
@@ -8310,9 +8010,6 @@ void pxlBlckUtils_handle_and_save_new_color_values(String hexString, uint32_t *a
     inputR,
     inputG,
     inputB);
-
-  //PXLBLCK_COLOR_PERMANENT_STORAGE(0) = pxlBlckUtils_color_value_update(PXLBLCK_COLOR_PERMANENT_STORAGE(0), colorRed, colorGreen, colorBlue, colorWarmWhite);
-  //Plugin_205_colorOne = PXLBLCK_COLOR_PERMANENT_STORAGE(0);
 
   *actualColorValue = pxlBlckUtils_convert_color_values_to_32bit(*newR, *newG, *newB, inputWW);
 }
