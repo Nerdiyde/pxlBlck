@@ -127,7 +127,6 @@
 #define PXLBLCK_COMMAND_COLOR_SETTINGS "pbclr"
 #define PXLBLCK_COMMAND_RUNNING_TEXT "pbrntxt"
 #define PXLBLCK_COMMAND_SHOW_ICON "pbicon"
-#define PXLBLCK_COMMAND_FAKE_TV "pbfaketv"
 #define PXLBLCK_COMMAND_MATRIX_TEST "pbtest"
 #define PXLBLCK_COMMAND_ANIMATION "pbani"
 #define PXLBLCK_COMMAND_SET_COLOR_BY_WHEEL "pbclrwhl"
@@ -767,14 +766,18 @@ struct Plugin_205_iconStruct
 struct Plugin_205_fakeTvStruct
 {
   Plugin_205_fakeTvStruct() :
-    running(false), executionInterval(0), lastExecution(0), r(0), g(0), b(100), frameNumber(0), framePosition(0) {}
-  boolean running = false;
+    executionInterval(0), lastExecution(0), fadeTime(0), startTime(0), rOld(0), gOld(0), bOld(0), rNew(0), gNew(0), bNew(0), frameNumber(13000), framePosition(0) {}
   long unsigned executionInterval = 0;
   long unsigned lastExecution = 0;
-  uint8_t r = 0;
-  uint8_t g = 0;
-  uint8_t b = 0;
-  uint32_t frameNumber = 0;
+  uint32_t fadeTime = 0;
+  uint32_t startTime = 0;
+  uint16_t rOld = 0;
+  uint16_t gOld = 0;
+  uint16_t bOld = 0;
+  uint16_t rNew = 0;
+  uint16_t gNew = 0;
+  uint16_t bNew = 0;
+  uint32_t frameNumber = 13000; //total number of frame data in pxlBlckUtils_fakeTVcolor (divided by two since there are high and low byte in this table)
   uint32_t framePosition = 0;
 } Plugin_205_fakeTV;
 
@@ -1178,7 +1181,7 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
             Plugin_205_colorOneName = F(PXLBLCK_WEBSERVER_FORM_COLOR_NOT_USED_VALUE);
             Plugin_205_colorTwoName = F(PXLBLCK_WEBSERVER_FORM_COLOR_NOT_USED_VALUE);
             Plugin_205_colorThreeName = F(PXLBLCK_WEBSERVER_FORM_COLOR_NOT_USED_VALUE);
-            Plugin_205_colorFourName = F("Background");
+            Plugin_205_colorFourName = F(PXLBLCK_WEBSERVER_FORM_COLOR_NOT_USED_VALUE);
             break;
           case PXLBLCK_DIAL_NAME_FIBONACCI_CLOCK_ID_INT:
             Plugin_205_colorOneName = F("Hour");
@@ -2398,13 +2401,6 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
           }
 
           success = true;
-        } else if (command == F(PXLBLCK_COMMAND_FAKE_TV))
-        {
-
-          uint8_t state = param1.toInt();
-          pxlBlckUtils_switch_fakeTV_onOff(state);
-
-          success = true;
         } else if (command == F(PXLBLCK_COMMAND_MATRIX_TEST))
         {
           pxlBlckUtils_test_matrix();
@@ -2900,19 +2896,20 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
             //this flag checks if in the actual iteration a color value was written to the actual row
             boolean pixelColored = false;
 
+            //in case we want to update the whole display at once we do not display the wipe-animation
             if (!directOutput)
             {
               //this is done to show an animation of a white pixel that wipes through the whole matrix height.
               if (displayDirection == BAR_GRAPH_DIRECTION_BOTTOM_TO_TOP_ID)
                 pxlBlckUtils_draw_horizontal_bar(j, BAR_GRAPH_WIPE_PIXEL_COLOR_RED,
                                                  BAR_GRAPH_WIPE_PIXEL_COLOR_GREEN,
-                                                 BAR_GRAPH_WIPE_PIXEL_COLOR_BLUE, 
+                                                 BAR_GRAPH_WIPE_PIXEL_COLOR_BLUE,
                                                  !directOutput
                                                 );
               else
                 pxlBlckUtils_draw_vertical_bar(j, BAR_GRAPH_WIPE_PIXEL_COLOR_RED,
                                                BAR_GRAPH_WIPE_PIXEL_COLOR_GREEN,
-                                               BAR_GRAPH_WIPE_PIXEL_COLOR_BLUE, 
+                                               BAR_GRAPH_WIPE_PIXEL_COLOR_BLUE,
                                                !directOutput
                                               );
 
@@ -2955,8 +2952,8 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
             else
               j--;
           }
-          
-          if(directOutput)
+
+          if (directOutput) //in case we want to have a direct update we need to call the update manually after the pixel are set
           {
             pxlBlckUtils_update_matrix();
           }
@@ -3024,7 +3021,6 @@ void Plugin_205_update()
       if (Plugin_205_displayEnabled //dials are not displayed if the display is disabled
           && PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime == 0 //time should only be displayed if there is no running text already "on the run"(this is the case if the PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime is set)
           && !PXLBLCK_ICON_STRUCT.iconPending //no update in case an icon is pending
-          && !PXLBLCK_FAKE_TV_STRUCT.running //no update in case the fake tv screensaver is running. This needs to be handled more often then once per second. So its not handled in this block.
           && Plugin_205_barGraphDisplayClearTimestamp < millis()) //no update if bar graph display duration is not passed
       {
 
@@ -3060,12 +3056,6 @@ void Plugin_205_update()
             {
               //this dial shows a wandering white pixel along the outer border of the matrix
               Plugin_205_wandering_pixel_screensaver(colorOneTemp, colorFourTemp);
-            }
-            break;
-          case PXLBLCK_DIAL_NAME_TV_SIMULATOR_ID_INT:
-            {
-              //this dial activates the tv simulator
-              //Plugin_205_wandering_pixel_screensaver(Plugin_205_colorOne);
             }
             break;
           case PXLBLCK_DIAL_NAME_WORDCLOCK_DIAL_ID_INT:
@@ -3150,6 +3140,12 @@ void Plugin_205_update()
               }
             }
             break;
+          case PXLBLCK_DIAL_NAME_TV_SIMULATOR_ID_INT:
+            {
+              //The routine for the fake tv dial is called in the section 50 times per second
+              //This is just a placeholder.
+            }
+            break;
           default:
             {
               String log = F(PXLBLCK_DEVICE_NAME);
@@ -3163,8 +3159,8 @@ void Plugin_205_update()
       } else if (!Plugin_205_displayEnabled)
       {
         //display is disabled so we clear the display
-        //pxlBlckUtils_clear_matrix();
-        //pxlBlckUtils_update_matrix();
+        pxlBlckUtils_clear_matrix();
+        pxlBlckUtils_update_matrix();
       }
 
     } else
@@ -3260,8 +3256,6 @@ void Plugin_205_wandering_pixel_screensaver(uint32_t color, uint32_t backgroundC
   }
 
   Plugin_205_screensaver_position = x * 10 + y; //we save both coordinates in one file
-
-
 }
 
 void Plugin_205_show_rand_pixels_screensaver()
@@ -3280,7 +3274,6 @@ void Plugin_205_show_rand_pixels_screensaver()
     pxlBlckUtils_update_matrix();
     delay(3);
   }
-
 }
 
 void Plugin_205_show_dial_diagonalMiniNumbers(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t minuteColor, uint32_t bgColor, boolean leadingZerosEnabled)
@@ -4382,8 +4375,1079 @@ void pxlBlckUtils_check_fireSimulation()
 }
 #endif
 
-//== Variables for fakeTV-data == Start ============================
+// == running text == start ===========================================================================================================================
 
+void pxlBlckUtils_prepare_runing_text(String text, uint32_t txtColor, uint32_t bgColor, uint16_t delayTime, uint8_t startPosition)
+{
+  //This function initates a running text with the given parameters
+
+  PXLBLCK_RNG_TXT_STRUCT.runtxtColor = txtColor;
+  PXLBLCK_RNG_TXT_STRUCT.runtxtBgColor = bgColor;
+  PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime = delayTime;
+  PXLBLCK_RNG_TXT_STRUCT.runtxtPassedDelayTime = 0;
+  PXLBLCK_RNG_TXT_STRUCT.runtxtText = text;
+
+  if (startPosition >= PXLBLCK_MATRIX_WIDTH || startPosition < 0) //if the startPosition is greater than the width of the led matrix we shift the startPosition over to the start of te left side of the led matrix. This ensures that the running text is directly visible.
+    PXLBLCK_RNG_TXT_STRUCT.runtxtPosition = PXLBLCK_MATRIX_WIDTH;
+  else
+    PXLBLCK_RNG_TXT_STRUCT.runtxtPosition = startPosition;
+
+  String log = F(PXLBLCK_DEVICE_NAME);
+  addLog(LOG_LEVEL_DEBUG, log);
+  log = F("   -Running-Text started! Text: \"");
+  log += text;
+  log += F("\"");
+  addLog(LOG_LEVEL_DEBUG, log);
+  log = F("   -PXLBLCK_RNG_TXT_STRUCT.runtxtPosition: ");
+  log += PXLBLCK_RNG_TXT_STRUCT.runtxtPosition;
+  addLog(LOG_LEVEL_DEBUG, log);
+  log = F("   -PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime: ");
+  log += PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime;
+  addLog(LOG_LEVEL_DEBUG, log);
+  log = F("   -PXLBLCK_RNG_TXT_STRUCT.runtxtBgColor: ");
+  log += PXLBLCK_RNG_TXT_STRUCT.runtxtBgColor;
+  addLog(LOG_LEVEL_DEBUG, log);
+  log = F("   -PXLBLCK_RNG_TXT_STRUCT.runtxtColor: ");
+  log += PXLBLCK_RNG_TXT_STRUCT.runtxtColor;
+  addLog(LOG_LEVEL_DEBUG, log);
+
+}
+
+void pxlBlckUtils_check_running_text()
+{
+  //This function updates the display with the actual running text if there is one initiated
+
+  if (PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime > 0) //running text will only updated if there is a delay time set(>0)
+  {
+    if (pxlBlckUtils_execute_if_interval_passed(&PXLBLCK_RNG_TXT_STRUCT.runtxtPassedDelayTime, PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime)) //interval/delay time is passed so move the running text one pixel to the left
+    {
+
+      String log = F(PXLBLCK_DEVICE_NAME);
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -Running-Text: ");
+      log += PXLBLCK_RNG_TXT_STRUCT.runtxtText;
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -PXLBLCK_RNG_TXT_STRUCT.runtxtPosition: ");
+      log += PXLBLCK_RNG_TXT_STRUCT.runtxtPosition;
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime: ");
+      log += PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime;
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -PXLBLCK_RNG_TXT_STRUCT.runtxtBgColor: ");
+      log += PXLBLCK_RNG_TXT_STRUCT.runtxtBgColor;
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -PXLBLCK_RNG_TXT_STRUCT.runtxtColor: ");
+      log += PXLBLCK_RNG_TXT_STRUCT.runtxtColor;
+      addLog(LOG_LEVEL_DEBUG, log);
+
+
+      //int border = (0 - (PXLBLCK_RNG_TXT_STRUCT.runtxtText.length() * 6)); //6 because each charcter has a width of five pixels and a "space"
+
+      if (PXLBLCK_RNG_TXT_STRUCT.runtxtPosition > (int16_t)(0 - (int16_t)(PXLBLCK_RNG_TXT_STRUCT.runtxtText.length() * 6))) //checks if right border of the running text has passed the left side of the led matrix. Multiplied 6 because each charcter has a width of five pixels and a "space"-pixel.
+      {
+        pxlBlckUtils_fill_matrix(PXLBLCK_RNG_TXT_STRUCT.runtxtBgColor);
+
+        if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+          PXLBLCK_INSTANCE->setPassThruColor(PXLBLCK_RNG_TXT_STRUCT.runtxtColor);
+        else
+          PXLBLCK_INSTANCE->setTextColor(PXLBLCK_RNG_TXT_STRUCT.runtxtColor);
+
+        PXLBLCK_INSTANCE->setTextSize(1);
+        PXLBLCK_INSTANCE->setCursor(PXLBLCK_RNG_TXT_STRUCT.runtxtPosition, 0);
+        PXLBLCK_INSTANCE->print(PXLBLCK_RNG_TXT_STRUCT.runtxtText);
+        PXLBLCK_RNG_TXT_STRUCT.runtxtPosition--;
+        pxlBlckUtils_update_matrix();
+      } else //Scrolling is finished(running text has passed the left side of the led matrix) so reset variables to end execution of running text routine
+      {
+        PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime = 0;
+        pxlBlckUtils_clear_matrix();
+        pxlBlckUtils_update_matrix();
+      }
+    }
+  }
+}
+
+// == running text == end ===========================================================================================================================
+
+// == icon handling == start ===========================================================================================================================
+
+void pxlBlckUtils_prepare_multi_colored_icon(struct EventStruct * event, uint8_t inAnimation, uint8_t outAnimation, uint16_t inDelay, uint16_t showDelay, uint16_t outDelay, uint8_t brightness, String textThatFollows, String spiffsIcon, uint8_t repetition)
+{
+  if (pxlBlckUtils_execute_if_interval_passed(&PXLBLCK_ICON_SHOWED_TIMESTAMP, PXLBLCK_ICON_COOLDOWN_TIME))
+  {
+    PXLBLCK_ICON_STRUCT.iconPending = true;
+    PXLBLCK_ICON_STRUCT.iconState = PXLBLCK_ICON_STATE_START;
+    PXLBLCK_ICON_STRUCT.inAnimation = inAnimation;
+    PXLBLCK_ICON_STRUCT.outAnimation = outAnimation;
+    PXLBLCK_ICON_STRUCT.inDelay = inDelay;
+    PXLBLCK_ICON_STRUCT.outDelay = outDelay;
+    PXLBLCK_ICON_STRUCT.showDelay = showDelay;
+    PXLBLCK_ICON_STRUCT.brightness = brightness;
+    PXLBLCK_ICON_STRUCT.showDelayTimestamp = 0;
+    PXLBLCK_ICON_STRUCT.textThatFollows = textThatFollows;
+    PXLBLCK_ICON_STRUCT.repetition = repetition;
+    PXLBLCK_ICON_STRUCT.spiffsIcon = spiffsIcon;
+
+    //First check if file exists and then try to read/load it, If icon is available its data will be copied to PXLBLCK_ICON_STRUCT.logo
+    if (!pxlBlckUtils_check_if_icon_file_exists(PXLBLCK_ICON_STRUCT.spiffsIcon) || !pxlBlckUtils_load_ppm_file_to_dynamic_array(PXLBLCK_ICON_STRUCT.spiffsIcon))
+    {
+      //deactivate icon because spiffs-file was not found or could not read
+      PXLBLCK_ICON_STRUCT.iconPending = false;
+      PXLBLCK_ICON_STRUCT.textThatFollows = "";
+
+      String log = F("pxlBlck: Icon not shown. Icon file not found.");
+      SendStatus(event->Source, log);
+
+      log = F(PXLBLCK_DEVICE_NAME);
+      addLog(LOG_LEVEL_INFO, log);
+      log = F("   -Error: Icon-file \"");
+      log += PXLBLCK_ICON_STRUCT.spiffsIcon;
+      log += F("\" does not exist");
+      addLog(LOG_LEVEL_INFO, log);
+
+      //let matrix blink five times to show that icon was not found
+      for (uint8_t i = 0; i < 5; i++)
+      {
+        pxlBlckUtils_fill_matrix(PXLBLCK_INSTANCE->Color(255, 0, 0));
+        pxlBlckUtils_update_matrix();
+        delay(250);
+        pxlBlckUtils_clear_matrix();
+        pxlBlckUtils_update_matrix();
+        delay(250);
+      }
+    } else
+    {
+
+      String log = F("pxlBlck: Icon found and loaded.");
+      SendStatus(event->Source, log);
+
+      log = F(PXLBLCK_DEVICE_NAME);
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -Icon found and loaded: ");
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -spiffsIcon: ");
+      log += PXLBLCK_ICON_STRUCT.spiffsIcon;
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -inAnimation: ");
+      log += PXLBLCK_ICON_STRUCT.inAnimation;
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -outAnimation: ");
+      log += PXLBLCK_ICON_STRUCT.outAnimation;
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -inDelay: ");
+      log += PXLBLCK_ICON_STRUCT.inDelay;
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -outDelay: ");
+      log += PXLBLCK_ICON_STRUCT.outDelay;
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -showDelay: ");
+      log += PXLBLCK_ICON_STRUCT.showDelay;
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -brightness: ");
+      log += PXLBLCK_ICON_STRUCT.brightness;
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -textThatFollows: ");
+      log += PXLBLCK_ICON_STRUCT.textThatFollows;
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -repetition: ");
+      log += PXLBLCK_ICON_STRUCT.repetition;
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -spiffsIcon: ");
+      log += PXLBLCK_ICON_STRUCT.spiffsIcon;
+      addLog(LOG_LEVEL_DEBUG, log);
+    }
+  } else
+  {
+    String log = F("pxlBlck: Icon not shown. Cool-down-time not passed.");
+    SendStatus(event->Source, log);
+
+    log = F(PXLBLCK_DEVICE_NAME);
+    addLog(LOG_LEVEL_DEBUG, log);
+    log = F("   -Icon not shown because cooldown-time is not passed yet.");
+    addLog(LOG_LEVEL_DEBUG, log);
+
+
+  }
+}
+
+void pxlBlckUtils_check_multi_colored_icon()
+{
+  if (PXLBLCK_ICON_STRUCT.iconPending)
+  {
+    switch (PXLBLCK_ICON_STRUCT.iconState)
+    {
+      case PXLBLCK_ICON_STATE_START:
+        {
+          float brightness = PXLBLCK_ICON_STRUCT.brightness / 100.0;
+
+          String log = F(PXLBLCK_DEVICE_NAME);
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   -Icon state: start");
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   -brightness: ");
+          log += String(brightness);
+          addLog(LOG_LEVEL_DEBUG, log);
+
+          switch (PXLBLCK_ICON_STRUCT.inAnimation)
+          {
+            case PXLBLCK_ICON_ANIM_INSTANTLY_ON:
+              {
+
+                pxlBlckUtils_clear_matrix();
+                for (int row = 0; row < PXLBLCK_ICON_HEIGHT; row++)
+                {
+                  for (int column = 0; column < PXLBLCK_ICON_WIDTH; column++)
+                  {
+                    uint8_t r = PXLBLCK_ICON_STRUCT.logo[0][row][column];
+                    uint8_t g = PXLBLCK_ICON_STRUCT.logo[1][row][column];
+                    uint8_t b = PXLBLCK_ICON_STRUCT.logo[2][row][column];
+
+                    //pxlBlckUtils_exchange_color_values_based_on_led_type(&r, &g, &b);
+
+                    //pxlBlckUtils_draw_pixel(column, row, pxlBlckUtils_convert_color_values_to_32bit(brightness * r, brightness * g, brightness * b));
+                    pxlBlckUtils_draw_pixel(column, row, brightness * r, brightness * g, brightness * b);
+                  }
+                }
+
+                if (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1)
+                {
+                  if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+                    PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
+                  else
+                    PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
+
+                  PXLBLCK_INSTANCE->setCursor(PXLBLCK_ICON_WIDTH + 2, 0);
+                  PXLBLCK_INSTANCE->print(PXLBLCK_ICON_STRUCT.textThatFollows);
+                }
+
+                pxlBlckUtils_update_matrix();
+
+                PXLBLCK_ICON_STRUCT.iconState = PXLBLCK_ICON_STATE_SHOWING;
+              }
+              break;
+            case PXLBLCK_ICON_ANIM_FADE_IN:
+              {
+                uint8_t inDelay = PXLBLCK_ICON_STRUCT.inDelay / (brightness / PXLBLCK_ICON_FADE_STEP_SIZE) ;
+
+                log = F("   -inDelay: ");
+                log += String(inDelay);
+                addLog(LOG_LEVEL_DEBUG, log);
+
+                pxlBlckUtils_clear_matrix();
+                for (float i = 0.0; i < brightness; i += PXLBLCK_ICON_FADE_STEP_SIZE)
+                {
+                  for (int row = 0; row < PXLBLCK_ICON_HEIGHT; row++)
+                  {
+                    for (int column = 0; column < PXLBLCK_ICON_WIDTH; column++)
+                    {
+
+                      uint8_t r = PXLBLCK_ICON_STRUCT.logo[0][row][column];
+                      uint8_t g = PXLBLCK_ICON_STRUCT.logo[1][row][column];
+                      uint8_t b = PXLBLCK_ICON_STRUCT.logo[2][row][column];
+
+                      //pxlBlckUtils_exchange_color_values_based_on_led_type(&r, &g, &b);
+
+                      //pxlBlckUtils_draw_pixel(column, row, pxlBlckUtils_convert_color_values_to_32bit(i * r, i * g, i * b));
+                      pxlBlckUtils_draw_pixel(column, row, i * r, i * g, i * b);
+                    }
+                  }
+
+
+                  if (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1)
+                  {
+                    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+                      PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(i * 255, i * 255, i * 255));
+                    else
+                      PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(i * 255, i * 255, i * 255));
+
+                    PXLBLCK_INSTANCE->setCursor(PXLBLCK_ICON_WIDTH + 2, 0);
+                    PXLBLCK_INSTANCE->print(PXLBLCK_ICON_STRUCT.textThatFollows);
+                  }
+
+                  pxlBlckUtils_update_matrix();
+                  delay(inDelay);
+                }
+
+                PXLBLCK_ICON_STRUCT.iconState = PXLBLCK_ICON_STATE_SHOWING;
+              }
+              break;
+            case PXLBLCK_ICON_ANIM_FLY_IN_FROM_RIGHT:
+              {
+                uint8_t inDelay = PXLBLCK_ICON_STRUCT.inDelay / PXLBLCK_MATRIX_WIDTH ;
+
+                log = F("   -inDelay: ");
+                log += String(inDelay);
+                addLog(LOG_LEVEL_DEBUG, log);
+
+                int8_t x = PXLBLCK_MATRIX_WIDTH;
+
+                while (x > -1)
+                {
+                  pxlBlckUtils_clear_matrix();
+                  for (int row = 0; row < PXLBLCK_ICON_HEIGHT ; row++)
+                  {
+                    for (int column = 0; column < PXLBLCK_ICON_WIDTH; column++)
+                    {
+
+                      uint8_t r = PXLBLCK_ICON_STRUCT.logo[0][row][column];
+                      uint8_t g = PXLBLCK_ICON_STRUCT.logo[1][row][column];
+                      uint8_t b = PXLBLCK_ICON_STRUCT.logo[2][row][column];
+
+                      //pxlBlckUtils_exchange_color_values_based_on_led_type(&r, &g, &b);
+
+                      //pxlBlckUtils_draw_pixel(column + x, row, pxlBlckUtils_convert_color_values_to_32bit(brightness * r, brightness * g, brightness * b));
+                      pxlBlckUtils_draw_pixel(column + x, row, brightness * r, brightness * g, brightness * b);
+                    }
+                  }
+
+                  if (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1)
+                  {
+                    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+                      PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
+                    else
+                      PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
+
+                    PXLBLCK_INSTANCE->setCursor(x + PXLBLCK_ICON_WIDTH + 2, 0);
+                    PXLBLCK_INSTANCE->print(PXLBLCK_ICON_STRUCT.textThatFollows);
+                  }
+
+                  pxlBlckUtils_update_matrix();
+                  delay(inDelay);
+                  x--;
+                }
+
+                PXLBLCK_ICON_STRUCT.iconState = PXLBLCK_ICON_STATE_SHOWING;
+              }
+              break;
+            default:
+              {
+                String log = F(PXLBLCK_DEVICE_NAME);
+                addLog(LOG_LEVEL_INFO, log);
+                log = F("   -icon-routine called with unknown inAnimation: ");
+                log += String(PXLBLCK_ICON_STRUCT.inAnimation);
+                addLog(LOG_LEVEL_INFO, log);
+              }
+              break;
+          }
+          PXLBLCK_ICON_STRUCT.showDelayTimestamp = millis(); //save timestamp of end of in-animation so the duration of the showing-state starts now
+          break;
+        }
+        break;
+
+      case PXLBLCK_ICON_STATE_SHOWING:
+        {
+          if (pxlBlckUtils_execute_if_interval_passed(&PXLBLCK_ICON_STRUCT.showDelayTimestamp, PXLBLCK_ICON_STRUCT.showDelay)) //interval/delay time is passed so move to the next icon state
+          {
+            String log = F(PXLBLCK_DEVICE_NAME);
+            addLog(LOG_LEVEL_DEBUG, log);
+            log = F("   -Icon state: showing (finished)");
+            addLog(LOG_LEVEL_DEBUG, log);
+
+            PXLBLCK_ICON_STRUCT.iconState = PXLBLCK_ICON_STATE_END;
+          }
+        }
+        break;
+
+      case PXLBLCK_ICON_STATE_END:
+        {
+          float brightness = PXLBLCK_ICON_STRUCT.brightness / 100.0;
+
+          String log = F(PXLBLCK_DEVICE_NAME);
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   -Icon state: end");
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   -brightness: ");
+          log += String(brightness);
+          addLog(LOG_LEVEL_DEBUG, log);
+
+          switch (PXLBLCK_ICON_STRUCT.outAnimation)
+          {
+            case PXLBLCK_ICON_ANIM_INSTANTLY_OFF:
+              {
+                pxlBlckUtils_clear_matrix();
+                pxlBlckUtils_update_matrix();
+              }
+              break;
+            case PXLBLCK_ICON_ANIM_FADE_OUT:
+              {
+                uint8_t outDelay = PXLBLCK_ICON_STRUCT.outDelay / (brightness / PXLBLCK_ICON_FADE_STEP_SIZE) ;
+
+                log = F("   -outDelay: ");
+                log += String(outDelay);
+                addLog(LOG_LEVEL_DEBUG, log);
+
+                pxlBlckUtils_clear_matrix();
+
+                for (float i = brightness; i > 0; i -= 0.01)
+                {
+                  for (int row = 0; row < PXLBLCK_ICON_HEIGHT; row++)
+                  {
+                    for (int column = 0; column < PXLBLCK_ICON_WIDTH; column++)
+                    {
+
+                      uint8_t r = PXLBLCK_ICON_STRUCT.logo[0][row][column];
+                      uint8_t g = PXLBLCK_ICON_STRUCT.logo[1][row][column];
+                      uint8_t b = PXLBLCK_ICON_STRUCT.logo[2][row][column];
+
+                      //pxlBlckUtils_exchange_color_values_based_on_led_type(&r, &g, &b);
+
+                      //pxlBlckUtils_draw_pixel(column, row, pxlBlckUtils_convert_color_values_to_32bit(i * r, i * g, i * b));
+                      pxlBlckUtils_draw_pixel(column, row, i * r, i * g, i * b);
+                    }
+                  }
+
+                  if (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1)
+                  {
+                    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+                      PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(i * 255, i * 255, i * 255));
+                    else
+                      PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(i * 255, i * 255, i * 255));
+
+                    PXLBLCK_INSTANCE->setCursor(PXLBLCK_ICON_WIDTH + 2, 0);
+                    PXLBLCK_INSTANCE->print(PXLBLCK_ICON_STRUCT.textThatFollows);
+                  }
+
+                  pxlBlckUtils_update_matrix();
+                  delay(outDelay);
+                }
+              }
+              break;
+            case PXLBLCK_ICON_ANIM_FLY_OUT_TO_LEFT:
+              {
+                uint8_t outDelay = PXLBLCK_ICON_STRUCT.outDelay / PXLBLCK_MATRIX_WIDTH ;
+
+                log = F("   -outDelay: ");
+                log += String(outDelay);
+                addLog(LOG_LEVEL_DEBUG, log);
+
+                Serial.println("Here1");
+
+                int8_t x = 0;
+                //if there is also a text displayed the number of steps for moving out the display-content needs to be increased depending on the number of characters of the displayed text
+                int16_t limit = (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1) ? (0 - (PXLBLCK_ICON_WIDTH + (PXLBLCK_ICON_STRUCT.textThatFollows.length() * 6) + 1)) : (0 - PXLBLCK_ICON_WIDTH);
+                while (x >= limit)
+                {
+                  pxlBlckUtils_clear_matrix();
+                  for (int row = 0; row < PXLBLCK_ICON_HEIGHT; row++)
+                  {
+                    for (int column = 0; column < PXLBLCK_ICON_WIDTH; column++)
+                    {
+
+                      uint8_t r = PXLBLCK_ICON_STRUCT.logo[0][row][column];
+                      uint8_t g = PXLBLCK_ICON_STRUCT.logo[1][row][column];
+                      uint8_t b = PXLBLCK_ICON_STRUCT.logo[2][row][column];
+
+                      //pxlBlckUtils_exchange_color_values_based_on_led_type(&r, &g, &b);
+
+                      //pxlBlckUtils_draw_pixel(column + x, row, pxlBlckUtils_convert_color_values_to_32bit(brightness * r, brightness * g, brightness * b));
+                      pxlBlckUtils_draw_pixel(column + x, row, brightness * r, brightness * g, brightness * b);
+                    }
+                  }
+
+                  if (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1)
+                  {
+                    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+                      PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
+                    else
+                      PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
+
+                    PXLBLCK_INSTANCE->setCursor(x + PXLBLCK_ICON_WIDTH + 2, 0);
+                    PXLBLCK_INSTANCE->print(PXLBLCK_ICON_STRUCT.textThatFollows);
+                  }
+
+                  pxlBlckUtils_update_matrix();
+                  delay(outDelay);
+                  x--;
+                }
+              }
+              break;
+            default:
+              {
+                String log = F(PXLBLCK_DEVICE_NAME);
+                addLog(LOG_LEVEL_INFO, log);
+                log = F("   -icon-routine called with unknown outAnimation: ");
+                log += PXLBLCK_ICON_STRUCT.outAnimation;
+                addLog(LOG_LEVEL_INFO, log);
+              }
+              break;
+          }
+
+          //in case this icon should be repeated reset the icon state and decrease the repition value
+          if (PXLBLCK_ICON_STRUCT.repetition > 0 && PXLBLCK_ICON_STRUCT.textThatFollows.length() <= 1)
+          {
+            PXLBLCK_ICON_STRUCT.iconState = PXLBLCK_ICON_STATE_START;
+            PXLBLCK_ICON_STRUCT.repetition -= 1;
+          } else
+          {
+            PXLBLCK_ICON_STRUCT.iconPending = false;
+          }
+        }
+        break;
+
+      default:
+        {
+          PXLBLCK_ICON_STRUCT.iconPending = false;
+          String log = F(PXLBLCK_DEVICE_NAME);
+          addLog(LOG_LEVEL_INFO, log);
+          log = F("   -icon-routine called with unknown iconState: ");
+          log += PXLBLCK_ICON_STRUCT.iconState;
+          addLog(LOG_LEVEL_INFO, log);
+        }
+        break;
+    }
+  }
+}
+
+// == Icon handling == end ===========================================================================================================================
+
+// == Matrix helper functions and color handling == start ============================================================================================
+
+
+uint32_t pxlBlckUtils_add_brightness_to_color(uint8_t brightness, uint8_t minimalBrightness, uint32_t color)
+{
+  float brightnessFactor = 0;
+  if (brightness >= 1)
+    brightnessFactor = (float)brightness / PXLBLCK_MAX_SETABLE_BRIGHTNESS;
+  else //Plugin_203_displayBrightness is set to zero so we will use Plugin_203_minimalBrightness-value instead
+    brightnessFactor = (float)minimalBrightness / 255.0;
+
+  uint8_t red = pxlBlckUtils_return_red_from_config(color) * brightnessFactor;
+  uint8_t green = pxlBlckUtils_return_green_from_config(color) * brightnessFactor;
+  uint8_t blue = pxlBlckUtils_return_blue_from_config(color) * brightnessFactor;
+
+  uint8_t warmWhite = 0;
+  if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW)
+  {
+    warmWhite = pxlBlckUtils_return_warmwhite_from_config(color) * brightnessFactor;
+  }
+
+  return pxlBlckUtils_return_correct_color_value(red, green, blue, warmWhite);
+}
+
+uint32_t pxlBlckUtils_return_correct_color_value(uint8_t red, uint8_t green, uint8_t blue)
+{
+  return pxlBlckUtils_return_correct_color_value(red, green, blue, 0);
+}
+
+uint32_t pxlBlckUtils_return_correct_color_value(uint8_t red, uint8_t green, uint8_t blue, uint8_t warmWhite)
+{
+  /*
+    if (!PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+    {
+    if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW)
+    {
+      return pxlBlckUtils_convert_color_values_to_32bit(red, green, blue, warmWhite);
+    } else
+    {
+      return PXLBLCK_INSTANCE->Color(red, green, blue);
+    }
+    } else
+    {*/
+  if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW)
+  {
+    return pxlBlckUtils_convert_color_values_to_32bit(red, green, blue, warmWhite);
+  } else
+  {
+    return pxlBlckUtils_convert_color_values_to_32bit(red, green, blue);
+  }
+  //}
+}
+
+uint32_t pxlBlckUtils_convert_color_values_to_32bit(uint8_t r, uint8_t g, uint8_t b)
+{
+  //Here we convert the single rgb values to one 24bit value like it is done with the neopixel color information. In fact the neomatrix color information only needs 16 bit.
+  //Problem: It is not possible to convert back from the 16bit value to every single rgb value because the conversion 24->16bit brings an accuracy loss.
+  //Solution: color value is stored in the confguration as a 24bit value and only converted to a 16bit value for the runtime variable
+
+  //Magic conversion of single rgb values to 24bit color value
+  return (uint32_t)(((uint32_t)r << 16) | ((uint32_t)g << 8) | b);
+}
+
+uint32_t pxlBlckUtils_convert_color_values_to_32bit(uint8_t r, uint8_t g, uint8_t b, uint8_t ww)
+{
+  //Here we convert the single rgb values to one 24bit value like it is done with the neopixel color information. In fact the neomatrix color information only needs 16 bit.
+  //Problem: It is not possible to convert back from the 16bit value to every single rgb value because the conversion 24->16bit brings an accuracy loss.
+  //Solution: color value is stored in the confguration as a 24bit value and only converted to a 16bit value for the runtime variable
+
+  //Magic conversion of single rgb values to 24bit color value
+  return (((uint32_t)ww << 24) | ((uint32_t)r << 16) | ((uint32_t)g << 8) | b);
+}
+
+uint8_t pxlBlckUtils_return_red_from_config(uint32_t encodedColor)
+{
+  return (uint8_t)(encodedColor >> 16);
+}
+
+uint8_t pxlBlckUtils_return_green_from_config(uint32_t encodedColor)
+{
+  return (uint8_t)(encodedColor >> 8);
+}
+
+uint8_t pxlBlckUtils_return_blue_from_config(uint32_t encodedColor)
+{
+  return (uint8_t)(encodedColor >> 0);
+}
+
+uint8_t pxlBlckUtils_return_warmwhite_from_config(uint32_t encodedColor)
+{
+  return (uint8_t)(encodedColor >> 24);
+}
+
+void pxlBlckUtils_exchange_color_values_based_on_led_type(uint8_t *redValue, uint8_t *greenValue, uint8_t *blueValue)
+{
+  //This function helps to exchange the values of "redValue", "greenValue" or blueValue. This is needed because in case of (for example) an "RGB"-LedType an exchange of the red and green values is needed
+  //because the .Color function which is used to convert the single RGB values to one color-value expects an GRB-sequence.
+  if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW || PXLBLCK_LED_COLOR_ORDER == NEO_RGB)
+  {
+    uint8_t tempColorValue = *redValue;
+    *redValue = *greenValue;
+    *greenValue = tempColorValue;
+  }
+}
+
+uint32_t pxlBlckUtils_exchange_color_values_based_on_led_type(uint32_t colorValue)
+{
+  //This function helps to exchange the color values based on the color order of the set up led type
+
+  uint8_t red = pxlBlckUtils_return_red_from_config(colorValue);
+  uint8_t green = pxlBlckUtils_return_green_from_config(colorValue);
+  uint8_t blue = pxlBlckUtils_return_blue_from_config(colorValue);
+  uint8_t warmWhite = pxlBlckUtils_return_warmwhite_from_config(colorValue);
+
+  pxlBlckUtils_exchange_color_values_based_on_led_type(&red, &green, &blue);
+
+  return pxlBlckUtils_convert_color_values_to_32bit(red, green, blue, warmWhite);
+}
+
+// == Graphic helpers here ==
+
+void pxlBlckUtils_draw_rectangle(uint8_t xPosStart, uint8_t yPosStart, uint8_t width, uint8_t height, uint32_t color)
+{
+  color = pxlBlckUtils_exchange_color_values_based_on_led_type(color);
+
+  if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+    PXLBLCK_INSTANCE->setPassThruColor(color);
+  PXLBLCK_INSTANCE->fillRect(xPosStart, yPosStart, width, height, color);
+}
+
+void pxlBlckUtils_update_matrix()
+{
+  PXLBLCK_INSTANCE->show();
+
+  String log = F(PXLBLCK_DEVICE_NAME);
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+  log = F("   -pxlBlckUtils_update_matrix executed");
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+}
+
+void pxlBlckUtils_fill_matrix(uint8_t red, uint8_t green, uint8_t blue)
+{
+  pxlBlckUtils_fill_matrix(pxlBlckUtils_convert_color_values_to_32bit(red, green, blue));
+}
+
+void pxlBlckUtils_fill_matrix(uint32_t color)
+{
+  color = pxlBlckUtils_exchange_color_values_based_on_led_type(color);
+
+  String log = F(PXLBLCK_DEVICE_NAME);
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+  log = F("   -Fill matrix: Color: ");
+  log += color;
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+
+  if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+    PXLBLCK_INSTANCE->setPassThruColor(color);
+  PXLBLCK_INSTANCE->fillScreen(color);
+}
+
+void pxlBlckUtils_clear_matrix()
+{
+  pxlBlckUtils_fill_matrix(0);
+}
+
+void pxlBlckUtils_draw_pixel(uint8_t x, uint8_t y, uint8_t r, uint8_t g, uint8_t b)
+{
+  String log = F(PXLBLCK_DEVICE_NAME);
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+  log = F("   -draw_pixel_1: r: ");
+  log += r;
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+  log = F("   -g: ");
+  log += g;
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+  log = F("   -b: ");
+  log += b;
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+  log = F("   - x: ");
+  log += x;
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+  log = F("   - y: ");
+  log += y;
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+
+  pxlBlckUtils_draw_pixel(x, y, pxlBlckUtils_convert_color_values_to_32bit(r, g, b));
+}
+
+void pxlBlckUtils_draw_pixel(uint8_t x, uint8_t y, uint32_t color)
+{
+  String log = F(PXLBLCK_DEVICE_NAME);
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+  log = F("   -draw_pixel_2: Color: ");
+  log += color;
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+  log = F("   - x: ");
+  log += x;
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+  log = F("   - y: ");
+  log += y;
+  addLog(LOG_LEVEL_DEBUG_MORE, log);
+
+  color = pxlBlckUtils_exchange_color_values_based_on_led_type(color);
+
+  if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+    PXLBLCK_INSTANCE->setPassThruColor(color);
+  PXLBLCK_INSTANCE->drawPixel(x, y, color);
+}
+
+void pxlBlckUtils_draw_horizontal_bar(uint8_t y,  uint8_t r, uint8_t g, uint8_t b, boolean update_it)
+{
+  pxlBlckUtils_draw_horizontal_bar(y, pxlBlckUtils_convert_color_values_to_32bit(r, g, b), update_it);
+}
+
+void pxlBlckUtils_draw_horizontal_bar(uint8_t y, uint32_t color, boolean update_it)
+{
+  pxlBlckUtils_draw_horizontal_bar_no_update(y, color);
+  if (update_it)
+    pxlBlckUtils_update_matrix();
+}
+
+void pxlBlckUtils_draw_horizontal_bar_no_update(uint8_t y, uint32_t color)
+{
+  for (uint16_t i = 0; i < PXLBLCK_MATRIX_WIDTH; i++)
+  {
+    pxlBlckUtils_draw_pixel(i, y, color);
+  }
+}
+
+void pxlBlckUtils_draw_vertical_bar(uint8_t y,  uint8_t r, uint8_t g, uint8_t b, boolean update_it)
+{
+  pxlBlckUtils_draw_vertical_bar(y, pxlBlckUtils_convert_color_values_to_32bit(r, g, b), update_it);
+}
+
+void pxlBlckUtils_draw_vertical_bar(uint8_t x, uint32_t color, boolean update_it)
+{
+  pxlBlckUtils_draw_vertical_bar_no_update(x, color);
+  if (update_it)
+    pxlBlckUtils_update_matrix();
+}
+
+void pxlBlckUtils_draw_vertical_bar_no_update(uint8_t x, uint32_t color)
+{
+  for (uint16_t i = 0; i < PXLBLCK_MATRIX_HEIGHT; i++)
+  {
+    pxlBlckUtils_draw_pixel(x, i, color);
+  }
+}
+
+// == Matrix helper functions and color handling == end ========================================================================================
+
+void pxlBlckUtils_update_user_vars(struct EventStruct * event, boolean enabled, uint32_t color, uint8_t brightness)
+{
+  UserVar[event->BaseVarIndex] = enabled;
+  UserVar[event->BaseVarIndex + 1] = color;
+  UserVar[event->BaseVarIndex + 2] = brightness;
+}
+
+// == Spiffs-Icon Stuff == start ===============================================================================================================
+
+boolean pxlBlckUtils_check_if_icon_file_exists(String desiredFile)
+{
+  boolean iconFound = false;
+
+#if defined(ESP8266)
+  fs::Dir dir = SPIFFS.openDir("");
+  while (dir.next())
+  {
+    String fileName = dir.fileName();
+    // String filetype = fileName.substring(fileName.indexOf("."));
+    // filetype.toLowerCase();
+
+    if (fileName.equals(desiredFile))
+    {
+      fs::File f = dir.openFile("r");
+
+      String log = F(PXLBLCK_DEVICE_NAME);
+      addLog(LOG_LEVEL_INFO, log);
+      log = F("   -Icon-file was found: ");
+      log += fileName;
+      log += F("(");
+      log += f.size();
+      log += F(" bytes)");
+      addLog(LOG_LEVEL_INFO, log);
+
+      iconFound = true;
+      break;
+    }
+  }
+#endif
+
+#if defined(ESP32)
+  File root = SPIFFS.open("/");
+  File file = root.openNextFile();
+  while (file)
+  {
+    String fileName = file.name();
+    //  String filetype = fileName.substring(fileName.indexOf("."));
+    // filetype.toLowerCase();
+
+    if (fileName.equals(desiredFile))
+    {
+      //fs::File f = dir.openFile("r");
+
+      String log = F(PXLBLCK_DEVICE_NAME);
+      addLog(LOG_LEVEL_INFO, log);
+      log = F("   -Icon-file was found: ");
+      log += fileName;
+      log += F("(");
+      log += file.size();
+      log += F(" bytes)");
+      addLog(LOG_LEVEL_INFO, log);
+
+      iconFound = true;
+      break;
+    }
+    file = root.openNextFile();
+  }
+#endif
+
+  return iconFound;
+}
+
+boolean pxlBlckUtils_load_ppm_file_to_dynamic_array(String fileName)
+{
+  String fileContent = pxlBlckUtils_read_file(fileName);
+  if (fileContent == "%ERROR%")
+  {
+    String log = F(PXLBLCK_DEVICE_NAME);
+    addLog(LOG_LEVEL_INFO, log);
+    log += F("   -Error: Failed to load icon-file");
+    addLog(LOG_LEVEL_INFO, log);
+
+    return false;
+  }
+
+  //Count lines(linebreaks) in file
+  uint16_t lineCount = 0;
+  for (uint16_t i = 0; fileContent[i]; i++)
+  {
+    if (fileContent[i] == '\n')
+      lineCount++;
+  }
+
+  //Read header and parse rest of file
+  boolean fileTypeApproved = false;
+  boolean widthAndHeightFound = false;
+  boolean maxBrightnessFound = false;
+  boolean dataValidated = false;
+  uint8_t width, height, maxBrightness = 0;
+
+  uint16_t lastFound = 0;
+  uint16_t dataPointer = 0;
+  uint8_t pixelPointer = 0;
+  String actualLine = "";
+
+  for (uint16_t i = 0; i < lineCount; i++)
+  {
+    //itterate thorugh lines of file to analyze contents
+    yield();
+    uint16_t actualFound = fileContent.indexOf("\n", lastFound);
+    actualLine = fileContent.substring(lastFound, actualFound);
+    lastFound = actualFound + 1;
+
+    if (actualLine[0] == '#' )
+    {
+      //ignore comments in file
+      continue;
+    }
+
+    if (!fileTypeApproved)
+    {
+      //First thing we have to check for is the correct Filetype: This should be "P3" or "p3"
+      actualLine.trim();
+      actualLine.toLowerCase();
+      fileTypeApproved = (actualLine == "p3");
+      if (fileTypeApproved)
+      {
+        continue; //we finish the actual iteration and jump to the next line
+      } else
+      {
+        String log = F(PXLBLCK_DEVICE_NAME);
+        addLog(LOG_LEVEL_INFO, log);
+        log += F("   -Error: Icon-file content is not p3");
+        addLog(LOG_LEVEL_INFO, log);
+        break;
+      }
+    }
+
+    if (fileTypeApproved && !widthAndHeightFound && !maxBrightnessFound)
+    {
+      //Second thing we have to check after we proved the correct fileType: Search for Width and Height which should be in the next line (after the fileType) in a .ppm file
+      uint8_t blankPosition = actualLine.indexOf(" "); //The line that contains width and height is also the only line that contains a space because this is used to seperate width and height from each other
+      if (blankPosition > 0)
+      {
+        //yeeeha we found a space so we found the line that contains width and height
+        width = actualLine.substring(0, blankPosition).toInt();
+        height = actualLine.substring(blankPosition + 1).toInt();
+
+        widthAndHeightFound = width > 0 && width <= PXLBLCK_MATRIX_WIDTH && height > 0 && height <= PXLBLCK_MATRIX_HEIGHT; //integer conversion succeded and image fits in matrix
+
+        if (widthAndHeightFound)
+        {
+          continue;
+        } else
+        {
+          String log = F(PXLBLCK_DEVICE_NAME);
+          addLog(LOG_LEVEL_INFO, log);
+          log += F("   -Error: Icon-file content doesn't fit in display");
+          addLog(LOG_LEVEL_INFO, log);
+          break;
+        }
+      }
+    }
+
+    if (fileTypeApproved && widthAndHeightFound && !maxBrightnessFound)
+    {
+      //Third thing to check(after fileType and dimensions are approved): Search for maxBrightness. This value is stored right after the line of width and height
+      actualLine.trim();
+      maxBrightnessFound = actualLine.toInt() > 0 && actualLine.toInt() <= 255;
+      if (maxBrightnessFound)
+      {
+        maxBrightness = actualLine.toInt();
+        continue;
+      } else
+      {
+        String log = F(PXLBLCK_DEVICE_NAME);
+        addLog(LOG_LEVEL_INFO, log);
+        log += F("   -Error: Icon-file max-brightness-value is missing");
+        addLog(LOG_LEVEL_INFO, log);
+        break;
+      }
+    }
+
+    if (fileTypeApproved && widthAndHeightFound && maxBrightnessFound)
+    {
+      //We checked the whole header and are ready to go to read the color values
+      actualLine.trim();
+      if (actualLine.toInt() >= 0 && actualLine.toInt() <= maxBrightness)
+      {
+        //pixelValuesGlobal[iconCounter][dataPointer / 3][pixelPointer] = actualLine.toInt();
+        //        PXLBLCK_ICON_STRUCT.logo[pixelPointer][dataPointer / PXLBLCK_MATRIX_WIDTH][dataPointer % PXLBLCK_MATRIX_WIDTH] = actualLine.toInt(); //(dataPointer / PXLBLCK_MATRIX_WIDTH)==ROW; (dataPointer % PXLBLCK_MATRIX_WIDTH)==COLUMN
+        PXLBLCK_ICON_STRUCT.logo[pixelPointer][dataPointer / width][dataPointer % width] = actualLine.toInt(); //(dataPointer / PXLBLCK_MATRIX_WIDTH)==ROW; (dataPointer % PXLBLCK_MATRIX_WIDTH)==COLUMN
+
+        if (pixelPointer < 2)
+        {
+          pixelPointer++;
+        } else
+        {
+          pixelPointer = 0;
+          dataPointer++; //we filled all color-values of the actual pixel so lets go to the next pixel
+        }
+      } else
+      {
+        //each .ppm file contains a value(maxBrightness)that represents the max possible brightness. Each pixel-Value must be lower/equal to this value.
+        String log = F(PXLBLCK_DEVICE_NAME);
+        addLog(LOG_LEVEL_INFO, log);
+        log += F("   -Error: Icon-file color value doesn't fit to max-brightness-value");
+        addLog(LOG_LEVEL_INFO, log);
+        break;
+      }
+    }
+  }
+  dataValidated = true;
+
+  return (fileTypeApproved && widthAndHeightFound && maxBrightnessFound && dataValidated);
+}
+
+String pxlBlckUtils_read_file(String name)
+{
+  //read file from SPIFFS and store it as a String variable
+  String contents;
+  fs::File file = SPIFFS.open(name.c_str(), "r");
+  if (!file)
+  {
+    String errorMessage = "Can't open '" + name + "' !\r\n";
+    Serial.println(errorMessage);
+    return "%ERROR%";
+  }
+  else
+  {
+    // this is going to get the number of bytes in the file and give us the value in an integer
+    uint16_t fileSize = file.size();
+    uint16_t chunkSize = 128;
+    //This is a character array to store a chunk of the file.
+    //We'll store 1024 characters at a time
+    char buf[chunkSize];
+    uint16_t numberOfChunks = (fileSize / chunkSize) + 1;
+
+    uint16_t remainingBytes = fileSize;
+    for (int i = 1; i <= numberOfChunks; i++)
+    {
+      memset(buf, 0, chunkSize); //oder chunkSize anstatt sizeof buf
+      if (remainingBytes - chunkSize < 0)
+      {
+        chunkSize = remainingBytes + chunkSize; //"+chunksize" to compensate the "-1" in "file.read((uint8_t *)buf, chunkSize - 1);"
+      }
+      file.read((uint8_t *)buf, chunkSize - 1);
+      remainingBytes -= chunkSize;
+      contents += String(buf);
+    }
+    file.close();
+    return contents;
+  }
+}
+
+// == Spiffs-Icon Stuff == end ===============================================================================================================
+
+// == Start-animation == start ===============================================================================================================
+
+void pxlBlckUtils_show_start_animation(uint16_t delay_time)
+{
+  pxlBlckUtils_clear_matrix();
+  for (int xAndY = 0; xAndY < PXLBLCK_MATRIX_HEIGHT; xAndY++)
+  {
+    uint8_t wheelPosition = ((float)xAndY / (float)PXLBLCK_MATRIX_HEIGHT) * 255;
+    for (float brghtns = 0.0; brghtns < 1.0000; brghtns += 0.1)
+    {
+      if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+        PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_color_wheel(wheelPosition, brghtns));
+
+      PXLBLCK_INSTANCE->drawLine(0, xAndY, PXLBLCK_MATRIX_WIDTH - 1, xAndY, pxlBlckUtils_color_wheel(wheelPosition, brghtns));
+      pxlBlckUtils_update_matrix();
+      delay(PXLBLCK_MATRIX_WIDTH * delay_time);
+    }
+  }
+  for (int xAndY = (PXLBLCK_MATRIX_HEIGHT - 1); xAndY >= -1; xAndY--)
+  {
+    uint8_t wheelPosition = ((float)xAndY / (float)PXLBLCK_MATRIX_HEIGHT) * 255;
+    for (float brghtns = 1.0; brghtns >= -0.0001; brghtns -= 0.1)
+    {
+      if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+        PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_color_wheel(wheelPosition, brghtns));
+
+      PXLBLCK_INSTANCE->drawLine(0, xAndY, PXLBLCK_MATRIX_WIDTH - 1, xAndY, pxlBlckUtils_color_wheel(wheelPosition, brghtns));
+      pxlBlckUtils_update_matrix();
+      delay(delay_time);
+    }
+  }
+}
+
+
+// == Start-animation == end ===============================================================================================================
+
+// == fakeTV == Start ===============================================================================================================
+//fakeTV-color-data used from: https://learn.adafruit.com/fake-tv-light-for-engineers?view=all
+
+//const uint8_t PROGMEM pxlBlckUtils_fakeTVcolors[] = {
 const uint8_t PROGMEM pxlBlckUtils_fakeTVcolors[] = {
   0X8C, 0XD8, 0X8C, 0XF9, 0X8C, 0XD8, 0X84, 0X98, 0X7C, 0X77, 0X64, 0X16,
   0X43, 0X94, 0X4B, 0XB4, 0X43, 0X32, 0X42, 0XF1, 0X53, 0X51, 0X5B, 0X70,
@@ -6554,1123 +7618,94 @@ const uint8_t PROGMEM pxlBlckUtils_fakeTVcolors[] = {
   0X20, 0XE4, 0X21, 0XA6, 0X29, 0XE7, 0X32, 0X28
 };
 
-//== Variables for fakeTV == End ============================
-
-// == running text == start ===========================================================================================================================
-
-void pxlBlckUtils_prepare_runing_text(String text, uint32_t txtColor, uint32_t bgColor, uint16_t delayTime, uint8_t startPosition)
-{
-  //This function initates a running text with the given parameters
-
-  PXLBLCK_RNG_TXT_STRUCT.runtxtColor = txtColor;
-  PXLBLCK_RNG_TXT_STRUCT.runtxtBgColor = bgColor;
-  PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime = delayTime;
-  PXLBLCK_RNG_TXT_STRUCT.runtxtPassedDelayTime = 0;
-  PXLBLCK_RNG_TXT_STRUCT.runtxtText = text;
-
-  if (startPosition >= PXLBLCK_MATRIX_WIDTH || startPosition < 0) //if the startPosition is greater than the width of the led matrix we shift the startPosition over to the start of te left side of the led matrix. This ensures that the running text is directly visible.
-    PXLBLCK_RNG_TXT_STRUCT.runtxtPosition = PXLBLCK_MATRIX_WIDTH;
-  else
-    PXLBLCK_RNG_TXT_STRUCT.runtxtPosition = startPosition;
-
-  String log = F(PXLBLCK_DEVICE_NAME);
-  addLog(LOG_LEVEL_DEBUG, log);
-  log = F("   -Running-Text started! Text: \"");
-  log += text;
-  log += F("\"");
-  addLog(LOG_LEVEL_DEBUG, log);
-  log = F("   -PXLBLCK_RNG_TXT_STRUCT.runtxtPosition: ");
-  log += PXLBLCK_RNG_TXT_STRUCT.runtxtPosition;
-  addLog(LOG_LEVEL_DEBUG, log);
-  log = F("   -PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime: ");
-  log += PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime;
-  addLog(LOG_LEVEL_DEBUG, log);
-  log = F("   -PXLBLCK_RNG_TXT_STRUCT.runtxtBgColor: ");
-  log += PXLBLCK_RNG_TXT_STRUCT.runtxtBgColor;
-  addLog(LOG_LEVEL_DEBUG, log);
-  log = F("   -PXLBLCK_RNG_TXT_STRUCT.runtxtColor: ");
-  log += PXLBLCK_RNG_TXT_STRUCT.runtxtColor;
-  addLog(LOG_LEVEL_DEBUG, log);
-
-}
-
-void pxlBlckUtils_check_running_text()
-{
-  //This function updates the display with the actual running text if there is one initiated
-
-  if (PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime > 0) //running text will only updated if there is a delay time set(>0)
-  {
-    if (pxlBlckUtils_execute_if_interval_passed(&PXLBLCK_RNG_TXT_STRUCT.runtxtPassedDelayTime, PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime)) //interval/delay time is passed so move the running text one pixel to the left
-    {
-
-      String log = F(PXLBLCK_DEVICE_NAME);
-      addLog(LOG_LEVEL_DEBUG, log);
-      log = F("   -Running-Text: ");
-      log += PXLBLCK_RNG_TXT_STRUCT.runtxtText;
-      addLog(LOG_LEVEL_DEBUG, log);
-      log = F("   -PXLBLCK_RNG_TXT_STRUCT.runtxtPosition: ");
-      log += PXLBLCK_RNG_TXT_STRUCT.runtxtPosition;
-      addLog(LOG_LEVEL_DEBUG, log);
-      log = F("   -PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime: ");
-      log += PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime;
-      addLog(LOG_LEVEL_DEBUG, log);
-      log = F("   -PXLBLCK_RNG_TXT_STRUCT.runtxtBgColor: ");
-      log += PXLBLCK_RNG_TXT_STRUCT.runtxtBgColor;
-      addLog(LOG_LEVEL_DEBUG, log);
-      log = F("   -PXLBLCK_RNG_TXT_STRUCT.runtxtColor: ");
-      log += PXLBLCK_RNG_TXT_STRUCT.runtxtColor;
-      addLog(LOG_LEVEL_DEBUG, log);
-
-
-      //int border = (0 - (PXLBLCK_RNG_TXT_STRUCT.runtxtText.length() * 6)); //6 because each charcter has a width of five pixels and a "space"
-
-      if (PXLBLCK_RNG_TXT_STRUCT.runtxtPosition > (int16_t)(0 - (int16_t)(PXLBLCK_RNG_TXT_STRUCT.runtxtText.length() * 6))) //checks if right border of the running text has passed the left side of the led matrix. Multiplied 6 because each charcter has a width of five pixels and a "space"-pixel.
-      {
-        pxlBlckUtils_fill_matrix(PXLBLCK_RNG_TXT_STRUCT.runtxtBgColor);
-
-        if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-          PXLBLCK_INSTANCE->setPassThruColor(PXLBLCK_RNG_TXT_STRUCT.runtxtColor);
-        else
-          PXLBLCK_INSTANCE->setTextColor(PXLBLCK_RNG_TXT_STRUCT.runtxtColor);
-
-        PXLBLCK_INSTANCE->setTextSize(1);
-        PXLBLCK_INSTANCE->setCursor(PXLBLCK_RNG_TXT_STRUCT.runtxtPosition, 0);
-        PXLBLCK_INSTANCE->print(PXLBLCK_RNG_TXT_STRUCT.runtxtText);
-        PXLBLCK_RNG_TXT_STRUCT.runtxtPosition--;
-        pxlBlckUtils_update_matrix();
-      } else //Scrolling is finished(running text has passed the left side of the led matrix) so reset variables to end execution of running text routine
-      {
-        PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime = 0;
-        pxlBlckUtils_clear_matrix();
-        pxlBlckUtils_update_matrix();
-      }
-    }
-  }
-}
-
-// == running text == end ===========================================================================================================================
-
-// == icon handling == start ===========================================================================================================================
-
-void pxlBlckUtils_prepare_multi_colored_icon(struct EventStruct * event, uint8_t inAnimation, uint8_t outAnimation, uint16_t inDelay, uint16_t showDelay, uint16_t outDelay, uint8_t brightness, String textThatFollows, String spiffsIcon, uint8_t repetition)
-{
-  if (pxlBlckUtils_execute_if_interval_passed(&PXLBLCK_ICON_SHOWED_TIMESTAMP, PXLBLCK_ICON_COOLDOWN_TIME))
-  {
-    PXLBLCK_ICON_STRUCT.iconPending = true;
-    PXLBLCK_ICON_STRUCT.iconState = PXLBLCK_ICON_STATE_START;
-    PXLBLCK_ICON_STRUCT.inAnimation = inAnimation;
-    PXLBLCK_ICON_STRUCT.outAnimation = outAnimation;
-    PXLBLCK_ICON_STRUCT.inDelay = inDelay;
-    PXLBLCK_ICON_STRUCT.outDelay = outDelay;
-    PXLBLCK_ICON_STRUCT.showDelay = showDelay;
-    PXLBLCK_ICON_STRUCT.brightness = brightness;
-    PXLBLCK_ICON_STRUCT.showDelayTimestamp = 0;
-    PXLBLCK_ICON_STRUCT.textThatFollows = textThatFollows;
-    PXLBLCK_ICON_STRUCT.repetition = repetition;
-    PXLBLCK_ICON_STRUCT.spiffsIcon = spiffsIcon;
-
-    //First check if file exists and then try to read/load it, If icon is available its data will be copied to PXLBLCK_ICON_STRUCT.logo
-    if (!pxlBlckUtils_check_if_icon_file_exists(PXLBLCK_ICON_STRUCT.spiffsIcon) || !pxlBlckUtils_load_ppm_file_to_dynamic_array(PXLBLCK_ICON_STRUCT.spiffsIcon))
-    {
-      //deactivate icon because spiffs-file was not found or could not read
-      PXLBLCK_ICON_STRUCT.iconPending = false;
-      PXLBLCK_ICON_STRUCT.textThatFollows = "";
-
-      String log = F("pxlBlck: Icon not shown. Icon file not found.");
-      SendStatus(event->Source, log);
-
-      log = F(PXLBLCK_DEVICE_NAME);
-      addLog(LOG_LEVEL_INFO, log);
-      log = F("   -Error: Icon-file \"");
-      log += PXLBLCK_ICON_STRUCT.spiffsIcon;
-      log += F("\" does not exist");
-      addLog(LOG_LEVEL_INFO, log);
-
-      //let matrix blink five times to show that icon was not found
-      for (uint8_t i = 0; i < 5; i++)
-      {
-        pxlBlckUtils_fill_matrix(PXLBLCK_INSTANCE->Color(255, 0, 0));
-        pxlBlckUtils_update_matrix();
-        delay(250);
-        pxlBlckUtils_clear_matrix();
-        pxlBlckUtils_update_matrix();
-        delay(250);
-      }
-    } else
-    {
-
-      String log = F("pxlBlck: Icon found and loaded.");
-      SendStatus(event->Source, log);
-
-      log = F(PXLBLCK_DEVICE_NAME);
-      addLog(LOG_LEVEL_DEBUG, log);
-      log = F("   -Icon found and loaded: ");
-      addLog(LOG_LEVEL_DEBUG, log);
-      log = F("   -spiffsIcon: ");
-      log += PXLBLCK_ICON_STRUCT.spiffsIcon;
-      addLog(LOG_LEVEL_DEBUG, log);
-      log = F("   -inAnimation: ");
-      log += PXLBLCK_ICON_STRUCT.inAnimation;
-      addLog(LOG_LEVEL_DEBUG, log);
-      log = F("   -outAnimation: ");
-      log += PXLBLCK_ICON_STRUCT.outAnimation;
-      addLog(LOG_LEVEL_DEBUG, log);
-      log = F("   -inDelay: ");
-      log += PXLBLCK_ICON_STRUCT.inDelay;
-      addLog(LOG_LEVEL_DEBUG, log);
-      log = F("   -outDelay: ");
-      log += PXLBLCK_ICON_STRUCT.outDelay;
-      addLog(LOG_LEVEL_DEBUG, log);
-      log = F("   -showDelay: ");
-      log += PXLBLCK_ICON_STRUCT.showDelay;
-      addLog(LOG_LEVEL_DEBUG, log);
-      log = F("   -brightness: ");
-      log += PXLBLCK_ICON_STRUCT.brightness;
-      addLog(LOG_LEVEL_DEBUG, log);
-      log = F("   -textThatFollows: ");
-      log += PXLBLCK_ICON_STRUCT.textThatFollows;
-      addLog(LOG_LEVEL_DEBUG, log);
-      log = F("   -repetition: ");
-      log += PXLBLCK_ICON_STRUCT.repetition;
-      addLog(LOG_LEVEL_DEBUG, log);
-      log = F("   -spiffsIcon: ");
-      log += PXLBLCK_ICON_STRUCT.spiffsIcon;
-      addLog(LOG_LEVEL_DEBUG, log);
-    }
-  } else
-  {
-    String log = F("pxlBlck: Icon not shown. Cool-down-time not passed.");
-    SendStatus(event->Source, log);
-
-    log = F(PXLBLCK_DEVICE_NAME);
-    addLog(LOG_LEVEL_DEBUG, log);
-    log = F("   -Icon not shown because cooldown-time is not passed yet.");
-    addLog(LOG_LEVEL_DEBUG, log);
-
-
-  }
-}
-
-void pxlBlckUtils_check_multi_colored_icon()
-{
-  if (PXLBLCK_ICON_STRUCT.iconPending)
-  {
-    switch (PXLBLCK_ICON_STRUCT.iconState)
-    {
-      case PXLBLCK_ICON_STATE_START:
-        {
-          float brightness = PXLBLCK_ICON_STRUCT.brightness / 100.0;
-
-          String log = F(PXLBLCK_DEVICE_NAME);
-          addLog(LOG_LEVEL_DEBUG, log);
-          log = F("   -Icon state: start");
-          addLog(LOG_LEVEL_DEBUG, log);
-          log = F("   -brightness: ");
-          log += String(brightness);
-          addLog(LOG_LEVEL_DEBUG, log);
-
-          switch (PXLBLCK_ICON_STRUCT.inAnimation)
-          {
-            case PXLBLCK_ICON_ANIM_INSTANTLY_ON:
-              {
-
-                pxlBlckUtils_clear_matrix();
-                for (int row = 0; row < PXLBLCK_ICON_HEIGHT; row++)
-                {
-                  for (int column = 0; column < PXLBLCK_ICON_WIDTH; column++)
-                  {
-                    uint8_t r = PXLBLCK_ICON_STRUCT.logo[0][row][column];
-                    uint8_t g = PXLBLCK_ICON_STRUCT.logo[1][row][column];
-                    uint8_t b = PXLBLCK_ICON_STRUCT.logo[2][row][column];
-
-                    //pxlBlckUtils_exchange_color_values_based_on_led_type(&r, &g, &b);
-
-                    //pxlBlckUtils_draw_pixel(column, row, pxlBlckUtils_convert_color_values_to_32bit(brightness * r, brightness * g, brightness * b));
-                    pxlBlckUtils_draw_pixel(column, row, brightness * r, brightness * g, brightness * b);
-                  }
-                }
-
-                if (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1)
-                {
-                  if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-                    PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
-                  else
-                    PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
-
-                  PXLBLCK_INSTANCE->setCursor(PXLBLCK_ICON_WIDTH + 2, 0);
-                  PXLBLCK_INSTANCE->print(PXLBLCK_ICON_STRUCT.textThatFollows);
-                }
-
-                pxlBlckUtils_update_matrix();
-
-                PXLBLCK_ICON_STRUCT.iconState = PXLBLCK_ICON_STATE_SHOWING;
-              }
-              break;
-            case PXLBLCK_ICON_ANIM_FADE_IN:
-              {
-                uint8_t inDelay = PXLBLCK_ICON_STRUCT.inDelay / (brightness / PXLBLCK_ICON_FADE_STEP_SIZE) ;
-
-                log = F("   -inDelay: ");
-                log += String(inDelay);
-                addLog(LOG_LEVEL_DEBUG, log);
-
-                pxlBlckUtils_clear_matrix();
-                for (float i = 0.0; i < brightness; i += PXLBLCK_ICON_FADE_STEP_SIZE)
-                {
-                  for (int row = 0; row < PXLBLCK_ICON_HEIGHT; row++)
-                  {
-                    for (int column = 0; column < PXLBLCK_ICON_WIDTH; column++)
-                    {
-
-                      uint8_t r = PXLBLCK_ICON_STRUCT.logo[0][row][column];
-                      uint8_t g = PXLBLCK_ICON_STRUCT.logo[1][row][column];
-                      uint8_t b = PXLBLCK_ICON_STRUCT.logo[2][row][column];
-
-                      //pxlBlckUtils_exchange_color_values_based_on_led_type(&r, &g, &b);
-
-                      //pxlBlckUtils_draw_pixel(column, row, pxlBlckUtils_convert_color_values_to_32bit(i * r, i * g, i * b));
-                      pxlBlckUtils_draw_pixel(column, row, i * r, i * g, i * b);
-                    }
-                  }
-
-
-                  if (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1)
-                  {
-                    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-                      PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(i * 255, i * 255, i * 255));
-                    else
-                      PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(i * 255, i * 255, i * 255));
-
-                    PXLBLCK_INSTANCE->setCursor(PXLBLCK_ICON_WIDTH + 2, 0);
-                    PXLBLCK_INSTANCE->print(PXLBLCK_ICON_STRUCT.textThatFollows);
-                  }
-
-                  pxlBlckUtils_update_matrix();
-                  delay(inDelay);
-                }
-
-                PXLBLCK_ICON_STRUCT.iconState = PXLBLCK_ICON_STATE_SHOWING;
-              }
-              break;
-            case PXLBLCK_ICON_ANIM_FLY_IN_FROM_RIGHT:
-              {
-                uint8_t inDelay = PXLBLCK_ICON_STRUCT.inDelay / PXLBLCK_MATRIX_WIDTH ;
-
-                log = F("   -inDelay: ");
-                log += String(inDelay);
-                addLog(LOG_LEVEL_DEBUG, log);
-
-                int8_t x = PXLBLCK_MATRIX_WIDTH;
-
-                while (x > -1)
-                {
-                  pxlBlckUtils_clear_matrix();
-                  for (int row = 0; row < PXLBLCK_ICON_HEIGHT ; row++)
-                  {
-                    for (int column = 0; column < PXLBLCK_ICON_WIDTH; column++)
-                    {
-
-                      uint8_t r = PXLBLCK_ICON_STRUCT.logo[0][row][column];
-                      uint8_t g = PXLBLCK_ICON_STRUCT.logo[1][row][column];
-                      uint8_t b = PXLBLCK_ICON_STRUCT.logo[2][row][column];
-
-                      //pxlBlckUtils_exchange_color_values_based_on_led_type(&r, &g, &b);
-
-                      //pxlBlckUtils_draw_pixel(column + x, row, pxlBlckUtils_convert_color_values_to_32bit(brightness * r, brightness * g, brightness * b));
-                      pxlBlckUtils_draw_pixel(column + x, row, brightness * r, brightness * g, brightness * b);
-                    }
-                  }
-
-                  if (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1)
-                  {
-                    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-                      PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
-                    else
-                      PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
-
-                    PXLBLCK_INSTANCE->setCursor(x + PXLBLCK_ICON_WIDTH + 2, 0);
-                    PXLBLCK_INSTANCE->print(PXLBLCK_ICON_STRUCT.textThatFollows);
-                  }
-
-                  pxlBlckUtils_update_matrix();
-                  delay(inDelay);
-                  x--;
-                }
-
-                PXLBLCK_ICON_STRUCT.iconState = PXLBLCK_ICON_STATE_SHOWING;
-              }
-              break;
-            default:
-              {
-                String log = F(PXLBLCK_DEVICE_NAME);
-                addLog(LOG_LEVEL_INFO, log);
-                log = F("   -icon-routine called with unknown inAnimation: ");
-                log += String(PXLBLCK_ICON_STRUCT.inAnimation);
-                addLog(LOG_LEVEL_INFO, log);
-              }
-              break;
-          }
-          PXLBLCK_ICON_STRUCT.showDelayTimestamp = millis(); //save timestamp of end of in-animation so the duration of the showing-state starts now
-          break;
-        }
-        break;
-
-      case PXLBLCK_ICON_STATE_SHOWING:
-        {
-          if (pxlBlckUtils_execute_if_interval_passed(&PXLBLCK_ICON_STRUCT.showDelayTimestamp, PXLBLCK_ICON_STRUCT.showDelay)) //interval/delay time is passed so move to the next icon state
-          {
-            String log = F(PXLBLCK_DEVICE_NAME);
-            addLog(LOG_LEVEL_DEBUG, log);
-            log = F("   -Icon state: showing (finished)");
-            addLog(LOG_LEVEL_DEBUG, log);
-
-            PXLBLCK_ICON_STRUCT.iconState = PXLBLCK_ICON_STATE_END;
-          }
-        }
-        break;
-
-      case PXLBLCK_ICON_STATE_END:
-        {
-          float brightness = PXLBLCK_ICON_STRUCT.brightness / 100.0;
-
-          String log = F(PXLBLCK_DEVICE_NAME);
-          addLog(LOG_LEVEL_DEBUG, log);
-          log = F("   -Icon state: end");
-          addLog(LOG_LEVEL_DEBUG, log);
-          log = F("   -brightness: ");
-          log += String(brightness);
-          addLog(LOG_LEVEL_DEBUG, log);
-
-          switch (PXLBLCK_ICON_STRUCT.outAnimation)
-          {
-            case PXLBLCK_ICON_ANIM_INSTANTLY_OFF:
-              {
-                pxlBlckUtils_clear_matrix();
-                pxlBlckUtils_update_matrix();
-              }
-              break;
-            case PXLBLCK_ICON_ANIM_FADE_OUT:
-              {
-                uint8_t outDelay = PXLBLCK_ICON_STRUCT.outDelay / (brightness / PXLBLCK_ICON_FADE_STEP_SIZE) ;
-
-                log = F("   -outDelay: ");
-                log += String(outDelay);
-                addLog(LOG_LEVEL_DEBUG, log);
-
-                pxlBlckUtils_clear_matrix();
-
-                for (float i = brightness; i > 0; i -= 0.01)
-                {
-                  for (int row = 0; row < PXLBLCK_ICON_HEIGHT; row++)
-                  {
-                    for (int column = 0; column < PXLBLCK_ICON_WIDTH; column++)
-                    {
-
-                      uint8_t r = PXLBLCK_ICON_STRUCT.logo[0][row][column];
-                      uint8_t g = PXLBLCK_ICON_STRUCT.logo[1][row][column];
-                      uint8_t b = PXLBLCK_ICON_STRUCT.logo[2][row][column];
-
-                      //pxlBlckUtils_exchange_color_values_based_on_led_type(&r, &g, &b);
-
-                      //pxlBlckUtils_draw_pixel(column, row, pxlBlckUtils_convert_color_values_to_32bit(i * r, i * g, i * b));
-                      pxlBlckUtils_draw_pixel(column, row, i * r, i * g, i * b);
-                    }
-                  }
-
-                  if (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1)
-                  {
-                    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-                      PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(i * 255, i * 255, i * 255));
-                    else
-                      PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(i * 255, i * 255, i * 255));
-
-                    PXLBLCK_INSTANCE->setCursor(PXLBLCK_ICON_WIDTH + 2, 0);
-                    PXLBLCK_INSTANCE->print(PXLBLCK_ICON_STRUCT.textThatFollows);
-                  }
-
-                  pxlBlckUtils_update_matrix();
-                  delay(outDelay);
-                }
-              }
-              break;
-            case PXLBLCK_ICON_ANIM_FLY_OUT_TO_LEFT:
-              {
-                uint8_t outDelay = PXLBLCK_ICON_STRUCT.outDelay / PXLBLCK_MATRIX_WIDTH ;
-
-                log = F("   -outDelay: ");
-                log += String(outDelay);
-                addLog(LOG_LEVEL_DEBUG, log);
-
-                Serial.println("Here1");
-
-                int8_t x = 0;
-                //if there is also a text displayed the number of steps for moving out the display-content needs to be increased depending on the number of characters of the displayed text
-                int16_t limit = (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1) ? (0 - (PXLBLCK_ICON_WIDTH + (PXLBLCK_ICON_STRUCT.textThatFollows.length() * 6) + 1)) : (0 - PXLBLCK_ICON_WIDTH);
-                while (x >= limit)
-                {
-                  pxlBlckUtils_clear_matrix();
-                  for (int row = 0; row < PXLBLCK_ICON_HEIGHT; row++)
-                  {
-                    for (int column = 0; column < PXLBLCK_ICON_WIDTH; column++)
-                    {
-
-                      uint8_t r = PXLBLCK_ICON_STRUCT.logo[0][row][column];
-                      uint8_t g = PXLBLCK_ICON_STRUCT.logo[1][row][column];
-                      uint8_t b = PXLBLCK_ICON_STRUCT.logo[2][row][column];
-
-                      //pxlBlckUtils_exchange_color_values_based_on_led_type(&r, &g, &b);
-
-                      //pxlBlckUtils_draw_pixel(column + x, row, pxlBlckUtils_convert_color_values_to_32bit(brightness * r, brightness * g, brightness * b));
-                      pxlBlckUtils_draw_pixel(column + x, row, brightness * r, brightness * g, brightness * b);
-                    }
-                  }
-
-                  if (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1)
-                  {
-                    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-                      PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
-                    else
-                      PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
-
-                    PXLBLCK_INSTANCE->setCursor(x + PXLBLCK_ICON_WIDTH + 2, 0);
-                    PXLBLCK_INSTANCE->print(PXLBLCK_ICON_STRUCT.textThatFollows);
-                  }
-
-                  pxlBlckUtils_update_matrix();
-                  delay(outDelay);
-                  x--;
-                }
-              }
-              break;
-            default:
-              {
-                String log = F(PXLBLCK_DEVICE_NAME);
-                addLog(LOG_LEVEL_INFO, log);
-                log = F("   -icon-routine called with unknown outAnimation: ");
-                log += PXLBLCK_ICON_STRUCT.outAnimation;
-                addLog(LOG_LEVEL_INFO, log);
-              }
-              break;
-          }
-
-          //in case this icon should be repeated reset the icon state and decrease the repition value
-          if (PXLBLCK_ICON_STRUCT.repetition > 0 && PXLBLCK_ICON_STRUCT.textThatFollows.length() <= 1)
-          {
-            PXLBLCK_ICON_STRUCT.iconState = PXLBLCK_ICON_STATE_START;
-            PXLBLCK_ICON_STRUCT.repetition -= 1;
-          } else
-          {
-            PXLBLCK_ICON_STRUCT.iconPending = false;
-          }
-        }
-        break;
-
-      default:
-        {
-          PXLBLCK_ICON_STRUCT.iconPending = false;
-          String log = F(PXLBLCK_DEVICE_NAME);
-          addLog(LOG_LEVEL_INFO, log);
-          log = F("   -icon-routine called with unknown iconState: ");
-          log += PXLBLCK_ICON_STRUCT.iconState;
-          addLog(LOG_LEVEL_INFO, log);
-        }
-        break;
-    }
-  }
-}
-
-// == Icon handling == end ===========================================================================================================================
-
-// == Matrix helper functions and color handling == start ============================================================================================
-
-
-uint32_t pxlBlckUtils_add_brightness_to_color(uint8_t brightness, uint8_t minimalBrightness, uint32_t color)
-{
-  float brightnessFactor = 0;
-  if (brightness >= 1)
-    brightnessFactor = (float)brightness / PXLBLCK_MAX_SETABLE_BRIGHTNESS;
-  else //Plugin_203_displayBrightness is set to zero so we will use Plugin_203_minimalBrightness-value instead
-    brightnessFactor = (float)minimalBrightness / 255.0;
-
-  uint8_t red = pxlBlckUtils_return_red_from_config(color) * brightnessFactor;
-  uint8_t green = pxlBlckUtils_return_green_from_config(color) * brightnessFactor;
-  uint8_t blue = pxlBlckUtils_return_blue_from_config(color) * brightnessFactor;
-
-  uint8_t warmWhite = 0;
-  if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW)
-  {
-    warmWhite = pxlBlckUtils_return_warmwhite_from_config(color) * brightnessFactor;
-  }
-
-  return pxlBlckUtils_return_correct_color_value(red, green, blue, warmWhite);
-}
-
-uint32_t pxlBlckUtils_return_correct_color_value(uint8_t red, uint8_t green, uint8_t blue)
-{
-  return pxlBlckUtils_return_correct_color_value(red, green, blue, 0);
-}
-
-uint32_t pxlBlckUtils_return_correct_color_value(uint8_t red, uint8_t green, uint8_t blue, uint8_t warmWhite)
-{
-  /*
-    if (!PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-    {
-    if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW)
-    {
-      return pxlBlckUtils_convert_color_values_to_32bit(red, green, blue, warmWhite);
-    } else
-    {
-      return PXLBLCK_INSTANCE->Color(red, green, blue);
-    }
-    } else
-    {*/
-  if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW)
-  {
-    return pxlBlckUtils_convert_color_values_to_32bit(red, green, blue, warmWhite);
-  } else
-  {
-    return pxlBlckUtils_convert_color_values_to_32bit(red, green, blue);
-  }
-  //}
-}
-
-uint32_t pxlBlckUtils_convert_color_values_to_32bit(uint8_t r, uint8_t g, uint8_t b)
-{
-  //Here we convert the single rgb values to one 24bit value like it is done with the neopixel color information. In fact the neomatrix color information only needs 16 bit.
-  //Problem: It is not possible to convert back from the 16bit value to every single rgb value because the conversion 24->16bit brings an accuracy loss.
-  //Solution: color value is stored in the confguration as a 24bit value and only converted to a 16bit value for the runtime variable
-
-  //Magic conversion of single rgb values to 24bit color value
-  return (uint32_t)(((uint32_t)r << 16) | ((uint32_t)g << 8) | b);
-}
-
-uint32_t pxlBlckUtils_convert_color_values_to_32bit(uint8_t r, uint8_t g, uint8_t b, uint8_t ww)
-{
-  //Here we convert the single rgb values to one 24bit value like it is done with the neopixel color information. In fact the neomatrix color information only needs 16 bit.
-  //Problem: It is not possible to convert back from the 16bit value to every single rgb value because the conversion 24->16bit brings an accuracy loss.
-  //Solution: color value is stored in the confguration as a 24bit value and only converted to a 16bit value for the runtime variable
-
-  //Magic conversion of single rgb values to 24bit color value
-  return (((uint32_t)ww << 24) | ((uint32_t)r << 16) | ((uint32_t)g << 8) | b);
-}
-
-uint8_t pxlBlckUtils_return_red_from_config(uint32_t encodedColor)
-{
-  return (uint8_t)(encodedColor >> 16);
-}
-
-uint8_t pxlBlckUtils_return_green_from_config(uint32_t encodedColor)
-{
-  return (uint8_t)(encodedColor >> 8);
-}
-
-uint8_t pxlBlckUtils_return_blue_from_config(uint32_t encodedColor)
-{
-  return (uint8_t)(encodedColor >> 0);
-}
-
-uint8_t pxlBlckUtils_return_warmwhite_from_config(uint32_t encodedColor)
-{
-  return (uint8_t)(encodedColor >> 24);
-}
-
-void pxlBlckUtils_exchange_color_values_based_on_led_type(uint8_t *redValue, uint8_t *greenValue, uint8_t *blueValue)
-{
-  //This function helps to exchange the values of "redValue", "greenValue" or blueValue. This is needed because in case of (for example) an "RGB"-LedType an exchange of the red and green values is needed
-  //because the .Color function which is used to convert the single RGB values to one color-value expects an GRB-sequence.
-  if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW || PXLBLCK_LED_COLOR_ORDER == NEO_RGB)
-  {
-    uint8_t tempColorValue = *redValue;
-    *redValue = *greenValue;
-    *greenValue = tempColorValue;
-  }
-}
-
-uint32_t pxlBlckUtils_exchange_color_values_based_on_led_type(uint32_t colorValue)
-{
-  //This function helps to exchange the color values based on the color order of the set up led type
-
-  uint8_t red = pxlBlckUtils_return_red_from_config(colorValue);
-  uint8_t green = pxlBlckUtils_return_green_from_config(colorValue);
-  uint8_t blue = pxlBlckUtils_return_blue_from_config(colorValue);
-  uint8_t warmWhite = pxlBlckUtils_return_warmwhite_from_config(colorValue);
-
-  pxlBlckUtils_exchange_color_values_based_on_led_type(&red, &green, &blue);
-
-  return pxlBlckUtils_convert_color_values_to_32bit(red, green, blue, warmWhite);
-}
-
-// == Graphic helpers here ==
-
-void pxlBlckUtils_draw_rectangle(uint8_t xPosStart, uint8_t yPosStart, uint8_t width, uint8_t height, uint32_t color)
-{
-  if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-    PXLBLCK_INSTANCE->setPassThruColor(color);
-  PXLBLCK_INSTANCE->fillRect(xPosStart, yPosStart, width, height, color);
-}
-
-void pxlBlckUtils_update_matrix()
-{
-  PXLBLCK_INSTANCE->show();
-
-  String log = F(PXLBLCK_DEVICE_NAME);
-  addLog(LOG_LEVEL_DEBUG_MORE, log);
-  log = F("   -pxlBlckUtils_update_matrix executed");
-  addLog(LOG_LEVEL_DEBUG_MORE, log);
-}
-
-void pxlBlckUtils_fill_matrix(uint8_t red, uint8_t green, uint8_t blue)
-{
-  pxlBlckUtils_fill_matrix(pxlBlckUtils_convert_color_values_to_32bit(red, green, blue));
-}
-
-void pxlBlckUtils_fill_matrix(uint32_t color)
-{
-  String log = F(PXLBLCK_DEVICE_NAME);
-  addLog(LOG_LEVEL_DEBUG_MORE, log);
-  log = F("   -Fill matrix: Color: ");
-  log += color;
-  addLog(LOG_LEVEL_DEBUG_MORE, log);
-
-  if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-    PXLBLCK_INSTANCE->setPassThruColor(color);
-  PXLBLCK_INSTANCE->fillScreen(color);
-}
-
-void pxlBlckUtils_clear_matrix()
-{
-  pxlBlckUtils_fill_matrix(0);
-}
-
-void pxlBlckUtils_draw_pixel(uint8_t x, uint8_t y, uint8_t r, uint8_t g, uint8_t b)
-{
-  String log = F(PXLBLCK_DEVICE_NAME);
-  addLog(LOG_LEVEL_DEBUG_MORE, log);
-  log = F("   -draw_pixel_1: r: ");
-  log += r;
-  addLog(LOG_LEVEL_DEBUG_MORE, log);
-  log = F("   -g: ");
-  log += g;
-  addLog(LOG_LEVEL_DEBUG_MORE, log);
-  log = F("   -b: ");
-  log += b;
-  addLog(LOG_LEVEL_DEBUG_MORE, log);
-  log = F("   - x: ");
-  log += x;
-  addLog(LOG_LEVEL_DEBUG_MORE, log);
-  log = F("   - y: ");
-  log += y;
-  addLog(LOG_LEVEL_DEBUG_MORE, log);
-
-  pxlBlckUtils_draw_pixel(x, y, pxlBlckUtils_convert_color_values_to_32bit(r, g, b));
-}
-
-void pxlBlckUtils_draw_pixel(uint8_t x, uint8_t y, uint32_t color)
-{
-  String log = F(PXLBLCK_DEVICE_NAME);
-  addLog(LOG_LEVEL_DEBUG_MORE, log);
-  log = F("   -draw_pixel_2: Color: ");
-  log += color;
-  addLog(LOG_LEVEL_DEBUG_MORE, log);
-  log = F("   - x: ");
-  log += x;
-  addLog(LOG_LEVEL_DEBUG_MORE, log);
-  log = F("   - y: ");
-  log += y;
-  addLog(LOG_LEVEL_DEBUG_MORE, log);
-
-  color = pxlBlckUtils_exchange_color_values_based_on_led_type(color);
-
-  if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-    PXLBLCK_INSTANCE->setPassThruColor(color);
-  PXLBLCK_INSTANCE->drawPixel(x, y, color);
-}
-
-void pxlBlckUtils_draw_horizontal_bar(uint8_t y,  uint8_t r, uint8_t g, uint8_t b, boolean update_it)
-{
-  pxlBlckUtils_draw_horizontal_bar(y, pxlBlckUtils_convert_color_values_to_32bit(r, g, b), update_it);
-}
-
-void pxlBlckUtils_draw_horizontal_bar(uint8_t y, uint32_t color, boolean update_it)
-{
-  pxlBlckUtils_draw_horizontal_bar_no_update(y, color);
-  if (update_it)
-    pxlBlckUtils_update_matrix();
-}
-
-void pxlBlckUtils_draw_horizontal_bar_no_update(uint8_t y, uint32_t color)
-{
-  for (uint16_t i = 0; i < PXLBLCK_MATRIX_WIDTH; i++)
-  {
-    pxlBlckUtils_draw_pixel(i, y, color);
-  }
-}
-
-void pxlBlckUtils_draw_vertical_bar(uint8_t y,  uint8_t r, uint8_t g, uint8_t b, boolean update_it)
-{
-  pxlBlckUtils_draw_vertical_bar(y, pxlBlckUtils_convert_color_values_to_32bit(r, g, b), update_it);
-}
-
-void pxlBlckUtils_draw_vertical_bar(uint8_t x, uint32_t color, boolean update_it)
-{
-  pxlBlckUtils_draw_vertical_bar_no_update(x, color);
-  if (update_it)
-    pxlBlckUtils_update_matrix();
-}
-
-void pxlBlckUtils_draw_vertical_bar_no_update(uint8_t x, uint32_t color)
-{
-  for (uint16_t i = 0; i < PXLBLCK_MATRIX_HEIGHT; i++)
-  {
-    pxlBlckUtils_draw_pixel(x, i, color);
-  }
-}
-
-// == Matrix helper functions and color handling == end ========================================================================================
-
-void pxlBlckUtils_update_user_vars(struct EventStruct * event, boolean enabled, uint32_t color, uint8_t brightness)
-{
-  UserVar[event->BaseVarIndex] = enabled;
-  UserVar[event->BaseVarIndex + 1] = color;
-  UserVar[event->BaseVarIndex + 2] = brightness;
-}
-
-// == Spiffs-Icon Stuff == start ===============================================================================================================
-
-boolean pxlBlckUtils_check_if_icon_file_exists(String desiredFile)
-{
-  boolean iconFound = false;
-
-#if defined(ESP8266)
-  fs::Dir dir = SPIFFS.openDir("");
-  while (dir.next())
-  {
-    String fileName = dir.fileName();
-    // String filetype = fileName.substring(fileName.indexOf("."));
-    // filetype.toLowerCase();
-
-    if (fileName.equals(desiredFile))
-    {
-      fs::File f = dir.openFile("r");
-
-      String log = F(PXLBLCK_DEVICE_NAME);
-      addLog(LOG_LEVEL_INFO, log);
-      log = F("   -Icon-file was found: ");
-      log += fileName;
-      log += F("(");
-      log += f.size();
-      log += F(" bytes)");
-      addLog(LOG_LEVEL_INFO, log);
-
-      iconFound = true;
-      break;
-    }
-  }
-#endif
-
-#if defined(ESP32)
-  File root = SPIFFS.open("/");
-  File file = root.openNextFile();
-  while (file)
-  {
-    String fileName = file.name();
-    //  String filetype = fileName.substring(fileName.indexOf("."));
-    // filetype.toLowerCase();
-
-    if (fileName.equals(desiredFile))
-    {
-      //fs::File f = dir.openFile("r");
-
-      String log = F(PXLBLCK_DEVICE_NAME);
-      addLog(LOG_LEVEL_INFO, log);
-      log = F("   -Icon-file was found: ");
-      log += fileName;
-      log += F("(");
-      log += file.size();
-      log += F(" bytes)");
-      addLog(LOG_LEVEL_INFO, log);
-
-      iconFound = true;
-      break;
-    }
-    file = root.openNextFile();
-  }
-#endif
-
-  return iconFound;
-}
-
-boolean pxlBlckUtils_load_ppm_file_to_dynamic_array(String fileName)
-{
-  String fileContent = pxlBlckUtils_read_file(fileName);
-  if (fileContent == "%ERROR%")
-  {
-    String log = F(PXLBLCK_DEVICE_NAME);
-    addLog(LOG_LEVEL_INFO, log);
-    log += F("   -Error: Failed to load icon-file");
-    addLog(LOG_LEVEL_INFO, log);
-
-    return false;
-  }
-
-  //Count lines(linebreaks) in file
-  uint16_t lineCount = 0;
-  for (uint16_t i = 0; fileContent[i]; i++)
-  {
-    if (fileContent[i] == '\n')
-      lineCount++;
-  }
-
-  //Read header and parse rest of file
-  boolean fileTypeApproved = false;
-  boolean widthAndHeightFound = false;
-  boolean maxBrightnessFound = false;
-  boolean dataValidated = false;
-  uint8_t width, height, maxBrightness = 0;
-
-  uint16_t lastFound = 0;
-  uint16_t dataPointer = 0;
-  uint8_t pixelPointer = 0;
-  String actualLine = "";
-
-  for (uint16_t i = 0; i < lineCount; i++)
-  {
-    //itterate thorugh lines of file to analyze contents
-    yield();
-    uint16_t actualFound = fileContent.indexOf("\n", lastFound);
-    actualLine = fileContent.substring(lastFound, actualFound);
-    lastFound = actualFound + 1;
-
-    if (actualLine[0] == '#' )
-    {
-      //ignore comments in file
-      continue;
-    }
-
-    if (!fileTypeApproved)
-    {
-      //First thing we have to check for is the correct Filetype: This should be "P3" or "p3"
-      actualLine.trim();
-      actualLine.toLowerCase();
-      fileTypeApproved = (actualLine == "p3");
-      if (fileTypeApproved)
-      {
-        continue; //we finish the actual iteration and jump to the next line
-      } else
-      {
-        String log = F(PXLBLCK_DEVICE_NAME);
-        addLog(LOG_LEVEL_INFO, log);
-        log += F("   -Error: Icon-file content is not p3");
-        addLog(LOG_LEVEL_INFO, log);
-        break;
-      }
-    }
-
-    if (fileTypeApproved && !widthAndHeightFound && !maxBrightnessFound)
-    {
-      //Second thing we have to check after we proved the correct fileType: Search for Width and Height which should be in the next line (after the fileType) in a .ppm file
-      uint8_t blankPosition = actualLine.indexOf(" "); //The line that contains width and height is also the only line that contains a space because this is used to seperate width and height from each other
-      if (blankPosition > 0)
-      {
-        //yeeeha we found a space so we found the line that contains width and height
-        width = actualLine.substring(0, blankPosition).toInt();
-        height = actualLine.substring(blankPosition + 1).toInt();
-
-        widthAndHeightFound = width > 0 && width <= PXLBLCK_MATRIX_WIDTH && height > 0 && height <= PXLBLCK_MATRIX_HEIGHT; //integer conversion succeded and image fits in matrix
-
-        if (widthAndHeightFound)
-        {
-          continue;
-        } else
-        {
-          String log = F(PXLBLCK_DEVICE_NAME);
-          addLog(LOG_LEVEL_INFO, log);
-          log += F("   -Error: Icon-file content doesn't fit in display");
-          addLog(LOG_LEVEL_INFO, log);
-          break;
-        }
-      }
-    }
-
-    if (fileTypeApproved && widthAndHeightFound && !maxBrightnessFound)
-    {
-      //Third thing to check(after fileType and dimensions are approved): Search for maxBrightness. This value is stored right after the line of width and height
-      actualLine.trim();
-      maxBrightnessFound = actualLine.toInt() > 0 && actualLine.toInt() <= 255;
-      if (maxBrightnessFound)
-      {
-        maxBrightness = actualLine.toInt();
-        continue;
-      } else
-      {
-        String log = F(PXLBLCK_DEVICE_NAME);
-        addLog(LOG_LEVEL_INFO, log);
-        log += F("   -Error: Icon-file max-brightness-value is missing");
-        addLog(LOG_LEVEL_INFO, log);
-        break;
-      }
-    }
-
-    if (fileTypeApproved && widthAndHeightFound && maxBrightnessFound)
-    {
-      //We checked the whole header and are ready to go to read the color values
-      actualLine.trim();
-      if (actualLine.toInt() >= 0 && actualLine.toInt() <= maxBrightness)
-      {
-        //pixelValuesGlobal[iconCounter][dataPointer / 3][pixelPointer] = actualLine.toInt();
-        //        PXLBLCK_ICON_STRUCT.logo[pixelPointer][dataPointer / PXLBLCK_MATRIX_WIDTH][dataPointer % PXLBLCK_MATRIX_WIDTH] = actualLine.toInt(); //(dataPointer / PXLBLCK_MATRIX_WIDTH)==ROW; (dataPointer % PXLBLCK_MATRIX_WIDTH)==COLUMN
-        PXLBLCK_ICON_STRUCT.logo[pixelPointer][dataPointer / width][dataPointer % width] = actualLine.toInt(); //(dataPointer / PXLBLCK_MATRIX_WIDTH)==ROW; (dataPointer % PXLBLCK_MATRIX_WIDTH)==COLUMN
-
-        if (pixelPointer < 2)
-        {
-          pixelPointer++;
-        } else
-        {
-          pixelPointer = 0;
-          dataPointer++; //we filled all color-values of the actual pixel so lets go to the next pixel
-        }
-      } else
-      {
-        //each .ppm file contains a value(maxBrightness)that represents the max possible brightness. Each pixel-Value must be lower/equal to this value.
-        String log = F(PXLBLCK_DEVICE_NAME);
-        addLog(LOG_LEVEL_INFO, log);
-        log += F("   -Error: Icon-file color value doesn't fit to max-brightness-value");
-        addLog(LOG_LEVEL_INFO, log);
-        break;
-      }
-    }
-  }
-  dataValidated = true;
-
-  return (fileTypeApproved && widthAndHeightFound && maxBrightnessFound && dataValidated);
-}
-
-String pxlBlckUtils_read_file(String name)
-{
-  //read file from SPIFFS and store it as a String variable
-  String contents;
-  fs::File file = SPIFFS.open(name.c_str(), "r");
-  if (!file)
-  {
-    String errorMessage = "Can't open '" + name + "' !\r\n";
-    Serial.println(errorMessage);
-    return "%ERROR%";
-  }
-  else
-  {
-    // this is going to get the number of bytes in the file and give us the value in an integer
-    uint16_t fileSize = file.size();
-    uint16_t chunkSize = 128;
-    //This is a character array to store a chunk of the file.
-    //We'll store 1024 characters at a time
-    char buf[chunkSize];
-    uint16_t numberOfChunks = (fileSize / chunkSize) + 1;
-
-    uint16_t remainingBytes = fileSize;
-    for (int i = 1; i <= numberOfChunks; i++)
-    {
-      memset(buf, 0, chunkSize); //oder chunkSize anstatt sizeof buf
-      if (remainingBytes - chunkSize < 0)
-      {
-        chunkSize = remainingBytes + chunkSize; //"+chunksize" to compensate the "-1" in "file.read((uint8_t *)buf, chunkSize - 1);"
-      }
-      file.read((uint8_t *)buf, chunkSize - 1);
-      remainingBytes -= chunkSize;
-      contents += String(buf);
-    }
-    file.close();
-    return contents;
-  }
-}
-
-// == Spiffs-Icon Stuff == end ===============================================================================================================
-
-// == Start-animation == start ===============================================================================================================
-
-void pxlBlckUtils_show_start_animation(uint16_t delay_time)
-{
-  pxlBlckUtils_clear_matrix();
-  for (int xAndY = 0; xAndY < PXLBLCK_MATRIX_HEIGHT; xAndY++)
-  {
-    uint8_t wheelPosition = ((float)xAndY / (float)PXLBLCK_MATRIX_HEIGHT) * 255;
-    for (float brghtns = 0.0; brghtns < 1.0000; brghtns += 0.1)
-    {
-      if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-        PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_color_wheel(wheelPosition, brghtns));
-
-      PXLBLCK_INSTANCE->drawLine(0, xAndY, PXLBLCK_MATRIX_WIDTH - 1, xAndY, pxlBlckUtils_color_wheel(wheelPosition, brghtns));
-      pxlBlckUtils_update_matrix();
-      delay(PXLBLCK_MATRIX_WIDTH * delay_time);
-    }
-  }
-  for (int xAndY = (PXLBLCK_MATRIX_HEIGHT - 1); xAndY >= -1; xAndY--)
-  {
-    uint8_t wheelPosition = ((float)xAndY / (float)PXLBLCK_MATRIX_HEIGHT) * 255;
-    for (float brghtns = 1.0; brghtns >= -0.0001; brghtns -= 0.1)
-    {
-      if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-        PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_color_wheel(wheelPosition, brghtns));
-
-      PXLBLCK_INSTANCE->drawLine(0, xAndY, PXLBLCK_MATRIX_WIDTH - 1, xAndY, pxlBlckUtils_color_wheel(wheelPosition, brghtns));
-      pxlBlckUtils_update_matrix();
-      delay(delay_time);
-    }
-  }
-}
-
-
-// == Start-animation == end ===============================================================================================================
-
-// == fakeTV == Start ===============================================================================================================
-//fakeTV-color-data used from: https://learn.adafruit.com/fake-tv-light-for-engineers?view=all
-
-void pxlBlckUtils_switch_fakeTV_onOff(boolean state)
-{
-  PXLBLCK_FAKE_TV_STRUCT.running = state;
-  PXLBLCK_FAKE_TV_STRUCT.frameNumber = (sizeof(pxlBlckUtils_fakeTVcolors) / sizeof(pxlBlckUtils_fakeTVcolors[0]));
-  PXLBLCK_FAKE_TV_STRUCT.framePosition = random(PXLBLCK_FAKE_TV_STRUCT.frameNumber);
-}
+const uint8_t PROGMEM gamma8[] = {
+  0X01, 0X01, 0X01, 0X02, 0X02, 0X02, 0X03, 0X03, 0X03, 0X04, 0X04, 0X04,
+  0X05, 0X05, 0X05, 0X06, 0X06, 0X06, 0X07, 0X07, 0X07, 0X08, 0X08, 0X08,
+  0X09, 0X09, 0X0A, 0X0B, 0X0B, 0X0B, 0X0C, 0X0C, 0X0C, 0X0D, 0X0D, 0X0D,
+  0X0E, 0X0E, 0X0E, 0X10, 0X10, 0X10, 0X11, 0X11, 0X11, 0X12, 0X12, 0X12,
+  0X14, 0X14, 0X14, 0X15, 0X15, 0X15, 0X17, 0X17, 0X17, 0X18, 0X18, 0X19,
+  0X1A, 0X1A, 0X1A, 0X1B, 0X1C, 0X1C, 0X1D, 0X1D, 0X1E, 0X1F, 0X1F, 0X1F,
+  0X21, 0X21, 0X21, 0X22, 0X23, 0X23, 0X24, 0X25, 0X25, 0X26, 0X27, 0X27,
+  0X28, 0X29, 0X29, 0X2A, 0X2B, 0X2B, 0X2C, 0X2D, 0X2D, 0X2F, 0X2F, 0X30,
+  0X31, 0X31, 0X32, 0X33, 0X34, 0X34, 0X36, 0X36, 0X37, 0X38, 0X38, 0X39,
+  0X3A, 0X3B, 0X3C, 0X3D, 0X3E, 0X3E, 0X40, 0X40, 0X41, 0X42, 0X43, 0X43,
+  0X45, 0X46, 0X46, 0X48, 0X48, 0X49, 0X4B, 0X4B, 0X4C, 0X4E, 0X4E, 0X4F,
+  0X50, 0X51, 0X52, 0X54, 0X54, 0X55, 0X57, 0X57, 0X58, 0X5A, 0X5B, 0X5B,
+  0X5D, 0X5E, 0X5F, 0X60, 0X61, 0X62, 0X64, 0X65, 0X65, 0X67, 0X68, 0X69,
+  0X6B, 0X6C, 0X6C, 0X6E, 0X6F, 0X70, 0X72, 0X73, 0X74, 0X75, 0X76, 0X77,
+  0X79, 0X7A, 0X7B, 0X7D, 0X7E, 0X7F, 0X81, 0X82, 0X83, 0X85, 0X86, 0X87,
+  0X89, 0X8A, 0X8B, 0X8D, 0X8E, 0X8F, 0X91, 0X92, 0X93, 0X95, 0X96, 0X98,
+  0X99, 0X9B, 0X9C, 0X9E, 0X9F, 0XA0, 0XA2, 0XA3, 0XA5, 0XA6, 0XA8, 0XA9,
+  0XAB, 0XAC, 0XAE, 0XAF, 0XB1, 0XB2, 0XB4, 0XB5, 0XB7, 0XB9, 0XBA, 0XBB,
+  0XBD, 0XBF, 0XC0, 0XC2, 0XC3, 0XC5, 0XC7, 0XC8, 0XCA, 0XCC, 0XCD, 0XCF,
+  0XD1, 0XD2, 0XD4, 0XD6, 0XD7, 0XD9, 0XDB, 0XDC, 0XDE, 0XE0, 0XE1, 0XE3,
+  0XE5, 0XE6, 0XE8, 0XEA, 0XEC, 0XED, 0XEF, 0XF1, 0XF3, 0XF4, 0XF6, 0XF8,
+  0XFA, 0XFB, 0XFD, 0XFF
+};
 
 void pxlBlckUtils_check_fakeTV()
 {
   //the whole fakeTV functionality is mainly based on the code you can find here: https://learn.adafruit.com/fake-tv-light-for-engineers?view=all
-  /*
-    struct PXLBLCK_FAKE_TV_STRUCTStruct
-    {
-    pxlBlckUtils_iconStruct() :
-    running(false), executionInterval(0), lastExecution(0), r(0), g(0), b(100), frameNumber(0), framePosition(0) {}
-    boolean running = false;
-    uint32_t executionInterval = 0;
-    uint32_t lastExecution = 0;
-    uint8_t r = 0;
-    uint8_t g = 0;
-    uint8_t b = 0;
-    uint32_t frameNumber = 0;
-    uint32_t framePosition = 0;
-    } PXLBLCK_FAKE_TV_STRUCT;
-  */
-  //if (PXLBLCK_FAKE_TV_STRUCT.running)
+  //So the implementation here is basically the same. It was just modified in so far that it can run in a non-blocking way. So the other 
+ 
   if (Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_TV_SIMULATOR_ID_INT)
   {
+    uint8_t r8 = 0;
+    uint8_t g8 = 0;
+    uint8_t b8 = 0;
+
     if (pxlBlckUtils_execute_if_interval_passed(&PXLBLCK_FAKE_TV_STRUCT.lastExecution, PXLBLCK_FAKE_TV_STRUCT.executionInterval))
     {
-      if (++PXLBLCK_FAKE_TV_STRUCT.framePosition >= PXLBLCK_FAKE_TV_STRUCT.frameNumber)
+      PXLBLCK_FAKE_TV_STRUCT.rOld = PXLBLCK_FAKE_TV_STRUCT.rNew;
+      PXLBLCK_FAKE_TV_STRUCT.gOld = PXLBLCK_FAKE_TV_STRUCT.gNew;
+      PXLBLCK_FAKE_TV_STRUCT.bOld = PXLBLCK_FAKE_TV_STRUCT.bNew;
+
+      if (PXLBLCK_FAKE_TV_STRUCT.framePosition == 0)
+        PXLBLCK_FAKE_TV_STRUCT.framePosition = random(PXLBLCK_FAKE_TV_STRUCT.frameNumber);
+      else if (PXLBLCK_FAKE_TV_STRUCT.framePosition >= PXLBLCK_FAKE_TV_STRUCT.frameNumber)
         PXLBLCK_FAKE_TV_STRUCT.framePosition = 0;
+      else
+        PXLBLCK_FAKE_TV_STRUCT.framePosition = PXLBLCK_FAKE_TV_STRUCT.framePosition + 2;
 
       PXLBLCK_FAKE_TV_STRUCT.executionInterval = random(100, 2500);
+      PXLBLCK_FAKE_TV_STRUCT.fadeTime  = random(0, PXLBLCK_FAKE_TV_STRUCT.executionInterval); // Pixel-to-pixel transition time
 
-      uint8_t highColorByte = pgm_read_byte(&pxlBlckUtils_fakeTVcolors[PXLBLCK_FAKE_TV_STRUCT.framePosition * 2]);
-      uint8_t lowColorByte = pgm_read_byte(&pxlBlckUtils_fakeTVcolors[PXLBLCK_FAKE_TV_STRUCT.framePosition * 2 + 1]);
+      // Read next 16-bit (5/6/5) color
+      uint8_t highColorByte = pgm_read_byte(&pxlBlckUtils_fakeTVcolors[PXLBLCK_FAKE_TV_STRUCT.framePosition]);
+      uint8_t lowColorByte = pgm_read_byte(&pxlBlckUtils_fakeTVcolors[PXLBLCK_FAKE_TV_STRUCT.framePosition + 1]);
 
       // Expand to 24-bit (8/8/8)
-      uint8_t r8 = (highColorByte & 0xF8) | (highColorByte >> 5);
-      uint8_t g8 = (highColorByte << 5) | ((lowColorByte & 0xE0) >> 3) | ((highColorByte & 0x06) >> 1);
-      uint8_t b8 = (lowColorByte << 3) | ((lowColorByte & 0x1F) >> 2);
+      r8 = (highColorByte & 0xF8) | (highColorByte >> 5);
+      g8 = (highColorByte << 5) | ((lowColorByte & 0xE0) >> 3) | ((highColorByte & 0x06) >> 1);
+      b8 = (lowColorByte << 3) | ((lowColorByte & 0x1F) >> 2);
 
-      pxlBlckUtils_fill_matrix(r8, g8, b8);
-      pxlBlckUtils_update_matrix();
+      // Apply gamma correction, further expand to 16/16/16
+      PXLBLCK_FAKE_TV_STRUCT.rNew = (uint8_t)pgm_read_byte(&gamma8[r8]) * 257; // New R/G/B
+      PXLBLCK_FAKE_TV_STRUCT.gNew = (uint8_t)pgm_read_byte(&gamma8[g8]) * 257;
+      PXLBLCK_FAKE_TV_STRUCT.bNew = (uint8_t)pgm_read_byte(&gamma8[b8]) * 257;
+
+      PXLBLCK_FAKE_TV_STRUCT.startTime = millis();
+
 
       String log = F(PXLBLCK_DEVICE_NAME);
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -PXLBLCK_FAKE_TV_STRUCT.rNew: ");
+      log += PXLBLCK_FAKE_TV_STRUCT.rNew;
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -PXLBLCK_FAKE_TV_STRUCT.gNew: ");
+      log += PXLBLCK_FAKE_TV_STRUCT.gNew;
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -PXLBLCK_FAKE_TV_STRUCT.bNew: ");
+      log += PXLBLCK_FAKE_TV_STRUCT.bNew;
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -PXLBLCK_FAKE_TV_STRUCT.rOld: ");
+      log += PXLBLCK_FAKE_TV_STRUCT.rOld;
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -PXLBLCK_FAKE_TV_STRUCT.gOld: ");
+      log += PXLBLCK_FAKE_TV_STRUCT.gOld;
+      addLog(LOG_LEVEL_DEBUG, log);
+      log = F("   -PXLBLCK_FAKE_TV_STRUCT.bOld: ");
+      log += PXLBLCK_FAKE_TV_STRUCT.bOld;
       addLog(LOG_LEVEL_DEBUG, log);
       log = F("   -PXLBLCK_FAKE_TV_STRUCT.framePosition: ");
       log += PXLBLCK_FAKE_TV_STRUCT.framePosition;
@@ -7681,15 +7716,57 @@ void pxlBlckUtils_check_fakeTV()
       log = F("   -PXLBLCK_FAKE_TV_STRUCT.executionInterval: ");
       log += PXLBLCK_FAKE_TV_STRUCT.executionInterval;
       addLog(LOG_LEVEL_DEBUG, log);
-      log = F("   -r8: ");
-      log += r8;
+      log = F("   -PXLBLCK_FAKE_TV_STRUCT.startTime: ");
+      log += PXLBLCK_FAKE_TV_STRUCT.startTime;
       addLog(LOG_LEVEL_DEBUG, log);
-      log = F("   -g8: ");
-      log += g8;
+      log = F("   -PXLBLCK_FAKE_TV_STRUCT.fadeTime: ");
+      log += PXLBLCK_FAKE_TV_STRUCT.fadeTime;
       addLog(LOG_LEVEL_DEBUG, log);
-      log = F("   -b8: ");
-      log += b8;
-      addLog(LOG_LEVEL_DEBUG, log);
+    }
+    uint32_t elapsedTime = millis() - PXLBLCK_FAKE_TV_STRUCT.startTime;
+
+    if (elapsedTime >= PXLBLCK_FAKE_TV_STRUCT.fadeTime)
+      elapsedTime = PXLBLCK_FAKE_TV_STRUCT.fadeTime;
+
+    if (elapsedTime <= PXLBLCK_FAKE_TV_STRUCT.fadeTime) //in case fadeTime is over we can skip this and wait for a new color to fade to
+    {
+      uint16_t r, g, b = 0;
+      
+      if (PXLBLCK_FAKE_TV_STRUCT.fadeTime) //short version of fadeTime>0
+      {
+        // 16-bit interpolation on fadeTime
+        r = map(elapsedTime, 0, PXLBLCK_FAKE_TV_STRUCT.fadeTime, PXLBLCK_FAKE_TV_STRUCT.rOld, PXLBLCK_FAKE_TV_STRUCT.rNew);
+        g = map(elapsedTime, 0, PXLBLCK_FAKE_TV_STRUCT.fadeTime, PXLBLCK_FAKE_TV_STRUCT.gOld, PXLBLCK_FAKE_TV_STRUCT.gNew);
+        b = map(elapsedTime, 0, PXLBLCK_FAKE_TV_STRUCT.fadeTime, PXLBLCK_FAKE_TV_STRUCT.bOld, PXLBLCK_FAKE_TV_STRUCT.bNew);
+      } else
+      { // Avoid divide-by-zero in map()
+        r = PXLBLCK_FAKE_TV_STRUCT.rNew;
+        g = PXLBLCK_FAKE_TV_STRUCT.gNew;
+        b = PXLBLCK_FAKE_TV_STRUCT.bNew;
+      }
+
+
+      for (uint16_t i = 0; i < PXLBLCK_MATRIX_WIDTH*PXLBLCK_MATRIX_HEIGHT; i++)
+      {
+        //Quantize to 8-bit
+        r8   = r >> 8;
+        g8   = g >> 8;
+        b8   = b >> 8;
+
+        uint8_t frac = (i << 8) / PXLBLCK_MATRIX_WIDTH*PXLBLCK_MATRIX_HEIGHT; //LED index scaled to 0-255
+
+        // Boost some fraction of LEDs to handle interp > 8bit
+        if ((r8 < 255) && ((r & 0xFF) >= frac))
+          r8++;
+        if ((g8 < 255) && ((g & 0xFF) >= frac))
+          g8++;
+        if ((b8 < 255) && ((b & 0xFF) >= frac))
+          b8++;
+          
+        pxlBlckUtils_draw_pixel(i%PXLBLCK_MATRIX_WIDTH, i/PXLBLCK_MATRIX_HEIGHT, r8, g8, b8);
+      }
+      
+      pxlBlckUtils_update_matrix();
 
     }
   }
