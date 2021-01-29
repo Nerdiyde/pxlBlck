@@ -7646,8 +7646,8 @@ const uint8_t PROGMEM gamma8[] = {
 void pxlBlckUtils_check_fakeTV()
 {
   //the whole fakeTV functionality is mainly based on the code you can find here: https://learn.adafruit.com/fake-tv-light-for-engineers?view=all
-  //So the implementation here is basically the same. It was just modified in so far that it can run in a non-blocking way. So the other 
- 
+  //So the implementation here is basically the same. It was just modified in so far that it can run in a non-blocking way. So the other
+
   if (Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_TV_SIMULATOR_ID_INT)
   {
     uint8_t r8 = 0;
@@ -7731,7 +7731,7 @@ void pxlBlckUtils_check_fakeTV()
     if (elapsedTime <= PXLBLCK_FAKE_TV_STRUCT.fadeTime) //in case fadeTime is over we can skip this and wait for a new color to fade to
     {
       uint16_t r, g, b = 0;
-      
+
       if (PXLBLCK_FAKE_TV_STRUCT.fadeTime) //short version of fadeTime>0
       {
         // 16-bit interpolation on fadeTime
@@ -7745,29 +7745,30 @@ void pxlBlckUtils_check_fakeTV()
         b = PXLBLCK_FAKE_TV_STRUCT.bNew;
       }
 
-
-      for (uint16_t i = 0; i < PXLBLCK_MATRIX_WIDTH*PXLBLCK_MATRIX_HEIGHT; i++)
+      for (uint16_t x = 0; x < PXLBLCK_MATRIX_WIDTH; x++)
       {
-        //Quantize to 8-bit
-        r8   = r >> 8;
-        g8   = g >> 8;
-        b8   = b >> 8;
+        for (uint16_t y = 0; y < PXLBLCK_MATRIX_HEIGHT; y++)
+        {
+          //Quantize to 8-bit
+          r8   = r >> 8;
+          g8   = g >> 8;
+          b8   = b >> 8;
 
-        uint8_t frac = (i << 8) / PXLBLCK_MATRIX_WIDTH*PXLBLCK_MATRIX_HEIGHT; //LED index scaled to 0-255
+          uint8_t frac = (x + y << 8) / PXLBLCK_MATRIX_WIDTH * PXLBLCK_MATRIX_HEIGHT; //LED index scaled to 0-255
 
-        // Boost some fraction of LEDs to handle interp > 8bit
-        if ((r8 < 255) && ((r & 0xFF) >= frac))
-          r8++;
-        if ((g8 < 255) && ((g & 0xFF) >= frac))
-          g8++;
-        if ((b8 < 255) && ((b & 0xFF) >= frac))
-          b8++;
-          
-        pxlBlckUtils_draw_pixel(i%PXLBLCK_MATRIX_WIDTH, i/PXLBLCK_MATRIX_HEIGHT, r8, g8, b8);
+          // Boost some fraction of LEDs to handle interp > 8bit
+          if ((r8 < 255) && ((r & 0xFF) >= frac))
+            r8++;
+          if ((g8 < 255) && ((g & 0xFF) >= frac))
+            g8++;
+          if ((b8 < 255) && ((b & 0xFF) >= frac))
+            b8++;
+
+          pxlBlckUtils_draw_pixel(x, y, r8, g8, b8);
+
+        }
       }
-      
       pxlBlckUtils_update_matrix();
-
     }
   }
 }
