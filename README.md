@@ -5,12 +5,12 @@ pxlBlck is a system of hardware and software to set up an event indication syste
 
 **You can find more information about the software and detailed HowTo's in the following articles:**
 
-- [pxlBlck – An IOT/SmartHome information system](https://nerdiy.de/en/pxlblck/)
-- [pxlBlck – Install and configure the pxlBlck plugin](https://nerdiy.de/en/howto-pxlblck-das-pxlblck-plugin-installieren-und-konfigurieren/)
-- [pxlBlck – Commands to configure the pxlBlck](https://nerdiy.de/en/howto-pxlblck-befehle-zur-konfiguration-des-pxlblck/)
-- [pxlBlck – Configure and display animations](https://nerdiy.de/en/howto-pxlblck-animationen-konfigurieren-und-anzeigen/)
-- [pxlBlck – Configure watch faces and screensavers](https://nerdiy.de/en/howto-pxlblck-ziffernblaetter-und-bildschirmschoner-konfigurieren/)
-- [pxlBlck – Design icons, transfer them to the pxlBlck and display them](https://nerdiy.de/en/howto-pxlblck-icons-designen-auf-den-pxlblck-uebertragen-und-anzeigen/)
+- [pxlBlck - An IOT/SmartHome information system](https://nerdiy.de/en/pxlblck/)
+- [pxlBlck - Install and configure the pxlBlck plugin](https://nerdiy.de/en/howto-pxlblck-das-pxlblck-plugin-installieren-und-konfigurieren/)
+- [pxlBlck - Commands to configure the pxlBlck](https://nerdiy.de/en/howto-pxlblck-befehle-zur-konfiguration-des-pxlblck/)
+- [pxlBlck - Configure and display animations](https://nerdiy.de/en/howto-pxlblck-animationen-konfigurieren-und-anzeigen/)
+- [pxlBlck - Configure watch faces and screensavers](https://nerdiy.de/en/howto-pxlblck-ziffernblaetter-und-bildschirmschoner-konfigurieren/)
+- [pxlBlck - Design icons, transfer them to the pxlBlck and display them](https://nerdiy.de/en/howto-pxlblck-icons-designen-auf-den-pxlblck-uebertragen-und-anzeigen/)
 
 **An overview of the different hardware-plattforms is available here:**
 - https://nerdiy.de/tag/pxlblckplattform/
@@ -20,15 +20,21 @@ pxlBlck is a system of hardware and software to set up an event indication syste
  - [x] Bug: Outgoing icon animation "fly out to left" crashes on ESP32
  - [ ] Improve: replace "paramX" by "pxlBlckUtils_parseString()"
  - [x] Bug: Color handling (in webmenu) is mixed up at using non standard "GRB" led-configuration
+ - [ ] Color handling of RGBW leds not completely tested
+ - [ ] cmpFire dial not functional yet
  
 ### Planned features
  - Predefined color palletes
+ - Rainbow color mode: Each pixel displayey in a random color
+ - Timermode Dial
+ - Mini-Notifications
+ - https://github.com/Nerdiyde/pxlBlck/issues/2
 
 ### Trademarks
 All third-party trademarks are the property of their respective owners. More infos here: https://nerdiy.de/en/warenzeichen/
 
 ### License
-Unless otherwise stated, all works presented here and on Nerdiy.de that are not based on software/code are subject to the CC BY-NC-SA 4.0 license (attribution – non-commercial – dissemination under the same conditions 4.0 international).
+Unless otherwise stated, all works presented here and on Nerdiy.de that are not based on software/code are subject to the CC BY-NC-SA 4.0 license (attribution - non-commercial - dissemination under the same conditions 4.0 international).
 You can find additional infos here: https://nerdiy.de/en/lizenz/
 
 ### Videos
