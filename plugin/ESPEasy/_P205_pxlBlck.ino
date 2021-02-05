@@ -1381,40 +1381,42 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
         Plugin_205_ringclockHourMarksBrightness = getFormItemInt(F(PXLBLCK_WEBSERVER_FORM_ID_RINGCLOCK_HOUR_MARK_BRIGHTNESS));
 
         //Color values
-        String newColorOneCp = pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "CP");
-        uint8_t newColorOneR = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "R");
-        uint8_t newColorOneG = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "G");
-        uint8_t newColorOneB = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "B");
+        /*String newColorOneCp = pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "CP");
+          uint8_t newColorOneR = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "R");
+          uint8_t newColorOneG = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "G");
+          uint8_t newColorOneB = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "B");
+          uint8_t newColorOneWw = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "Ww");
 
-        String newColorTwoCP = pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "CP");
-        uint8_t newColorTwoR = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "R");
-        uint8_t newColorTwoG = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "G");
-        uint8_t newColorTwoB = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "B");
+          String newColorTwoCP = pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "CP");
+          uint8_t newColorTwoR = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "R");
+          uint8_t newColorTwoG = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "G");
+          uint8_t newColorTwoB = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "B");
+          uint8_t newColorTwoWw = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "Ww");
 
-        String newColorThreeCP = pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "CP");
-        uint8_t newColorThreeR = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "R");
-        uint8_t newColorThreeG = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "G");
-        uint8_t newColorThreeB = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "B");
+          String newColorThreeCP = pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "CP");
+          uint8_t newColorThreeR = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "R");
+          uint8_t newColorThreeG = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "G");
+          uint8_t newColorThreeB = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "B");
+          uint8_t newColorThreeWw = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "Ww");
 
-        String newColorFourCP = pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "CP");
-        uint8_t newColorFourR = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "R");
-        uint8_t newColorFourG = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "G");
-        uint8_t newColorFourB = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "B");
+          String newColorFourCP = pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "CP");
+          uint8_t newColorFourR = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "R");
+          uint8_t newColorFourG = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "G");
+          uint8_t newColorFourB = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "B");
+          uint8_t newColorFourWw = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "Ww");*/
 
         //Save color values to permanent storage
         //First color value
         uint32_t tempConfigVariable = PXLBLCK_COLOR_PERMANENT_STORAGE(0);
 
         pxlBlckUtils_handle_and_save_new_color_values(
-          newColorOneCp,
+          pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "CP"),
           &tempConfigVariable,
-          &newColorOneR,
-          &newColorOneG,
-          &newColorOneB,
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "R"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "G"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "B"),
-          getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "Ww"));
+          getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "Ww"),
+          getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "WwSld"));
 
         PXLBLCK_COLOR_PERMANENT_STORAGE(0) = tempConfigVariable;
         Plugin_205_colorOne = tempConfigVariable;
@@ -1423,15 +1425,13 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
         tempConfigVariable = PXLBLCK_COLOR_PERMANENT_STORAGE(1);
 
         pxlBlckUtils_handle_and_save_new_color_values(
-          newColorTwoCP,
+          pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "CP"),
           &tempConfigVariable,
-          &newColorTwoR,
-          &newColorTwoG,
-          &newColorTwoB,
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "R"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "G"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "B"),
-          getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "Ww"));
+          getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "Ww"),
+          getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "WwSld"));
 
         PXLBLCK_COLOR_PERMANENT_STORAGE(1) = tempConfigVariable;
         Plugin_205_colorTwo = tempConfigVariable;
@@ -1440,15 +1440,13 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
         tempConfigVariable = PXLBLCK_COLOR_PERMANENT_STORAGE(2);
 
         pxlBlckUtils_handle_and_save_new_color_values(
-          newColorThreeCP,
+          pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "CP"),
           &tempConfigVariable,
-          &newColorThreeR,
-          &newColorThreeG,
-          &newColorThreeB,
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "R"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "G"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "B"),
-          getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "Ww"));
+          getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "Ww"),
+          getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "WwSld"));
 
         PXLBLCK_COLOR_PERMANENT_STORAGE(2) = tempConfigVariable;
         Plugin_205_colorThree = tempConfigVariable;
@@ -1457,15 +1455,13 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
         tempConfigVariable = PXLBLCK_COLOR_PERMANENT_STORAGE(3);
 
         pxlBlckUtils_handle_and_save_new_color_values(
-          newColorFourCP,
+          pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "CP"),
           &tempConfigVariable,
-          &newColorFourR,
-          &newColorFourG,
-          &newColorFourB,
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "R"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "G"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "B"),
-          getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "Ww"));
+          getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "Ww"),
+          getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "WwSld"));
 
         PXLBLCK_COLOR_PERMANENT_STORAGE(3) = tempConfigVariable;
         Plugin_205_colorFour = tempConfigVariable;
@@ -1613,7 +1609,7 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
 
         //write values to user-vars: so the data showd in the plugin overview will also updated
         pxlBlckUtils_update_user_vars(event, Plugin_205_displayEnabled, Plugin_205_displayBrightness, Plugin_205_matrixRotation);
-        pxlBlckUtils_show_start_animation(1);
+        pxlBlckUtils_show_start_animation(300);
 
         success = true;
         break;
@@ -4211,10 +4207,10 @@ void Plugin_205_show_dial_numbersHorizontal(uint8_t hours, uint8_t minutes, uint
   //clear display
   pxlBlckUtils_fill_matrix(bgColor);
 
-  if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-    PXLBLCK_INSTANCE->setPassThruColor(hourColor);
-  else
-    PXLBLCK_INSTANCE->setTextColor(hourColor);
+  //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+  PXLBLCK_INSTANCE->setPassThruColor(hourColor);
+  //else
+  //PXLBLCK_INSTANCE->setTextColor(hourColor);
 
   //write hour numbers to display
   PXLBLCK_INSTANCE->setCursor(offsetFromLeft, 1);
@@ -4222,10 +4218,10 @@ void Plugin_205_show_dial_numbersHorizontal(uint8_t hours, uint8_t minutes, uint
 
   if (includingDots)
   {
-    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-      PXLBLCK_INSTANCE->setPassThruColor(dotColor);
-    else
-      PXLBLCK_INSTANCE->setTextColor(dotColor);
+    //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+    PXLBLCK_INSTANCE->setPassThruColor(dotColor);
+    //else
+    //PXLBLCK_INSTANCE->setTextColor(dotColor);
 
     //write dots to display
     PXLBLCK_INSTANCE->setCursor(offsetFromLeft + 10, 1);
@@ -4235,20 +4231,20 @@ void Plugin_205_show_dial_numbersHorizontal(uint8_t hours, uint8_t minutes, uint
     PXLBLCK_INSTANCE->print(":");
 
     //write the minute number to the display but two pixel more shifted to the right compaed to display without dots
-    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-      PXLBLCK_INSTANCE->setPassThruColor(minuteColor);
-    else
-      PXLBLCK_INSTANCE->setTextColor(minuteColor);
+    //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+    PXLBLCK_INSTANCE->setPassThruColor(minuteColor);
+    //else
+    //PXLBLCK_INSTANCE->setTextColor(minuteColor);
 
     PXLBLCK_INSTANCE->setCursor(offsetFromLeft + 15, 1);
     PXLBLCK_INSTANCE->print(minutesOut);
   } else
   {
     //write the minute number to the display (without dots between hour and minute number)
-    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-      PXLBLCK_INSTANCE->setPassThruColor(minuteColor);
-    else
-      PXLBLCK_INSTANCE->setTextColor(minuteColor);
+    //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+    PXLBLCK_INSTANCE->setPassThruColor(minuteColor);
+    //else
+    //PXLBLCK_INSTANCE->setTextColor(minuteColor);
 
     PXLBLCK_INSTANCE->setCursor(offsetFromLeft + 13, 1);
     PXLBLCK_INSTANCE->print(minutesOut);
@@ -4459,10 +4455,10 @@ void pxlBlckUtils_check_running_text()
       {
         pxlBlckUtils_fill_matrix(PXLBLCK_RNG_TXT_STRUCT.runtxtBgColor);
 
-        if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-          PXLBLCK_INSTANCE->setPassThruColor(PXLBLCK_RNG_TXT_STRUCT.runtxtColor);
-        else
-          PXLBLCK_INSTANCE->setTextColor(PXLBLCK_RNG_TXT_STRUCT.runtxtColor);
+        //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+        PXLBLCK_INSTANCE->setPassThruColor(PXLBLCK_RNG_TXT_STRUCT.runtxtColor);
+        //else
+        //PXLBLCK_INSTANCE->setTextColor(PXLBLCK_RNG_TXT_STRUCT.runtxtColor);
 
         PXLBLCK_INSTANCE->setTextSize(1);
         PXLBLCK_INSTANCE->setCursor(PXLBLCK_RNG_TXT_STRUCT.runtxtPosition, 0);
@@ -4623,10 +4619,10 @@ void pxlBlckUtils_check_multi_colored_icon()
 
                 if (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1)
                 {
-                  if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-                    PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
-                  else
-                    PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
+                  //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+                  PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
+                  //else
+                  //PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
 
                   PXLBLCK_INSTANCE->setCursor(PXLBLCK_ICON_WIDTH + 2, 0);
                   PXLBLCK_INSTANCE->print(PXLBLCK_ICON_STRUCT.textThatFollows);
@@ -4667,10 +4663,10 @@ void pxlBlckUtils_check_multi_colored_icon()
 
                   if (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1)
                   {
-                    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-                      PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(i * 255, i * 255, i * 255));
-                    else
-                      PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(i * 255, i * 255, i * 255));
+                    //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+                    PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(i * 255, i * 255, i * 255));
+                    //else
+                    //PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(i * 255, i * 255, i * 255));
 
                     PXLBLCK_INSTANCE->setCursor(PXLBLCK_ICON_WIDTH + 2, 0);
                     PXLBLCK_INSTANCE->print(PXLBLCK_ICON_STRUCT.textThatFollows);
@@ -4714,10 +4710,10 @@ void pxlBlckUtils_check_multi_colored_icon()
 
                   if (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1)
                   {
-                    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-                      PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
-                    else
-                      PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
+                    //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+                    PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
+                    //else
+                    //PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
 
                     PXLBLCK_INSTANCE->setCursor(x + PXLBLCK_ICON_WIDTH + 2, 0);
                     PXLBLCK_INSTANCE->print(PXLBLCK_ICON_STRUCT.textThatFollows);
@@ -4810,10 +4806,10 @@ void pxlBlckUtils_check_multi_colored_icon()
 
                   if (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1)
                   {
-                    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-                      PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(i * 255, i * 255, i * 255));
-                    else
-                      PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(i * 255, i * 255, i * 255));
+                    //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+                    PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(i * 255, i * 255, i * 255));
+                    //else
+                    //PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(i * 255, i * 255, i * 255));
 
                     PXLBLCK_INSTANCE->setCursor(PXLBLCK_ICON_WIDTH + 2, 0);
                     PXLBLCK_INSTANCE->print(PXLBLCK_ICON_STRUCT.textThatFollows);
@@ -4858,10 +4854,10 @@ void pxlBlckUtils_check_multi_colored_icon()
 
                   if (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1)
                   {
-                    if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-                      PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
-                    else
-                      PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
+                    //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+                    PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
+                    //else
+                    //PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
 
                     PXLBLCK_INSTANCE->setCursor(x + PXLBLCK_ICON_WIDTH + 2, 0);
                     PXLBLCK_INSTANCE->print(PXLBLCK_ICON_STRUCT.textThatFollows);
@@ -4943,18 +4939,6 @@ uint32_t pxlBlckUtils_return_correct_color_value(uint8_t red, uint8_t green, uin
 
 uint32_t pxlBlckUtils_return_correct_color_value(uint8_t red, uint8_t green, uint8_t blue, uint8_t warmWhite)
 {
-  /*
-    if (!PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-    {
-    if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW)
-    {
-      return pxlBlckUtils_convert_color_values_to_32bit(red, green, blue, warmWhite);
-    } else
-    {
-      return PXLBLCK_INSTANCE->Color(red, green, blue);
-    }
-    } else
-    {*/
   if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW)
   {
     return pxlBlckUtils_convert_color_values_to_32bit(red, green, blue, warmWhite);
@@ -4962,7 +4946,6 @@ uint32_t pxlBlckUtils_return_correct_color_value(uint8_t red, uint8_t green, uin
   {
     return pxlBlckUtils_convert_color_values_to_32bit(red, green, blue);
   }
-  //}
 }
 
 uint32_t pxlBlckUtils_convert_color_values_to_32bit(uint8_t r, uint8_t g, uint8_t b)
@@ -5037,8 +5020,8 @@ void pxlBlckUtils_draw_rectangle(uint8_t xPosStart, uint8_t yPosStart, uint8_t w
 {
   color = pxlBlckUtils_exchange_color_values_based_on_led_type(color);
 
-  if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-    PXLBLCK_INSTANCE->setPassThruColor(color);
+  //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+  PXLBLCK_INSTANCE->setPassThruColor(color);
   PXLBLCK_INSTANCE->fillRect(xPosStart, yPosStart, width, height, color);
 }
 
@@ -5067,8 +5050,8 @@ void pxlBlckUtils_fill_matrix(uint32_t color)
   log += color;
   addLog(LOG_LEVEL_DEBUG_MORE, log);
 
-  if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-    PXLBLCK_INSTANCE->setPassThruColor(color);
+  //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+  PXLBLCK_INSTANCE->setPassThruColor(color);
   PXLBLCK_INSTANCE->fillScreen(color);
 }
 
@@ -5261,7 +5244,9 @@ boolean pxlBlckUtils_load_ppm_file_to_dynamic_array(String fileName)
   boolean widthAndHeightFound = false;
   boolean maxBrightnessFound = false;
   boolean dataValidated = false;
-  uint8_t width, height, maxBrightness = 0;
+  uint8_t width = 0;
+  uint8_t height = 0;
+  uint8_t maxBrightness = 0;
 
   uint16_t lastFound = 0;
   uint16_t dataPointer = 0;
@@ -5353,7 +5338,7 @@ boolean pxlBlckUtils_load_ppm_file_to_dynamic_array(String fileName)
       if (actualLine.toInt() >= 0 && actualLine.toInt() <= maxBrightness)
       {
         //pixelValuesGlobal[iconCounter][dataPointer / 3][pixelPointer] = actualLine.toInt();
-        //        PXLBLCK_ICON_STRUCT.logo[pixelPointer][dataPointer / PXLBLCK_MATRIX_WIDTH][dataPointer % PXLBLCK_MATRIX_WIDTH] = actualLine.toInt(); //(dataPointer / PXLBLCK_MATRIX_WIDTH)==ROW; (dataPointer % PXLBLCK_MATRIX_WIDTH)==COLUMN
+        //PXLBLCK_ICON_STRUCT.logo[pixelPointer][dataPointer / PXLBLCK_MATRIX_WIDTH][dataPointer % PXLBLCK_MATRIX_WIDTH] = actualLine.toInt(); //(dataPointer / PXLBLCK_MATRIX_WIDTH)==ROW; (dataPointer % PXLBLCK_MATRIX_WIDTH)==COLUMN
         PXLBLCK_ICON_STRUCT.logo[pixelPointer][dataPointer / width][dataPointer % width] = actualLine.toInt(); //(dataPointer / PXLBLCK_MATRIX_WIDTH)==ROW; (dataPointer % PXLBLCK_MATRIX_WIDTH)==COLUMN
 
         if (pixelPointer < 2)
@@ -5422,33 +5407,32 @@ String pxlBlckUtils_read_file(String name)
 
 // == Start-animation == start ===============================================================================================================
 
-void pxlBlckUtils_show_start_animation(uint16_t delay_time)
+void pxlBlckUtils_show_start_animation(uint16_t animation_time)
 {
   pxlBlckUtils_clear_matrix();
+  float const dimming_step=0.1;
+  animation_time = (float(animation_time) / float(PXLBLCK_MATRIX_HEIGHT))*dimming_step; //total animation time is independent of matrix height
+
   for (int xAndY = 0; xAndY < PXLBLCK_MATRIX_HEIGHT; xAndY++)
   {
     uint8_t wheelPosition = ((float)xAndY / (float)PXLBLCK_MATRIX_HEIGHT) * 255;
-    for (float brghtns = 0.0; brghtns < 1.0000; brghtns += 0.1)
-    {
-      if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-        PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_color_wheel(wheelPosition, brghtns));
 
-      PXLBLCK_INSTANCE->drawLine(0, xAndY, PXLBLCK_MATRIX_WIDTH - 1, xAndY, pxlBlckUtils_color_wheel(wheelPosition, brghtns));
-      pxlBlckUtils_update_matrix();
-      delay(PXLBLCK_MATRIX_WIDTH * delay_time);
+    for (float brghtns = 0.0; brghtns < 1.00; brghtns += dimming_step)
+    {
+      pxlBlckUtils_draw_horizontal_bar(xAndY, pxlBlckUtils_color_wheel(wheelPosition, brghtns), true);
+
+      delay(animation_time);
     }
   }
   for (int xAndY = (PXLBLCK_MATRIX_HEIGHT - 1); xAndY >= -1; xAndY--)
   {
     uint8_t wheelPosition = ((float)xAndY / (float)PXLBLCK_MATRIX_HEIGHT) * 255;
-    for (float brghtns = 1.0; brghtns >= -0.0001; brghtns -= 0.1)
-    {
-      if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
-        PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_color_wheel(wheelPosition, brghtns));
 
-      PXLBLCK_INSTANCE->drawLine(0, xAndY, PXLBLCK_MATRIX_WIDTH - 1, xAndY, pxlBlckUtils_color_wheel(wheelPosition, brghtns));
-      pxlBlckUtils_update_matrix();
-      delay(delay_time);
+    for (float brghtns = 1.0; brghtns >= -0.0001; brghtns -= dimming_step)
+    {
+      pxlBlckUtils_draw_horizontal_bar(xAndY, pxlBlckUtils_color_wheel(wheelPosition, brghtns), true);
+
+      delay(animation_time);
     }
   }
 }
@@ -6916,15 +6900,16 @@ void pxlBlckUtils_addHelpButton(const String & label, const String & url)
   addHtmlLink(F("button help"), completeUrl, F("&#10068;"));
 }
 
-void pxlBlckUtils_addColorPicker(const String & label, const String & id, String selectedColor)
+void pxlBlckUtils_addColorPicker(const String & label, const String & id, String title, String selectedColor)
 {
   addRowLabel(label);
-  pxlBlckUtils_addColorPicker(id, selectedColor);
+  pxlBlckUtils_addColorPicker(id, title, selectedColor);
 }
 
-void pxlBlckUtils_addColorPicker(const String & id, String selectedColor)
+void pxlBlckUtils_addColorPicker(const String & id, String title, String selectedColor)
 {
-  String str = F("<input type=\"color\" name=\"");
+  String str = title;
+  str += F("<input type=\"color\" name=\"");
   str += id;
   str += F("\" value=\"#");
   str += selectedColor;
@@ -6932,15 +6917,56 @@ void pxlBlckUtils_addColorPicker(const String & id, String selectedColor)
   addHtml(str);
 }
 
+void pxlBlckUtils_add_slider_input(String title, String actValue, String minValue, String maxValue, String name)
+{
+  String str = title;
+  str += F("<input type=\"range\" min=\"");
+  str += minValue;
+  str += F("\" max=\"");
+  str += maxValue;
+  str += F("\" value=\"");
+  str += actValue;
+  str += F("\" name=\"");
+  str += name;
+  str += F("\">");
+  addHtml(str);
+}
+
 String pxlBlckUtils_convert_32bit_to_hex_string(uint32_t inputNumber)
 {
+
+  String log = F(PXLBLCK_DEVICE_NAME);
+  addLog(LOG_LEVEL_DEBUG, log);
+
+  log = F("   -inputNumber_1: ");
+  log += inputNumber;
+  addLog(LOG_LEVEL_DEBUG, log);
+
+  //This is done to ignore the fourth byte which is only used in case a fourth LED channel (e.g RGBW color led) is used. Since the color picker cant handle this we need to remove it. 0xFFFFFF=0b111111111111111111111111
+  inputNumber &= 0xFFFFFF;
+
   String actualColorInHex = String(inputNumber, HEX);
+
+  log = F("   -inputNumber_2: ");
+  log += inputNumber;
+  addLog(LOG_LEVEL_DEBUG, log);
+  log = F("   -actualColorInHex_1: ");
+  log += actualColorInHex;
+  addLog(LOG_LEVEL_DEBUG, log);
 
   uint8_t numberOfMissingZeros = 6 - actualColorInHex.length();
   for (uint8_t i = 0; i < numberOfMissingZeros; i++)
   {
     actualColorInHex = "0" + actualColorInHex;
   }
+
+  log = F("   -numberOfMissingZeros: ");
+  log += numberOfMissingZeros;
+  addLog(LOG_LEVEL_DEBUG, log);
+  log = F("   -actualColorInHex_2: ");
+  log += actualColorInHex;
+  addLog(LOG_LEVEL_DEBUG, log);
+
   return actualColorInHex;
 }
 
@@ -6961,27 +6987,29 @@ void pxlBlckUtils_convert_hex_to_rgb(String hexString, uint8_t *r, uint8_t *g, u
   *b = number & 0xFF;
 }
 
-void pxlBlckUtils_select_color_values_from_color_picker_or_number_input(String hexString, uint32_t actualColorValue, uint8_t *newR, uint8_t *newG, uint8_t *newB, uint8_t inputR, uint8_t inputG, uint8_t inputB)
+void pxlBlckUtils_process_color_inputs(uint32_t actualColorValue, String inputColorPicker, uint8_t inputWwSlider, uint8_t *inputR, uint8_t *inputG, uint8_t *inputB, uint8_t *inputWw)
 {
-  //this function checks if the color values of the color picker was changed. If so it returns the color-picker-values as new color values. otherwise it returns the directly entered rgb values
+  //this function checks if the color values of the color picker was changed. If so it returns the color-picker-values as new color values. Otherwise it returns the rgb values that were entered into the input fields.
+  //Same applies to the WarmWhite slider.
 
   uint8_t colorPickerR, colorPickerG, colorPickerB = 0;
-  pxlBlckUtils_convert_hex_to_rgb(hexString, &colorPickerR, &colorPickerG, &colorPickerB);
+  pxlBlckUtils_convert_hex_to_rgb(inputColorPicker, &colorPickerR, &colorPickerG, &colorPickerB);
 
-  //uint8_t colorPickerR, colorPickerG, colorPickerB = 0;
   uint8_t oldR = pxlBlckUtils_return_red_from_config(actualColorValue);
   uint8_t oldG = pxlBlckUtils_return_green_from_config(actualColorValue);
   uint8_t oldB = pxlBlckUtils_return_blue_from_config(actualColorValue);
-
-  *newR = inputR;
-  *newG = inputG;
-  *newB = inputB;
+  uint8_t oldWw = pxlBlckUtils_return_warmwhite_from_config(actualColorValue);
 
   if (colorPickerR != oldR || colorPickerG != oldG || colorPickerB != oldB)
   {
-    *newR = colorPickerR;
-    *newG = colorPickerG;
-    *newB = colorPickerB;
+    *inputR = colorPickerR;
+    *inputG = colorPickerG;
+    *inputB = colorPickerB;
+  }
+
+  if (inputWwSlider != oldWw)
+  {
+    *inputWw = inputWwSlider;
   }
 }
 
@@ -7206,15 +7234,24 @@ void pxlBlckUtils_addColorFormParts(String prefix, uint32_t formerColorValue, St
     uint8_t formerColorB = pxlBlckUtils_return_blue_from_config(formerColorValue);
     uint8_t formerColorWW = pxlBlckUtils_return_warmwhite_from_config(formerColorValue);
 
-    addFormNumericBox(name, prefix + "R", formerColorR, 0, 255);
+    pxlBlckUtils_addColorPicker(name, prefix + "CP", "RGB:", pxlBlckUtils_convert_32bit_to_hex_string(formerColorValue));
+    addNumericBox(prefix + "R", formerColorR, 0, 255);
     addNumericBox(prefix + "G", formerColorG, 0, 255);
     addNumericBox(prefix + "B", formerColorB, 0, 255);
+
     if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW)
     {
+      pxlBlckUtils_add_slider_input("WarmWhite:", String(formerColorWW), "0", "255", prefix + "WwSld");
       addNumericBox(prefix + "Ww", formerColorWW, 0, 255);
     }
-    pxlBlckUtils_addColorPicker(prefix + "CP", pxlBlckUtils_convert_32bit_to_hex_string(formerColorValue));
-    addFormNote("Set " + name + "-color directly (range:0-255) or by color picker");
+
+    if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW)
+    {
+      addFormNote("Set " + name + "-color value directly (range:0-255) or by color picker(RGB) and slider(WarmWhite)");
+    } else
+    {
+      addFormNote("Set " + name + "-color value directly (range:0-255) or by color picker");
+    }
   }
 }
 
@@ -7234,17 +7271,76 @@ void pxlBlckUtils_add_color_values_to_debug_log(String colorName)
   addLog(LOG_LEVEL_DEBUG, log);
 }
 
-void pxlBlckUtils_handle_and_save_new_color_values(String hexString, uint32_t *actualColorValue, uint8_t *newR, uint8_t *newG, uint8_t *newB, uint8_t inputR, uint8_t inputG, uint8_t inputB, uint8_t inputWW)
+void pxlBlckUtils_handle_and_save_new_color_values(String inputColorPicker, uint32_t *actualColorValue, uint8_t inputR, uint8_t inputG, uint8_t inputB, uint8_t inputWw, uint8_t inputWwSlider)
 {
-  pxlBlckUtils_select_color_values_from_color_picker_or_number_input(
-    hexString,
-    *actualColorValue,
-    newR, newG, newB,
-    inputR,
-    inputG,
-    inputB);
+  String log = F(PXLBLCK_DEVICE_NAME);
+  addLog(LOG_LEVEL_DEBUG, log);
+  log = F("   -inputR: ");
+  log += String(inputR);
+  addLog(LOG_LEVEL_DEBUG, log);
+  log = F("   -inputG: ");
+  log += String(inputG);
+  addLog(LOG_LEVEL_DEBUG, log);
+  log = F("   -inputB: ");
+  log += String(inputB);
+  addLog(LOG_LEVEL_DEBUG, log);
+  log = F("   -inputWw: ");
+  log += String(inputWw);
+  addLog(LOG_LEVEL_DEBUG, log);
+  log = F("   -inputWwSlider: ");
+  log += String(inputWwSlider);
+  addLog(LOG_LEVEL_DEBUG, log);
+  /*
+    pxlBlckUtils_process_color_inputs(
+       actualColorValue,
+      inputColorPicker,
+      inputWwSlider,
+      &inputR,
+      &inputG,
+      &inputB,
+      &inputWw);*/
 
-  *actualColorValue = pxlBlckUtils_convert_color_values_to_32bit(*newR, *newG, *newB, inputWW);
+
+
+  //this function checks if the color values of the color picker was changed. If so it returns the color-picker-values as new color values. Otherwise it returns the rgb values that were entered into the input fields.
+  //Same applies to the WarmWhite slider.
+
+  uint8_t colorPickerR, colorPickerG, colorPickerB = 0;
+  pxlBlckUtils_convert_hex_to_rgb(inputColorPicker, &colorPickerR, &colorPickerG, &colorPickerB);
+
+  uint8_t oldR = pxlBlckUtils_return_red_from_config(*actualColorValue);
+  uint8_t oldG = pxlBlckUtils_return_green_from_config(*actualColorValue);
+  uint8_t oldB = pxlBlckUtils_return_blue_from_config(*actualColorValue);
+  uint8_t oldWw = pxlBlckUtils_return_warmwhite_from_config(*actualColorValue);
+
+  if (colorPickerR != oldR || colorPickerG != oldG || colorPickerB != oldB)
+  {
+    inputR = colorPickerR;
+    inputG = colorPickerG;
+    inputB = colorPickerB;
+  }
+
+  if (inputWwSlider != oldWw)
+  {
+    inputWw = inputWwSlider;
+  }
+
+  log = F(PXLBLCK_DEVICE_NAME);
+  addLog(LOG_LEVEL_DEBUG, log);
+  log = F("   -inputR_2: ");
+  log += String(inputR);
+  addLog(LOG_LEVEL_DEBUG, log);
+  log = F("   -inputG_2: ");
+  log += String(inputG);
+  addLog(LOG_LEVEL_DEBUG, log);
+  log = F("   -inputB_2: ");
+  log += String(inputB);
+  addLog(LOG_LEVEL_DEBUG, log);
+  log = F("   -inputWW_2: ");
+  log += String(inputWw);
+  addLog(LOG_LEVEL_DEBUG, log);
+
+  *actualColorValue = pxlBlckUtils_convert_color_values_to_32bit(inputR, inputG, inputB, inputWw);
 }
 
 void pxlBlckUtils_save_two_bytes_in_uint16(uint16_t *intVariable, uint8_t firstByte, uint8_t secondByte)
@@ -7252,6 +7348,7 @@ void pxlBlckUtils_save_two_bytes_in_uint16(uint16_t *intVariable, uint8_t firstB
   *intVariable = (((uint16_t)firstByte << 8) | secondByte);
 
   String log = F(PXLBLCK_DEVICE_NAME);
+  addLog(LOG_LEVEL_DEBUG, log);
   log += F("-byteToIntConverter");
   addLog(LOG_LEVEL_DEBUG, log);
   log = F("   saved bytes ");
@@ -7276,6 +7373,7 @@ void pxlBlckUtils_return_byte_values_from_uint16(uint16_t intVariable, uint8_t *
   *firstByte = (intVariable >> 8);
 
   String log = F(PXLBLCK_DEVICE_NAME);
+  addLog(LOG_LEVEL_DEBUG, log);
   log = F("-intToByteConverter");
   addLog(LOG_LEVEL_DEBUG, log);
   log = F("   returned byte values from uint16 as bin: firstByte=");
