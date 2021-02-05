@@ -117,7 +117,6 @@
 #define PLUGIN_205_TEXT_WRAPING_ENABLED false //this should stay disabled, otherwise characters of a running text will only be displayed as soon as they fit completely in the matrix area.
 #define PLUGIN_205_BRIGHTNESS_STANDARD 10
 #define PLUGIN_205_MINIMAL_BRIGHTNESS_STANDARD 10
-#define PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED_STANDARD_SETTING true
 #define PXLBLCK_HOUR_MARK_STANDARD_BRIGHTNESS PLUGIN_205_BRIGHTNESS_STANDARD
 #define PXLBLCK_ONE_TILE_ONLY_VALUE 255 //Thats the number value that will be used to define that no tile setting is needed
 #define PXLBLCK_MAX_SETABLE_MATRIX_TILES_IN_X_DIR 10
@@ -578,7 +577,6 @@ uint8_t Plugin_205_displayBrightness = PLUGIN_205_BRIGHTNESS_STANDARD;
 uint8_t Plugin_205_selectedDial = 0;
 uint8_t Plugin_205_matrixRotation = PLUGIN_205_STANDARD_MATRIX_ROTATION;
 uint8_t Plugin_205_screensaver_position = 0;
-boolean Plugin_205_higherColorResultionEnabled = PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED_STANDARD_SETTING;
 uint8_t Plugin_205_minimalBrightness = PLUGIN_205_MINIMAL_BRIGHTNESS_STANDARD;
 unsigned long Plugin_205_iconShowedTimestamp = 0;
 
@@ -713,7 +711,6 @@ uint8_t Plugin_205_bits[PXLBLCK_FIBOCLOCK_MATRIX_HEIGHT];
 #define PXLBLCK_INSTANCE Plugin_205_matrix
 #define PXLBLCK_FAKE_TV_STRUCT Plugin_205_fakeTV
 #define PXLBLCK_DEVICE_NAME "PxlBlck"
-#define PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED Plugin_205_higherColorResultionEnabled
 #define PXLBLCK_MAX_SETABLE_BRIGHTNESS 15.0     //maximal possible value of setable brightness-range(should be smaler than 16)
 #define PXLBLCK_MINIMAL_BRIGHTNESS Plugin_205_minimalBrightness
 #define PXLBLCK_ICON_COOLDOWN_TIME 5000
@@ -1555,8 +1552,6 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
         //int width = Plugin_205_matrixWidth;
         //int height = Plugin_205_matrixHeight;
 
-        PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED = PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED_STANDARD_SETTING;
-
         if ((PXLBLCK_LED_COLOR_ORDER != NEO_GRB) && (PXLBLCK_LED_COLOR_ORDER != NEO_RGB) && (PXLBLCK_LED_COLOR_ORDER != NEO_RGBW))
           PXLBLCK_LED_COLOR_ORDER = NEO_GRB;
 
@@ -1603,8 +1598,7 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
         Plugin_205_colorThree = PXLBLCK_COLOR_PERMANENT_STORAGE(2);
         Plugin_205_colorFour = PXLBLCK_COLOR_PERMANENT_STORAGE(3);
 
-        //Disable 24 bit color mode if needed
-        if (!PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
+        //Activate 24 bit color mode
           PXLBLCK_INSTANCE->setPassThruColor();
 
         //write values to user-vars: so the data showd in the plugin overview will also updated
@@ -4207,10 +4201,7 @@ void Plugin_205_show_dial_numbersHorizontal(uint8_t hours, uint8_t minutes, uint
   //clear display
   pxlBlckUtils_fill_matrix(bgColor);
 
-  //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
   PXLBLCK_INSTANCE->setPassThruColor(hourColor);
-  //else
-  //PXLBLCK_INSTANCE->setTextColor(hourColor);
 
   //write hour numbers to display
   PXLBLCK_INSTANCE->setCursor(offsetFromLeft, 1);
@@ -4218,10 +4209,7 @@ void Plugin_205_show_dial_numbersHorizontal(uint8_t hours, uint8_t minutes, uint
 
   if (includingDots)
   {
-    //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
     PXLBLCK_INSTANCE->setPassThruColor(dotColor);
-    //else
-    //PXLBLCK_INSTANCE->setTextColor(dotColor);
 
     //write dots to display
     PXLBLCK_INSTANCE->setCursor(offsetFromLeft + 10, 1);
@@ -4231,20 +4219,14 @@ void Plugin_205_show_dial_numbersHorizontal(uint8_t hours, uint8_t minutes, uint
     PXLBLCK_INSTANCE->print(":");
 
     //write the minute number to the display but two pixel more shifted to the right compaed to display without dots
-    //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
     PXLBLCK_INSTANCE->setPassThruColor(minuteColor);
-    //else
-    //PXLBLCK_INSTANCE->setTextColor(minuteColor);
 
     PXLBLCK_INSTANCE->setCursor(offsetFromLeft + 15, 1);
     PXLBLCK_INSTANCE->print(minutesOut);
   } else
   {
     //write the minute number to the display (without dots between hour and minute number)
-    //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
     PXLBLCK_INSTANCE->setPassThruColor(minuteColor);
-    //else
-    //PXLBLCK_INSTANCE->setTextColor(minuteColor);
 
     PXLBLCK_INSTANCE->setCursor(offsetFromLeft + 13, 1);
     PXLBLCK_INSTANCE->print(minutesOut);
@@ -4455,10 +4437,7 @@ void pxlBlckUtils_check_running_text()
       {
         pxlBlckUtils_fill_matrix(PXLBLCK_RNG_TXT_STRUCT.runtxtBgColor);
 
-        //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
         PXLBLCK_INSTANCE->setPassThruColor(PXLBLCK_RNG_TXT_STRUCT.runtxtColor);
-        //else
-        //PXLBLCK_INSTANCE->setTextColor(PXLBLCK_RNG_TXT_STRUCT.runtxtColor);
 
         PXLBLCK_INSTANCE->setTextSize(1);
         PXLBLCK_INSTANCE->setCursor(PXLBLCK_RNG_TXT_STRUCT.runtxtPosition, 0);
@@ -4619,10 +4598,7 @@ void pxlBlckUtils_check_multi_colored_icon()
 
                 if (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1)
                 {
-                  //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
                   PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
-                  //else
-                  //PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
 
                   PXLBLCK_INSTANCE->setCursor(PXLBLCK_ICON_WIDTH + 2, 0);
                   PXLBLCK_INSTANCE->print(PXLBLCK_ICON_STRUCT.textThatFollows);
@@ -4663,10 +4639,7 @@ void pxlBlckUtils_check_multi_colored_icon()
 
                   if (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1)
                   {
-                    //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
                     PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(i * 255, i * 255, i * 255));
-                    //else
-                    //PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(i * 255, i * 255, i * 255));
 
                     PXLBLCK_INSTANCE->setCursor(PXLBLCK_ICON_WIDTH + 2, 0);
                     PXLBLCK_INSTANCE->print(PXLBLCK_ICON_STRUCT.textThatFollows);
@@ -4710,10 +4683,7 @@ void pxlBlckUtils_check_multi_colored_icon()
 
                   if (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1)
                   {
-                    //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
                     PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
-                    //else
-                    //PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
 
                     PXLBLCK_INSTANCE->setCursor(x + PXLBLCK_ICON_WIDTH + 2, 0);
                     PXLBLCK_INSTANCE->print(PXLBLCK_ICON_STRUCT.textThatFollows);
@@ -4806,10 +4776,7 @@ void pxlBlckUtils_check_multi_colored_icon()
 
                   if (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1)
                   {
-                    //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
                     PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(i * 255, i * 255, i * 255));
-                    //else
-                    //PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(i * 255, i * 255, i * 255));
 
                     PXLBLCK_INSTANCE->setCursor(PXLBLCK_ICON_WIDTH + 2, 0);
                     PXLBLCK_INSTANCE->print(PXLBLCK_ICON_STRUCT.textThatFollows);
@@ -4854,10 +4821,7 @@ void pxlBlckUtils_check_multi_colored_icon()
 
                   if (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1)
                   {
-                    //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
                     PXLBLCK_INSTANCE->setPassThruColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
-                    //else
-                    //PXLBLCK_INSTANCE->setTextColor(pxlBlckUtils_convert_color_values_to_32bit(brightness * 255, brightness * 255, brightness * 255));
 
                     PXLBLCK_INSTANCE->setCursor(x + PXLBLCK_ICON_WIDTH + 2, 0);
                     PXLBLCK_INSTANCE->print(PXLBLCK_ICON_STRUCT.textThatFollows);
@@ -5020,7 +4984,6 @@ void pxlBlckUtils_draw_rectangle(uint8_t xPosStart, uint8_t yPosStart, uint8_t w
 {
   color = pxlBlckUtils_exchange_color_values_based_on_led_type(color);
 
-  //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
   PXLBLCK_INSTANCE->setPassThruColor(color);
   PXLBLCK_INSTANCE->fillRect(xPosStart, yPosStart, width, height, color);
 }
@@ -5050,7 +5013,6 @@ void pxlBlckUtils_fill_matrix(uint32_t color)
   log += color;
   addLog(LOG_LEVEL_DEBUG_MORE, log);
 
-  //if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
   PXLBLCK_INSTANCE->setPassThruColor(color);
   PXLBLCK_INSTANCE->fillScreen(color);
 }
@@ -5099,7 +5061,6 @@ void pxlBlckUtils_draw_pixel(uint8_t x, uint8_t y, uint32_t color)
 
   color = pxlBlckUtils_exchange_color_values_based_on_led_type(color);
 
-  if (PXLBLCK_HIGHER_COLOR_RESOLUTION_ENABLED)
     PXLBLCK_INSTANCE->setPassThruColor(color);
   PXLBLCK_INSTANCE->drawPixel(x, y, color);
 }
