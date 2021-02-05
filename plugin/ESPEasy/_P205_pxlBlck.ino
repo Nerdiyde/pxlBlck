@@ -572,6 +572,7 @@ String Plugin_205_possibleDialList[][PLUGIN_205_MAX_DIAL_NUM][2] = {
 
 Adafruit_NeoMatrix *Plugin_205_matrix;
 boolean Plugin_205_initialDebugOutputDone = false;
+boolean Plugin_205_first_initialization_pending = true;
 boolean Plugin_205_displayEnabled = true;
 uint8_t Plugin_205_displayBrightness = PLUGIN_205_BRIGHTNESS_STANDARD;
 uint8_t Plugin_205_selectedDial = 0;
@@ -1599,11 +1600,16 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
         Plugin_205_colorFour = PXLBLCK_COLOR_PERMANENT_STORAGE(3);
 
         //Activate 24 bit color mode
-          PXLBLCK_INSTANCE->setPassThruColor();
+        PXLBLCK_INSTANCE->setPassThruColor();
 
         //write values to user-vars: so the data showd in the plugin overview will also updated
         pxlBlckUtils_update_user_vars(event, Plugin_205_displayEnabled, Plugin_205_displayBrightness, Plugin_205_matrixRotation);
-        pxlBlckUtils_show_start_animation(300);
+
+        if (Plugin_205_first_initialization_pending)
+        {
+          Plugin_205_first_initialization_pending = false;
+          pxlBlckUtils_show_start_animation(300);
+        }
 
         success = true;
         break;
@@ -5061,7 +5067,7 @@ void pxlBlckUtils_draw_pixel(uint8_t x, uint8_t y, uint32_t color)
 
   color = pxlBlckUtils_exchange_color_values_based_on_led_type(color);
 
-    PXLBLCK_INSTANCE->setPassThruColor(color);
+  PXLBLCK_INSTANCE->setPassThruColor(color);
   PXLBLCK_INSTANCE->drawPixel(x, y, color);
 }
 
@@ -5371,8 +5377,8 @@ String pxlBlckUtils_read_file(String name)
 void pxlBlckUtils_show_start_animation(uint16_t animation_time)
 {
   pxlBlckUtils_clear_matrix();
-  float const dimming_step=0.1;
-  animation_time = (float(animation_time) / float(PXLBLCK_MATRIX_HEIGHT))*dimming_step; //total animation time is independent of matrix height
+  float const dimming_step = 0.1;
+  animation_time = (float(animation_time) / float(PXLBLCK_MATRIX_HEIGHT)) * dimming_step; //total animation time is independent of matrix height
 
   for (int xAndY = 0; xAndY < PXLBLCK_MATRIX_HEIGHT; xAndY++)
   {
