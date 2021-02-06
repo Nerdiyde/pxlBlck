@@ -558,6 +558,7 @@ String Plugin_205_possibleDialList[][PLUGIN_205_MAX_DIAL_NUM][2] = {
 #define PXLBLCK_WEBSERVER_FORM_ID_RINGCLOCK_HOUR_MARK_BRIGHTNESS "rcHrMrkBrg"
 
 #define PXLBLCK_WEBSERVER_FORM_ID_DIGITCLOCK_LEADING_ZEROS_ENABLED "dcLzE"
+#define PXLBLCK_WEBSERVER_FORM_ID_TWENTY_FOUR_HR_MODE_ENABLED "tfHrME"
 
 #define PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS "ClrOne"
 #define PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS "ClrTwo"
@@ -598,6 +599,7 @@ boolean Plugin_205_wordclockShowOClockEnabled = true;
 boolean Plugin_205_wordclockShowItIsEnabled = true;
 uint8_t Plugin_205_wordclockLanguageId = 0;
 boolean Plugin_205_diallLeadingZerosEnabled = true;
+boolean Plugin_205_twentyFourHr_mode_activated = false;
 
 uint8_t Plugin_205_colorWheelPosition[5] = {0};
 
@@ -1138,6 +1140,9 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
         addFormNote(F("Enabling display of leading Zeros."));
         //}
 
+        addFormCheckBox(F("24-hour-mode enabled"), F(PXLBLCK_WEBSERVER_FORM_ID_TWENTY_FOUR_HR_MODE_ENABLED), Plugin_205_twentyFourHr_mode_activated);
+        addFormNote(F("Display time using 24hrs instead of 12hrs."));
+
         //General form parts
         addFormNumericBox(F("Display brightness"), F(PXLBLCK_WEBSERVER_FORM_ID_BRIGHTNESS), Plugin_205_displayBrightness, 1, PXLBLCK_MAX_SETABLE_BRIGHTNESS);
         addFormNote(F("Brightness level of Display (1-15)"));
@@ -1161,9 +1166,9 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
             Plugin_205_colorFourName = F("Background");
             break;
           case PXLBLCK_DIAL_NAME_HR_NM_AND_MN_PNTS_ID_INT:
-            Plugin_205_colorOneName = F("Hour");
-            Plugin_205_colorTwoName = F("Minute");
-            Plugin_205_colorThreeName = F(PXLBLCK_WEBSERVER_FORM_COLOR_NOT_USED_VALUE);
+            Plugin_205_colorOneName = Plugin_205_twentyFourHr_mode_activated ? F("Hour") : F("Hour-AM");
+            Plugin_205_colorTwoName =  Plugin_205_twentyFourHr_mode_activated ? F(PXLBLCK_WEBSERVER_FORM_COLOR_NOT_USED_VALUE) : F("Hour-PM");
+            Plugin_205_colorThreeName = F("Minute");
             Plugin_205_colorFourName = F("Background");
             break;
           case PXLBLCK_DIAL_NAME_RANDOM_PIXELS_ID_INT:
@@ -1333,9 +1338,12 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
         log += getFormItemInt(F(PXLBLCK_WEBSERVER_FORM_ID_RINGCLOCK_HOUR_MARK_BRIGHTNESS));
         addLog(LOG_LEVEL_DEBUG, log);
 
-        //digitClock
+        //misc
         log = F("   lead_zero_enbld=");
         log += isFormItemChecked(F(PXLBLCK_WEBSERVER_FORM_ID_DIGITCLOCK_LEADING_ZEROS_ENABLED));
+        addLog(LOG_LEVEL_DEBUG, log);
+        log = F("   24_hr_mode_enabled=");
+        log += isFormItemChecked(F(PXLBLCK_WEBSERVER_FORM_ID_TWENTY_FOUR_HR_MODE_ENABLED));
         addLog(LOG_LEVEL_DEBUG, log);
 
 
@@ -1355,6 +1363,7 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
         Plugin_205_selectedDial = getFormItemInt(F(PXLBLCK_WEBSERVER_FORM_ID_DIAL));
         Plugin_205_matrixRotation = getFormItemInt(F(PXLBLCK_WEBSERVER_FORM_ID_ROTATION));
         Plugin_205_diallLeadingZerosEnabled = isFormItemChecked(F(PXLBLCK_WEBSERVER_FORM_ID_DIGITCLOCK_LEADING_ZEROS_ENABLED));
+        Plugin_205_twentyFourHr_mode_activated = isFormItemChecked(F(PXLBLCK_WEBSERVER_FORM_ID_TWENTY_FOUR_HR_MODE_ENABLED));
 
         //Matrix layout
         Plugin_205_selectedMatrixId = getFormItemInt(F(PXLBLCK_WEBSERVER_FORM_ID_MATRIX_TYPE));
@@ -1378,91 +1387,70 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
         Plugin_205_ringclockClockDirInversed = isFormItemChecked(F(PXLBLCK_WEBSERVER_FORM_ID_RINGCLOCK_DIR_INVERSED));
         Plugin_205_ringclockHourMarksBrightness = getFormItemInt(F(PXLBLCK_WEBSERVER_FORM_ID_RINGCLOCK_HOUR_MARK_BRIGHTNESS));
 
-        //Color values
-        /*String newColorOneCp = pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "CP");
-          uint8_t newColorOneR = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "R");
-          uint8_t newColorOneG = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "G");
-          uint8_t newColorOneB = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "B");
-          uint8_t newColorOneWw = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "Ww");
-
-          String newColorTwoCP = pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "CP");
-          uint8_t newColorTwoR = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "R");
-          uint8_t newColorTwoG = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "G");
-          uint8_t newColorTwoB = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "B");
-          uint8_t newColorTwoWw = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "Ww");
-
-          String newColorThreeCP = pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "CP");
-          uint8_t newColorThreeR = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "R");
-          uint8_t newColorThreeG = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "G");
-          uint8_t newColorThreeB = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "B");
-          uint8_t newColorThreeWw = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "Ww");
-
-          String newColorFourCP = pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "CP");
-          uint8_t newColorFourR = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "R");
-          uint8_t newColorFourG = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "G");
-          uint8_t newColorFourB = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "B");
-          uint8_t newColorFourWw = getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "Ww");*/
-
         //Save color values to permanent storage
         //First color value
-        uint32_t tempConfigVariable = PXLBLCK_COLOR_PERMANENT_STORAGE(0);
+        //uint32_t tempConfigVariable = PXLBLCK_COLOR_PERMANENT_STORAGE(0);
 
         pxlBlckUtils_handle_and_save_new_color_values(
           pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "CP"),
-          &tempConfigVariable,
+          &Plugin_205_colorOne,
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "R"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "G"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "B"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "Ww"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "WwSld"));
 
-        PXLBLCK_COLOR_PERMANENT_STORAGE(0) = tempConfigVariable;
-        Plugin_205_colorOne = tempConfigVariable;
+        PXLBLCK_COLOR_PERMANENT_STORAGE(0) = Plugin_205_colorOne;
+        //PXLBLCK_COLOR_PERMANENT_STORAGE(0) = tempConfigVariable;
+        //Plugin_205_colorOne = tempConfigVariable;
 
         //Second color value
-        tempConfigVariable = PXLBLCK_COLOR_PERMANENT_STORAGE(1);
+        //tempConfigVariable = PXLBLCK_COLOR_PERMANENT_STORAGE(1);
 
         pxlBlckUtils_handle_and_save_new_color_values(
           pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "CP"),
-          &tempConfigVariable,
+          &Plugin_205_colorTwo,
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "R"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "G"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "B"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "Ww"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "WwSld"));
 
-        PXLBLCK_COLOR_PERMANENT_STORAGE(1) = tempConfigVariable;
-        Plugin_205_colorTwo = tempConfigVariable;
+        PXLBLCK_COLOR_PERMANENT_STORAGE(1) = Plugin_205_colorTwo;
+        //PXLBLCK_COLOR_PERMANENT_STORAGE(1) = tempConfigVariable;
+        //Plugin_205_colorTwo = tempConfigVariable;
 
         //Third color value
-        tempConfigVariable = PXLBLCK_COLOR_PERMANENT_STORAGE(2);
+        //tempConfigVariable = PXLBLCK_COLOR_PERMANENT_STORAGE(2);
 
         pxlBlckUtils_handle_and_save_new_color_values(
           pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "CP"),
-          &tempConfigVariable,
+          &Plugin_205_colorThree,
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "R"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "G"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "B"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "Ww"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "WwSld"));
 
-        PXLBLCK_COLOR_PERMANENT_STORAGE(2) = tempConfigVariable;
-        Plugin_205_colorThree = tempConfigVariable;
+        PXLBLCK_COLOR_PERMANENT_STORAGE(2) = Plugin_205_colorThree;
+        //PXLBLCK_COLOR_PERMANENT_STORAGE(2) = tempConfigVariable;
+        //Plugin_205_colorThree = tempConfigVariable;
 
         //Fourth color value
-        tempConfigVariable = PXLBLCK_COLOR_PERMANENT_STORAGE(3);
+        //tempConfigVariable = PXLBLCK_COLOR_PERMANENT_STORAGE(3);
 
         pxlBlckUtils_handle_and_save_new_color_values(
           pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "CP"),
-          &tempConfigVariable,
+          &Plugin_205_colorFour,
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "R"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "G"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "B"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "Ww"),
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "WwSld"));
 
-        PXLBLCK_COLOR_PERMANENT_STORAGE(3) = tempConfigVariable;
-        Plugin_205_colorFour = tempConfigVariable;
+        PXLBLCK_COLOR_PERMANENT_STORAGE(3) = Plugin_205_colorFour;
+        //PXLBLCK_COLOR_PERMANENT_STORAGE(3) = tempConfigVariable;
+        //Plugin_205_colorFour = tempConfigVariable;
 
         //Save matrix dimensions to working variables
         Plugin_205_matrixHeight = Plugin_205_matrixSizesById[Plugin_205_selectedMatrixId][1];
@@ -1546,12 +1534,11 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
         Plugin_205_ringclockThick12markEnabled = boolArray[3];
         Plugin_205_ringclockClockDirInversed = boolArray[4];
         Plugin_205_diallLeadingZerosEnabled = boolArray[5];
+        Plugin_205_twentyFourHr_mode_activated = boolArray[6];
 
         //Save matrix dimensions to working variables
         Plugin_205_matrixHeight = Plugin_205_matrixSizesById[Plugin_205_selectedMatrixId][1];
         Plugin_205_matrixWidth = Plugin_205_matrixSizesById[Plugin_205_selectedMatrixId][0];
-        //int width = Plugin_205_matrixWidth;
-        //int height = Plugin_205_matrixHeight;
 
         if ((PXLBLCK_LED_COLOR_ORDER != NEO_GRB) && (PXLBLCK_LED_COLOR_ORDER != NEO_RGB) && (PXLBLCK_LED_COLOR_ORDER != NEO_RGBW))
           PXLBLCK_LED_COLOR_ORDER = NEO_GRB;
@@ -1987,6 +1974,9 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
                 break;
               case 6: //save Plugin_205_diallLeadingZerosEnabled
                 Plugin_205_diallLeadingZerosEnabled =  ((boolValue == 2) ? !Plugin_205_diallLeadingZerosEnabled : boolValue);
+                break;
+              case 7: //save Plugin_205_twentyFourHr_mode_activated
+                Plugin_205_twentyFourHr_mode_activated =  ((boolValue == 2) ? !Plugin_205_twentyFourHr_mode_activated : boolValue);
                 break;
               default:
                 break;
@@ -3050,7 +3040,7 @@ void Plugin_205_update()
           case PXLBLCK_DIAL_NAME_HR_NM_AND_MN_PNTS_ID_INT:
             {
               pxlBlckUtils_clear_matrix();
-              Plugin_205_show_dial_hourNumberAndMinutePoints(hours, minutes, colorOneTemp, colorTwoTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled);
+              Plugin_205_show_dial_hourNumberAndMinutePoints(hours, minutes, colorOneTemp, colorTwoTemp, colorThreeTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled, Plugin_205_twentyFourHr_mode_activated);
               pxlBlckUtils_update_matrix();
             }
             break;
@@ -3408,18 +3398,23 @@ void Plugin_205_write_prepared_pixels_to_display(uint8_t pixelsToShow[][PLUGIN_2
   }
 }
 
-void Plugin_205_show_dial_hourNumberAndMinutePoints(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t minuteColor, uint32_t bgColor, boolean leadingZerosEnabled)
+void Plugin_205_show_dial_hourNumberAndMinutePoints(uint8_t hours, uint8_t minutes, uint32_t hourColorAm, uint32_t hourColorPm, uint32_t minuteColor, uint32_t bgColor, boolean leadingZerosEnabled, boolean twentyFourHrModeEnabled)
 {
+  uint32_t hrColor = hourColorAm;
+
+  //limit hours to 12hr format if 24hr mode is deactivated and set hour color accordingly
+  if (!twentyFourHrModeEnabled && hours > 11)
+  {
+    hours = hours - 12;
+    hrColor = hourColorPm;
+  }
+
   pxlBlckUtils_fill_matrix(bgColor);
 
   //the following part should set the pixels within in a specific area
   uint8_t setPixels = 0;
 
-  //uint8_t xDrawStartPosition = ((PXLBLCK_MATRIX_WIDTH / 2) - (DISPLAY_AREA_WIDTH / 2));
-  //uint8_t xDrawStartPosition = ((PXLBLCK_MATRIX_WIDTH / 2) - (DISPLAY_AREA_WIDTH / 2));
-
   uint8_t xOffsetFromLeftMatrixBorder = ((PXLBLCK_MATRIX_WIDTH / 2) - (DISPLAY_AREA_WIDTH / 2));
-  //uint8_t yOffsetFromTopMatrixBorder = ((PXLBLCK_MATRIX_HEIGHT / 2) - (DISPLAY_AREA_WIDTH / 2));
 
   uint8_t xCoordinateOfLeftBorderOfDisplayArea = xOffsetFromLeftMatrixBorder;
   uint8_t xCoordinateOfRightBorderOfDisplayArea = (DISPLAY_AREA_WIDTH + xOffsetFromLeftMatrixBorder) - 1;
@@ -3485,7 +3480,7 @@ void Plugin_205_show_dial_hourNumberAndMinutePoints(uint8_t hours, uint8_t minut
     if (pixelsToShowHour[i][0] < PLUGIN_205_5x4_NUMBER_NONE &&
         pixelsToShowHour[i][1] < PLUGIN_205_5x4_NUMBER_NONE )
     {
-      pxlBlckUtils_draw_pixel(pixelsToShowHour[i][0], pixelsToShowHour[i][1], hourColor);
+      pxlBlckUtils_draw_pixel(pixelsToShowHour[i][0], pixelsToShowHour[i][1], hrColor);
 
     }
   }
@@ -7365,7 +7360,7 @@ uint16_t pxlBlckUtils_save_boolean_runtime_variables_to_permanent_storage()
     Plugin_205_ringclockThick12markEnabled,
     Plugin_205_ringclockClockDirInversed,
     Plugin_205_diallLeadingZerosEnabled,
-    10,
+    Plugin_205_twentyFourHr_mode_activated,
     10
   };
   uint8_t byteVariable = 0;
@@ -7373,6 +7368,5 @@ uint16_t pxlBlckUtils_save_boolean_runtime_variables_to_permanent_storage()
   pxlBlckUtils_save_bool_values_in_byte(&byteVariable, boolArray);
   return byteVariable;
 }
-
 
 #endif

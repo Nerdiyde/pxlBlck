@@ -20,7 +20,7 @@ pxlBlck is a system of hardware and software to set up an event indication syste
  - [x] Bug: Outgoing icon animation "fly out to left" crashes on ESP32
  - [ ] Improve: replace "paramX" by "pxlBlckUtils_parseString()"
  - [x] Bug: Color handling (in webmenu) is mixed up at using non standard "GRB" led-configuration
- - [ ] Color handling of RGBW leds not completely tested
+ - [x] Color handling of RGBW leds not completely tested
  - [ ] cmpFire dial not functional yet
  
 ### Planned features
@@ -28,7 +28,7 @@ pxlBlck is a system of hardware and software to set up an event indication syste
  - Rainbow color mode: Each pixel displayey in a random color
  - Timermode Dial
  - Mini-Notifications
- - https://github.com/Nerdiyde/pxlBlck/issues/2
+ - https://github.com/Nerdiyde/pxlBlck/issues/2: Done @ 06.02.2021
 
 ### Trademarks
 All third-party trademarks are the property of their respective owners. More infos here: https://nerdiy.de/en/warenzeichen/
