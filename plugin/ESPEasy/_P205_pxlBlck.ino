@@ -1391,7 +1391,7 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
         //First color value
         //uint32_t tempConfigVariable = PXLBLCK_COLOR_PERMANENT_STORAGE(0);
 
-        pxlBlckUtils_handle_and_save_new_color_values(
+        pxlBlckUtils_process_color_inputs(
           pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "CP"),
           &Plugin_205_colorOne,
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "R"),
@@ -1407,7 +1407,7 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
         //Second color value
         //tempConfigVariable = PXLBLCK_COLOR_PERMANENT_STORAGE(1);
 
-        pxlBlckUtils_handle_and_save_new_color_values(
+        pxlBlckUtils_process_color_inputs(
           pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "CP"),
           &Plugin_205_colorTwo,
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "R"),
@@ -1423,7 +1423,7 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
         //Third color value
         //tempConfigVariable = PXLBLCK_COLOR_PERMANENT_STORAGE(2);
 
-        pxlBlckUtils_handle_and_save_new_color_values(
+        pxlBlckUtils_process_color_inputs(
           pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "CP"),
           &Plugin_205_colorThree,
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "R"),
@@ -1439,7 +1439,7 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
         //Fourth color value
         //tempConfigVariable = PXLBLCK_COLOR_PERMANENT_STORAGE(3);
 
-        pxlBlckUtils_handle_and_save_new_color_values(
+        pxlBlckUtils_process_color_inputs(
           pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "CP"),
           &Plugin_205_colorFour,
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "R"),
@@ -6949,32 +6949,6 @@ void pxlBlckUtils_convert_hex_to_rgb(String hexString, uint8_t *r, uint8_t *g, u
   *b = number & 0xFF;
 }
 
-void pxlBlckUtils_process_color_inputs(uint32_t actualColorValue, String inputColorPicker, uint8_t inputWwSlider, uint8_t *inputR, uint8_t *inputG, uint8_t *inputB, uint8_t *inputWw)
-{
-  //this function checks if the color values of the color picker was changed. If so it returns the color-picker-values as new color values. Otherwise it returns the rgb values that were entered into the input fields.
-  //Same applies to the WarmWhite slider.
-
-  uint8_t colorPickerR, colorPickerG, colorPickerB = 0;
-  pxlBlckUtils_convert_hex_to_rgb(inputColorPicker, &colorPickerR, &colorPickerG, &colorPickerB);
-
-  uint8_t oldR = pxlBlckUtils_return_red_from_config(actualColorValue);
-  uint8_t oldG = pxlBlckUtils_return_green_from_config(actualColorValue);
-  uint8_t oldB = pxlBlckUtils_return_blue_from_config(actualColorValue);
-  uint8_t oldWw = pxlBlckUtils_return_warmwhite_from_config(actualColorValue);
-
-  if (colorPickerR != oldR || colorPickerG != oldG || colorPickerB != oldB)
-  {
-    *inputR = colorPickerR;
-    *inputG = colorPickerG;
-    *inputB = colorPickerB;
-  }
-
-  if (inputWwSlider != oldWw)
-  {
-    *inputWw = inputWwSlider;
-  }
-}
-
 String pxlBlckUtils_parseString(String & string, byte indexFind)
 {
   //This seperate function is needed because the (in ESPEasy) integrated function does not allow capital letters
@@ -7184,7 +7158,6 @@ void pxlBlckUtils_return_bool_values_from_byte(uint8_t *byteVariable, uint8_t bo
     addLog(LOG_LEVEL_DEBUG, log);
 
   }
-
 }
 
 void pxlBlckUtils_addColorFormParts(String prefix, uint32_t formerColorValue, String name)
@@ -7233,8 +7206,12 @@ void pxlBlckUtils_add_color_values_to_debug_log(String colorName)
   addLog(LOG_LEVEL_DEBUG, log);
 }
 
-void pxlBlckUtils_handle_and_save_new_color_values(String inputColorPicker, uint32_t *actualColorValue, uint8_t inputR, uint8_t inputG, uint8_t inputB, uint8_t inputWw, uint8_t inputWwSlider)
+void pxlBlckUtils_process_color_inputs(String inputColorPicker, uint32_t *actualColorValue, uint8_t inputR, uint8_t inputG, uint8_t inputB, uint8_t inputWw, uint8_t inputWwSlider)
 {
+  //this function checks if the color values of the color picker was changed. If so it returns the color-picker-values as new color values. Otherwise it returns the rgb values that were entered into the input fields.
+  //Same applies to the WarmWhite slider.
+  //All RGBW color values will then converted and written to the actualColorValue
+  
   String log = F(PXLBLCK_DEVICE_NAME);
   addLog(LOG_LEVEL_DEBUG, log);
   log = F("   -inputR: ");
@@ -7252,20 +7229,7 @@ void pxlBlckUtils_handle_and_save_new_color_values(String inputColorPicker, uint
   log = F("   -inputWwSlider: ");
   log += String(inputWwSlider);
   addLog(LOG_LEVEL_DEBUG, log);
-  /*
-    pxlBlckUtils_process_color_inputs(
-       actualColorValue,
-      inputColorPicker,
-      inputWwSlider,
-      &inputR,
-      &inputG,
-      &inputB,
-      &inputWw);*/
 
-
-
-  //this function checks if the color values of the color picker was changed. If so it returns the color-picker-values as new color values. Otherwise it returns the rgb values that were entered into the input fields.
-  //Same applies to the WarmWhite slider.
 
   uint8_t colorPickerR, colorPickerG, colorPickerB = 0;
   pxlBlckUtils_convert_hex_to_rgb(inputColorPicker, &colorPickerR, &colorPickerG, &colorPickerB);
@@ -7286,21 +7250,6 @@ void pxlBlckUtils_handle_and_save_new_color_values(String inputColorPicker, uint
   {
     inputWw = inputWwSlider;
   }
-
-  log = F(PXLBLCK_DEVICE_NAME);
-  addLog(LOG_LEVEL_DEBUG, log);
-  log = F("   -inputR_2: ");
-  log += String(inputR);
-  addLog(LOG_LEVEL_DEBUG, log);
-  log = F("   -inputG_2: ");
-  log += String(inputG);
-  addLog(LOG_LEVEL_DEBUG, log);
-  log = F("   -inputB_2: ");
-  log += String(inputB);
-  addLog(LOG_LEVEL_DEBUG, log);
-  log = F("   -inputWW_2: ");
-  log += String(inputWw);
-  addLog(LOG_LEVEL_DEBUG, log);
 
   *actualColorValue = pxlBlckUtils_convert_color_values_to_32bit(inputR, inputG, inputB, inputWw);
 }
