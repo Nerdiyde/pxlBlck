@@ -2980,7 +2980,6 @@ boolean Plugin_205(byte function, struct EventStruct *event, String& string)
 
 void Plugin_205_update()
 {
-  //checkTime(); //updating systemtime-variables first --> removed to adapt to release "ESPEasy-mega-20201130"
   uint8_t hours = node_time.hour();
   uint8_t minutes = node_time.minute();
   int seconds = node_time.second();
@@ -3401,12 +3400,19 @@ void Plugin_205_write_prepared_pixels_to_display(uint8_t pixelsToShow[][PLUGIN_2
 void Plugin_205_show_dial_hourNumberAndMinutePoints(uint8_t hours, uint8_t minutes, uint32_t hourColorAm, uint32_t hourColorPm, uint32_t minuteColor, uint32_t bgColor, boolean leadingZerosEnabled, boolean twentyFourHrModeEnabled)
 {
   uint32_t hrColor = hourColorAm;
-
-  //limit hours to 12hr format if 24hr mode is deactivated and set hour color accordingly
+  //switch color to pm color after 12 if 12 hr mode is activated
   if (!twentyFourHrModeEnabled && hours > 11)
   {
-    hours = hours - 12;
     hrColor = hourColorPm;
+  }
+
+  //limit hours to 12hr format if 24hr mode is deactivated and set hour color accordingly  
+  if (!twentyFourHrModeEnabled && hours > 12)
+  {
+    hours = hours - 12;
+  } else if (!twentyFourHrModeEnabled && hours==0) //to handle the conversion from 00:00 to 12 pm
+  {
+    hours = 12;    
   }
 
   pxlBlckUtils_fill_matrix(bgColor);
