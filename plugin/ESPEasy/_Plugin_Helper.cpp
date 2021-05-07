@@ -38,11 +38,11 @@ void clearPluginTaskData(taskIndex_t taskIndex) {
 }
 
 void initPluginTaskData(taskIndex_t taskIndex, PluginTaskData_base *data) {
-  if (!validTaskIndex(taskIndex)) { 
+  if (!validTaskIndex(taskIndex)) {
     if (data != nullptr) {
       delete data;
     }
-    return; 
+    return;
   }
 
   clearPluginTaskData(taskIndex);
@@ -51,7 +51,8 @@ void initPluginTaskData(taskIndex_t taskIndex, PluginTaskData_base *data) {
     return;
   }
 
-  if (Settings.TaskDeviceEnabled[taskIndex]) {
+  if (Settings.TaskDeviceEnabled[taskIndex])
+  {
     Plugin_task_data[taskIndex]                     = data;
     Plugin_task_data[taskIndex]->_taskdata_pluginID = Settings.TaskDeviceNumber[taskIndex];
   }

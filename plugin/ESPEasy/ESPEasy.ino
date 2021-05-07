@@ -14,53 +14,53 @@
 
 #ifdef USE_CUSTOM_H
 // make the compiler show a warning to confirm that this file is inlcuded
-  #warning "**** Using Settings from Custom.h File ***"
+#warning "**** Using Settings from Custom.h File ***"
 #endif
 
 
 
 // Needed due to preprocessor issues.
 #ifdef PLUGIN_SET_GENERIC_ESP32
-  #ifndef ESP32
-    #define ESP32
-  #endif
+#ifndef ESP32
+#define ESP32
+#endif
 #endif
 
 
 /****************************************************************************************************************************\
- * Arduino project "ESP Easy" © Copyright www.letscontrolit.com
- *
- * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
- * You received a copy of the GNU General Public License along with this program in file 'License.txt'.
- *
- * IDE download    : https://www.arduino.cc/en/Main/Software
- * ESP8266 Package : https://github.com/esp8266/Arduino
- *
- * Source Code     : https://github.com/ESP8266nu/ESPEasy
- * Support         : http://www.letscontrolit.com
- * Discussion      : http://www.letscontrolit.com/forum/
- *
- * Additional information about licensing can be found at : http://www.gnu.org/licenses
-\*************************************************************************************************************************/
+   Arduino project "ESP Easy" © Copyright www.letscontrolit.com
+
+   This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+   This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+   of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+   You received a copy of the GNU General Public License along with this program in file 'License.txt'.
+
+   IDE download    : https://www.arduino.cc/en/Main/Software
+   ESP8266 Package : https://github.com/esp8266/Arduino
+
+   Source Code     : https://github.com/ESP8266nu/ESPEasy
+   Support         : http://www.letscontrolit.com
+   Discussion      : http://www.letscontrolit.com/forum/
+
+   Additional information about licensing can be found at : http://www.gnu.org/licenses
+  \*************************************************************************************************************************/
 
 // This file incorporates work covered by the following copyright and permission notice:
 
 /****************************************************************************************************************************\
-* Arduino project "Nodo" © Copyright 2010..2015 Paul Tonkes
-*
-* This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-* This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
-* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-* You received a copy of the GNU General Public License along with this program in file 'License.txt'.
-*
-* Voor toelichting op de licentievoorwaarden zie    : http://www.gnu.org/licenses
-* Uitgebreide documentatie is te vinden op          : http://www.nodo-domotica.nl
-* Compiler voor deze programmacode te downloaden op : http://arduino.cc
-\*************************************************************************************************************************/
+  Arduino project "Nodo" © Copyright 2010..2015 Paul Tonkes
+
+  This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
+  as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+  You received a copy of the GNU General Public License along with this program in file 'License.txt'.
+
+  Voor toelichting op de licentievoorwaarden zie    : http://www.gnu.org/licenses
+  Uitgebreide documentatie is te vinden op          : http://www.nodo-domotica.nl
+  Compiler voor deze programmacode te downloaden op : http://arduino.cc
+  \*************************************************************************************************************************/
 
 //   Simple Arduino sketch for ESP module, supporting:
 //   =================================================================================
@@ -170,8 +170,8 @@ void preinit();
 
 #ifdef CORE_POST_2_5_0
 /*********************************************************************************************\
- * Pre-init
-\*********************************************************************************************/
+   Pre-init
+  \*********************************************************************************************/
 void preinit() {
   // Global WiFi constructors are not called yet
   // (global class instances like WiFi, Serial... are not yet initialized)..
@@ -182,8 +182,8 @@ void preinit() {
 #endif
 
 /*********************************************************************************************\
- * ISR call back function for handling the watchdog.
-\*********************************************************************************************/
+   ISR call back function for handling the watchdog.
+  \*********************************************************************************************/
 void sw_watchdog_callback(void *arg)
 {
   yield(); // feed the WD
@@ -194,22 +194,22 @@ void sw_watchdog_callback(void *arg)
 
 
 /*********************************************************************************************\
- * SETUP
-\*********************************************************************************************/
+   SETUP
+  \*********************************************************************************************/
 void setup()
 {
 #ifdef ESP8266_DISABLE_EXTRA4K
   disable_extra4k_at_link_time();
 #endif
   initWiFi();
-  
+
   run_compiletime_checks();
 #ifndef BUILD_NO_RAM_TRACKER
   lowestFreeStack = getFreeStackWatermark();
   lowestRAM = FreeMem();
 #endif
 #ifndef ESP32
-//  ets_isr_attach(8, sw_watchdog_callback, NULL);  // Set a callback for feeding the watchdog.
+  //  ets_isr_attach(8, sw_watchdog_callback, NULL);  // Set a callback for feeding the watchdog.
 #endif
 
 
@@ -226,9 +226,9 @@ void setup()
 
   resetPluginTaskData();
 
-  #ifndef BUILD_NO_RAM_TRACKER
+#ifndef BUILD_NO_RAM_TRACKER
   checkRAM(F("setup"));
-  #endif
+#endif
 
   Serial.begin(115200);
   // serialPrint("\n\n\nBOOOTTT\n\n\n");
@@ -254,7 +254,7 @@ void setup()
   log += FreeMem();
   addLog(LOG_LEVEL_INFO, log);
 
-  #ifdef ESP8266
+#ifdef ESP8266
   // Our ESP32 code does not yet support RTC, so separate this in code for ESP8266 and ESP32
   if (readFromRTC())
   {
@@ -289,9 +289,9 @@ void setup()
       lastBootCause = BOOT_CAUSE_COLD_BOOT;
     log = F("INIT : Cold Boot");
   }
-  #endif // ESP8266
+#endif // ESP8266
 
-  #ifdef ESP32
+#ifdef ESP32
   if (rtc_get_reset_reason( (RESET_REASON) 0) == DEEPSLEEP_RESET) {
     log = F("INIT : Rebooted from deepsleep #");
     lastBootCause = BOOT_CAUSE_DEEP_SLEEP;
@@ -302,28 +302,28 @@ void setup()
     log = F("INIT : Cold Boot");
   }
 
-  #endif // ESP32
+#endif // ESP32
 
   log += F(" - Restart Reason: ");
   log += getResetReasonString();
 
-  RTC.deepSleepState=0;
+  RTC.deepSleepState = 0;
   saveToRTC();
 
   addLog(LOG_LEVEL_INFO, log);
 
   fileSystemCheck();
-//  progMemMD5check();
+  //  progMemMD5check();
   LoadSettings();
 
-  #ifdef HAS_ETHERNET
+#ifdef HAS_ETHERNET
   // This ensures, that changing WIFI OR ETHERNET MODE happens properly only after reboot. Changing without reboot would not be a good idea.
   // This only works after LoadSettings();
   active_network_medium = Settings.NetworkMedium;
   log = F("INIT : ETH_WIFI_MODE:");
   log += toString(active_network_medium);
   addLog(LOG_LEVEL_INFO, log);
-  #endif
+#endif
 
   Settings.UseRTOSMultitasking = false; // For now, disable it, we experience heap corruption.
   if (RTC.bootFailedCount > 10 && RTC.bootCounter > 10) {
@@ -341,10 +341,10 @@ void setup()
     RTC.lastWiFiChannel = 0; // Must scan all channels
     // Wait until scan has finished to make sure as many as possible are found
     // We're still in the setup phase, so nothing else is taking resources of the ESP.
-    WifiScan(false, false); 
+    WifiScan(false, false);
   }
 
-//  setWifiMode(WIFI_STA);
+  //  setWifiMode(WIFI_STA);
   checkRuleSets();
 
   // if different version, eeprom settings structure has changed. Full Reset needed
@@ -366,7 +366,7 @@ void setup()
     //make sure previous serial buffers are flushed before resetting baudrate
     Serial.flush();
     Serial.begin(Settings.BaudRate);
-//    Serial.setDebugOutput(true);
+    //    Serial.setDebugOutput(true);
   }
 
   if (Settings.Build != BUILD)
@@ -379,18 +379,18 @@ void setup()
 
   if (Settings.UseSerial && Settings.SerialLogLevel >= LOG_LEVEL_DEBUG_MORE)
     Serial.setDebugOutput(true);
-  
-  #ifndef BUILD_NO_RAM_TRACKER
+
+#ifndef BUILD_NO_RAM_TRACKER
   checkRAM(F("hardwareInit"));
-  #endif
+#endif
   hardwareInit();
 
   timermqtt_interval = 250; // Interval for checking MQTT
   timerAwakeFromDeepSleep = millis();
   CPluginInit();
-  #ifdef USES_NOTIFIER
+#ifdef USES_NOTIFIER
   NPluginInit();
-  #endif
+#endif
   PluginInit();
   log = F("INFO : Plugins: ");
   log += deviceCount + 1;
@@ -422,13 +422,13 @@ void setup()
 
   setWebserverRunning(true);
 
-  #ifdef FEATURE_REPORTING
+#ifdef FEATURE_REPORTING
   ReportStatus();
-  #endif
+#endif
 
-  #ifdef FEATURE_ARDUINO_OTA
+#ifdef FEATURE_ARDUINO_OTA
   ArduinoOTAInit();
-  #endif
+#endif
 
   if (node_time.systemTimePresent()) {
     node_time.initTime();
@@ -443,23 +443,23 @@ void setup()
   writeDefaultCSS();
 
   UseRTOSMultitasking = Settings.UseRTOSMultitasking;
-  #ifdef USE_RTOS_MULTITASKING
-    if(UseRTOSMultitasking){
-      log = F("RTOS : Launching tasks");
-      addLog(LOG_LEVEL_INFO, log);
-      xTaskCreatePinnedToCore(RTOS_TaskServers, "RTOS_TaskServers", 16384, NULL, 1, NULL, 1);
-      xTaskCreatePinnedToCore(RTOS_TaskSerial, "RTOS_TaskSerial", 8192, NULL, 1, NULL, 1);
-      xTaskCreatePinnedToCore(RTOS_Task10ps, "RTOS_Task10ps", 8192, NULL, 1, NULL, 1);
-      xTaskCreatePinnedToCore(
-                    RTOS_HandleSchedule,   /* Function to implement the task */
-                    "RTOS_HandleSchedule", /* Name of the task */
-                    16384,      /* Stack size in words */
-                    NULL,       /* Task input parameter */
-                    1,          /* Priority of the task */
-                    NULL,       /* Task handle. */
-                    1);         /* Core where the task should run */
-    }
-  #endif
+#ifdef USE_RTOS_MULTITASKING
+  if (UseRTOSMultitasking) {
+    log = F("RTOS : Launching tasks");
+    addLog(LOG_LEVEL_INFO, log);
+    xTaskCreatePinnedToCore(RTOS_TaskServers, "RTOS_TaskServers", 16384, NULL, 1, NULL, 1);
+    xTaskCreatePinnedToCore(RTOS_TaskSerial, "RTOS_TaskSerial", 8192, NULL, 1, NULL, 1);
+    xTaskCreatePinnedToCore(RTOS_Task10ps, "RTOS_Task10ps", 8192, NULL, 1, NULL, 1);
+    xTaskCreatePinnedToCore(
+      RTOS_HandleSchedule,   /* Function to implement the task */
+      "RTOS_HandleSchedule", /* Name of the task */
+      16384,      /* Stack size in words */
+      NULL,       /* Task input parameter */
+      1,          /* Priority of the task */
+      NULL,       /* Task handle. */
+      1);         /* Core where the task should run */
+  }
+#endif
 
   // Start the interval timers at N msec from now.
   // Make sure to start them at some time after eachother,
@@ -475,37 +475,37 @@ void setup()
 #ifdef USE_RTOS_MULTITASKING
 void RTOS_TaskServers( void * parameter )
 {
- while (true){
-  delay(100);
-  web_server.handleClient();
-  checkUDP();
- }
+  while (true) {
+    delay(100);
+    web_server.handleClient();
+    checkUDP();
+  }
 }
 
 void RTOS_TaskSerial( void * parameter )
 {
- while (true){
+  while (true) {
     delay(100);
     if (Settings.UseSerial)
-    if (Serial.available())
-      if (!PluginCall(PLUGIN_SERIAL_IN, 0, dummyString))
-        serial();
- }
+      if (Serial.available())
+        if (!PluginCall(PLUGIN_SERIAL_IN, 0, dummyString))
+          serial();
+  }
 }
 
 void RTOS_Task10ps( void * parameter )
 {
- while (true){
+  while (true) {
     delay(100);
     run10TimesPerSecond();
- }
+  }
 }
 
 void RTOS_HandleSchedule( void * parameter )
 {
- while (true){
+  while (true) {
     Scheduler.handle_schedule();
- }
+  }
 }
 
 #endif
@@ -519,9 +519,9 @@ void updateLoopStats() {
     return;
   }
   const long usecSince = usecPassedSince(lastLoopStart);
-  #ifdef USES_TIMING_STATS
+#ifdef USES_TIMING_STATS
   miscStats[LOOP_STATS].add(usecSince);
-  #endif
+#endif
 
   loop_usec_duration_total += usecSince;
   lastLoopStart = micros();
@@ -546,15 +546,16 @@ int getLoopCountPerSec() {
 
 
 
+bool wifi_deactivated_by_fab = true;
 
 /*********************************************************************************************\
- * MAIN LOOP
-\*********************************************************************************************/
+   MAIN LOOP
+  \*********************************************************************************************/
 void loop()
 {
   /*
-  //FIXME TD-er: No idea what this does.
-  if(MainLoopCall_ptr)
+    //FIXME TD-er: No idea what this does.
+    if(MainLoopCall_ptr)
       MainLoopCall_ptr();
   */
   dummyString = String(); // Fixme TD-er  Make sure this global variable doesn't keep memory allocated.
@@ -573,41 +574,43 @@ void loop()
   }
 
   bool firstLoopConnectionsEstablished = NetworkConnected() && firstLoop;
-  if (firstLoopConnectionsEstablished) {
-     addLog(LOG_LEVEL_INFO, F("firstLoopConnectionsEstablished"));
-     firstLoop = false;
-     timerAwakeFromDeepSleep = millis(); // Allow to run for "awake" number of seconds, now we have wifi.
-     // schedule_all_task_device_timers(); // Disabled for now, since we are now using queues for controllers.
-     if (Settings.UseRules && isDeepSleepEnabled())
-     {
-        String event = F("System#NoSleep=");
-        event += Settings.deepSleep_wakeTime;
-        eventQueue.add(event);
-     }
+  if (firstLoopConnectionsEstablished || wifi_deactivated_by_fab)
+  {
+    wifi_deactivated_by_fab=false;
+    addLog(LOG_LEVEL_INFO, F("firstLoopConnectionsEstablished"));
+    firstLoop = false;
+    timerAwakeFromDeepSleep = millis(); // Allow to run for "awake" number of seconds, now we have wifi.
+    // schedule_all_task_device_timers(); // Disabled for now, since we are now using queues for controllers.
+    if (Settings.UseRules && isDeepSleepEnabled())
+    {
+      String event = F("System#NoSleep=");
+      event += Settings.deepSleep_wakeTime;
+      eventQueue.add(event);
+    }
 
 
-     RTC.bootFailedCount = 0;
-     saveToRTC();
-     sendSysInfoUDP(1);
+    RTC.bootFailedCount = 0;
+    saveToRTC();
+    sendSysInfoUDP(1);
   }
   // Work around for nodes that do not have WiFi connection for a long time and may reboot after N unsuccessful connect attempts
   if ((wdcounter / 2) > 2) {
     // Apparently the uptime is already a few minutes. Let's consider it a successful boot.
-     RTC.bootFailedCount = 0;
-     saveToRTC();
+    RTC.bootFailedCount = 0;
+    saveToRTC();
   }
 
   // Deep sleep mode, just run all tasks one (more) time and go back to sleep as fast as possible
   if ((firstLoopConnectionsEstablished || readyForSleep()) && isDeepSleepEnabled())
   {
 #ifdef USES_MQTT
-      runPeriodicalMQTT();
+    runPeriodicalMQTT();
 #endif //USES_MQTT
-      // Now run all frequent tasks
-      run50TimesPerSecond();
-      run10TimesPerSecond();
-      runEach30Seconds();
-      runOncePerSecond();
+    // Now run all frequent tasks
+    run50TimesPerSecond();
+    run10TimesPerSecond();
+    runEach30Seconds();
+    runOncePerSecond();
   }
   //normal mode, run each task when its time
   else
@@ -620,7 +623,7 @@ void loop()
 
   backgroundtasks();
 
-  if (readyForSleep()){
+  if (readyForSleep()) {
     prepare_deepSleep(Settings.Delay);
     //deepsleep will never return, its a special kind of reboot
   }
@@ -635,7 +638,7 @@ void flushAndDisconnectAllClients() {
     while (!timeOutReached(timer)) {
       // call to all controllers (delay queue) to flush all data.
       CPluginCall(CPlugin::Function::CPLUGIN_FLUSH, 0);
-#ifdef USES_MQTT      
+#ifdef USES_MQTT
       if (mqttControllerEnabled && MQTTclient.connected()) {
         MQTTclient.loop();
       }
@@ -662,24 +665,24 @@ void flushAndDisconnectAllClients() {
 
 
 /*********************************************************************************************\
- * run background tasks
-\*********************************************************************************************/
-bool runningBackgroundTasks=false;
+   run background tasks
+  \*********************************************************************************************/
+bool runningBackgroundTasks = false;
 void backgroundtasks()
 {
   //checkRAM(F("backgroundtasks"));
   //always start with a yield
   delay(0);
-/*
-  // Remove this watchdog feed for now.
-  // See https://github.com/letscontrolit/ESPEasy/issues/1722#issuecomment-419659193
+  /*
+    // Remove this watchdog feed for now.
+    // See https://github.com/letscontrolit/ESPEasy/issues/1722#issuecomment-419659193
 
-  #ifdef ESP32
-  // Have to find a similar function to call ESP32's esp_task_wdt_feed();
-  #else
-  ESP.wdtFeed();
-  #endif
-*/
+    #ifdef ESP32
+    // Have to find a similar function to call ESP32's esp_task_wdt_feed();
+    #else
+    ESP.wdtFeed();
+    #endif
+  */
 
   //prevent recursion!
   if (runningBackgroundTasks)
@@ -688,15 +691,15 @@ void backgroundtasks()
   }
   START_TIMER
   const bool networkConnected = NetworkConnected();
-  runningBackgroundTasks=true;
+  runningBackgroundTasks = true;
 
   if (networkConnected) {
-    #if defined(ESP8266)
-      tcpCleanup();
-    #endif
+#if defined(ESP8266)
+    tcpCleanup();
+#endif
   }
   process_serialWriteBuffer();
-  if(!UseRTOSMultitasking){
+  if (!UseRTOSMultitasking) {
     if (Settings.UseSerial && Serial.available()) {
       String dummy;
       if (!PluginCall(PLUGIN_SERIAL_IN, 0, dummy)) {
@@ -707,11 +710,11 @@ void backgroundtasks()
       web_server.handleClient();
     }
     if (WiFi.getMode() != WIFI_OFF
-    // This makes UDP working for ETHERNET
-    #ifdef HAS_ETHERNET
-                       || eth_connected
-    #endif
-                       ) {
+        // This makes UDP working for ETHERNET
+#ifdef HAS_ETHERNET
+        || eth_connected
+#endif
+       ) {
       checkUDP();
     }
   }
@@ -720,8 +723,8 @@ void backgroundtasks()
   if (dnsServerActive)
     dnsServer.processNextRequest();
 
-  #ifdef FEATURE_ARDUINO_OTA
-  if(Settings.ArduinoOTAEnable && networkConnected)
+#ifdef FEATURE_ARDUINO_OTA
+  if (Settings.ArduinoOTAEnable && networkConnected)
     ArduinoOTA.handle();
 
   //once OTA is triggered, only handle that and dont do other stuff. (otherwise it fails)
@@ -733,19 +736,19 @@ void backgroundtasks()
     }
   }
 
-  #endif
+#endif
 
-  #ifdef FEATURE_MDNS
+#ifdef FEATURE_MDNS
   // Allow MDNS processing
   if (networkConnected) {
     MDNS.update();
   }
-  #endif
+#endif
 
   delay(0);
 
   statusLED(false);
 
-  runningBackgroundTasks=false;
+  runningBackgroundTasks = false;
   STOP_TIMER(BACKGROUND_TASKS);
 }
