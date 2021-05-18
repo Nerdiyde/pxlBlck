@@ -1,0 +1,14 @@
+For self compiling please prepare the following:
+- Install Arduino IDE: https://www.arduino.cc/en/software
+- copy the libraries to your Arduino-library folder (usually at %USER/documents/Arduino/libraries)
+
+ESP32:
+- Install the ESP32-Arduino framework v1.6 via Boardmanager
+
+ESP8266:
+- Install the ESP8266-Arduino framework v2.74 via Boardmanager
+
+Tested with:
+- Arduino IDE version: 18.3.13
+- ESP32-Arduino framework v1.6
+- ESP8266-Arduino framework v2.74
