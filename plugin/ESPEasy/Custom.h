@@ -25,7 +25,7 @@
 #define BUILD_GIT           "My Build: "  __DATE__ " "  __TIME__
 
 
-#define DEFAULT_NAME        "MyEspEasyDevice"                        // Enter your device friendly name
+#define DEFAULT_NAME        "pxlBlck_device"                        // Enter your device friendly name
 #define UNIT                0                                        // Unit Number
 #define DEFAULT_DELAY       60                                       // Sleep Delay in seconds
 
@@ -176,11 +176,11 @@
  #define USES_P004   // Dallas
  #define USES_P005   // DHT
  #define USES_P006   // BMP085
-// #define USES_P007   // PCF8591
+ #define USES_P007   // PCF8591
 // #define USES_P008   // RFID
  #define USES_P009   // MCP
 
-// #define USES_P010   // BH1750
+ #define USES_P010   // BH1750
 // #define USES_P011   // PME
 // #define USES_P012   // LCD
 // #define USES_P013   // HCSR04
@@ -188,7 +188,7 @@
  #define USES_P015   // TSL2561
 // #define USES_P017   // PN532
  #define USES_P018   // Dust
-// #define USES_P019   // PCF8574
+ #define USES_P019   // PCF8574
 
  #define USES_P020   // Ser2Net
  #define USES_P021   // Level
@@ -207,7 +207,7 @@
 // #define USES_P034   // DHT12
 // #define USES_P036   // FrameOLED
  #define USES_P037   // MQTTImport
-// #define USES_P038   // NeoPixel
+ #define USES_P038   // NeoPixel
 // #define USES_P039   // Environment - Thermocouple
 
 // #define USES_P040   // RFID - ID12LA/RDM6300
