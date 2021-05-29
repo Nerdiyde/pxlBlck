@@ -213,9 +213,25 @@
 #define PXLBLCK_DIAL_NAME_RUNNING_CLOCK_ID "15"
 #define PXLBLCK_DIAL_NAME_RUNNING_CLOCK_ID_INT 15
 
-#define PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR "pxlDigit24" //Used for: pxlDigit_24 Matrix:
+#define PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR "pxlDigit24" //Used for: pxlDigit_24 Matrix
 #define PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_ID "16"
 #define PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_ID_INT 16
+
+#define PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_FIRST_HR_DGT "pxlDigit24_frstHr" //Used for: pxlDigit_24 Matrix
+#define PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_FIRST_HR_DGT_ID "17"
+#define PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_FIRST_HR_DGT_ID_INT 17
+
+#define PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_SECOND_HR_DGT "pxlDigit24_scndHr" //Used for: pxlDigit_24 Matrix
+#define PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_SECOND_HR_DGT_ID "18"
+#define PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_SECOND_HR_DGT_ID_INT 18
+
+#define PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_FIRST_MNT_DGT "pxlDigit24_frstMnt" //Used for: pxlDigit_24 Matrix
+#define PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_FIRST_MNT_DGT_ID "19"
+#define PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_FIRST_MNT_DGT_ID_INT 19
+
+#define PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_SECOND_MNT_DGT "pxlDigit24_scndMnt" //Used for: pxlDigit_24 Matrix
+#define PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_SECOND_MNT_DGT_ID "20"
+#define PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_SECOND_MNT_DGT_ID_INT 20
 
 //in case you want to define the available dials for a matrix kind:
 //add them (and of course also the corosponding id) to every matrix kind of Plugin_205_possibleDialList
@@ -438,10 +454,10 @@ String Plugin_205_possibleDialList[][PLUGIN_205_MAX_DIAL_NUM][2] = {
     {PXLBLCK_DIAL_NAME_WANDERING_PIXELS, PXLBLCK_DIAL_NAME_WANDERING_PIXELS_ID},
     {PXLBLCK_DIAL_NAME_TV_SIMULATOR, PXLBLCK_DIAL_NAME_TV_SIMULATOR_ID},
     {PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR, PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_ID},
-    {PXLBLCK_DIAL_NONE, PXLBLCK_DIAL_NONE_ID},
-    {PXLBLCK_DIAL_NONE, PXLBLCK_DIAL_NONE_ID},
-    {PXLBLCK_DIAL_NONE, PXLBLCK_DIAL_NONE_ID},
-    {PXLBLCK_DIAL_NONE, PXLBLCK_DIAL_NONE_ID},
+    {PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_FIRST_MNT_DGT, PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_FIRST_MNT_DGT_ID},
+    {PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_SECOND_MNT_DGT, PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_SECOND_MNT_DGT_ID},
+    {PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_FIRST_HR_DGT, PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_FIRST_HR_DGT_ID},
+    {PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_SECOND_HR_DGT, PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_SECOND_HR_DGT_ID},
     {PXLBLCK_DIAL_NONE, PXLBLCK_DIAL_NONE_ID},
     {PXLBLCK_DIAL_NONE, PXLBLCK_DIAL_NONE_ID},
     {PXLBLCK_DIAL_NONE, PXLBLCK_DIAL_NONE_ID}
@@ -1904,9 +1920,41 @@ struct P205_data_struct : public PluginTaskData_base
               break;
             case PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_ID_INT:
               {
-                //this dial shows the pxlDigit_24 dial
+                //this dial shows the pxlDigit_24 dial on four digits
                 pxlBlckUtils_clear_matrix();
                 Plugin_205_show_dial_pxlDigit24(hours, minutes, colorOneTemp, colorTwoTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled, Plugin_205_twentyFourHr_mode_activated);
+                pxlBlckUtils_update_matrix();
+              }
+              break;
+            case PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_FIRST_MNT_DGT_ID_INT:
+              {
+                //this dial shows the pxlDigit_24 dial on one digit only. Displayed is the first minute digit so eg. the "4" of "45" in case its 10:45
+                pxlBlckUtils_clear_matrix();
+                Plugin_205_show_dial_pxlDigit24_single_digit(hours, minutes, colorOneTemp, colorTwoTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled, Plugin_205_twentyFourHr_mode_activated, 3);
+                pxlBlckUtils_update_matrix();
+              }
+              break;
+            case PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_SECOND_MNT_DGT_ID_INT:
+              {
+                //this dial shows the pxlDigit_24 dial on one digit only. Displayed is the seconds minute digit so eg. the "5" of "45" in case its 10:45
+                pxlBlckUtils_clear_matrix();
+                Plugin_205_show_dial_pxlDigit24_single_digit(hours, minutes, colorOneTemp, colorTwoTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled, Plugin_205_twentyFourHr_mode_activated, 4);
+                pxlBlckUtils_update_matrix();
+              }
+              break;
+            case PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_FIRST_HR_DGT_ID_INT:
+              {
+                //this dial shows the pxlDigit_24 dial on one digit only. Displayed is the first hour digit so eg. the "1" of "10" in case its 10:45
+                pxlBlckUtils_clear_matrix();
+                Plugin_205_show_dial_pxlDigit24_single_digit(hours, minutes, colorOneTemp, colorTwoTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled, Plugin_205_twentyFourHr_mode_activated, 1);
+                pxlBlckUtils_update_matrix();
+              }
+              break;
+            case PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_SECOND_HR_DGT_ID_INT:
+              {
+                //this dial shows the pxlDigit_24 dial on one digit only. Displayed is the seconds hour digit so eg. the "0" of "10" in case its 10:45
+                pxlBlckUtils_clear_matrix();
+                Plugin_205_show_dial_pxlDigit24_single_digit(hours, minutes, colorOneTemp, colorTwoTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled, Plugin_205_twentyFourHr_mode_activated, 2);
                 pxlBlckUtils_update_matrix();
               }
               break;
@@ -3164,6 +3212,46 @@ struct P205_data_struct : public PluginTaskData_base
     {
       Plugin_205_display_pxlDigit24_digit((minutes / 10) + '0', 2, minuteColor);
     }
+  };
+
+  void Plugin_205_show_dial_pxlDigit24_single_digit(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t  minuteColor, uint32_t  bgColor, boolean inclLeadingZeros, boolean twentyFourHrModeEnabled, uint8_t digit_id)
+  {
+
+    Plugin_205_convert_time_mode(&hours, twentyFourHrModeEnabled);
+
+    pxlBlckUtils_fill_matrix(bgColor);
+
+    String log = F(PXLBLCK_DEVICE_NAME);
+    addLog(LOG_LEVEL_DEBUG, log);
+    log = F("   -pxlDigit24_show_dial: minutes: ");
+    log += String(minutes);
+    addLog(LOG_LEVEL_DEBUG, log);
+
+    switch (digit_id)
+    {
+      case 1: //first hour digit
+        //display leading zeros if enabled
+        if (inclLeadingZeros || hours >= 10)
+        {
+          Plugin_205_display_pxlDigit24_digit((hours / 10) + '0', 0, hourColor);
+        }
+        break;
+      case 2: //second hour digit
+        Plugin_205_display_pxlDigit24_digit((hours % 10) + '0', 0, hourColor);
+        break;
+      case 3: //first minute digit
+        if (inclLeadingZeros || minutes >= 10)
+        {
+          Plugin_205_display_pxlDigit24_digit((minutes / 10) + '0', 0, minuteColor);
+        }
+        break;
+      case 4: //second minute digit
+        Plugin_205_display_pxlDigit24_digit((minutes % 10) + '0', 0, minuteColor);
+        break;
+      default:
+        break;
+    }
+
   };
 
   uint8_t Plugin_205_get_pxlDigit24_chracter_id(char character)
@@ -5157,7 +5245,11 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
             Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_VERTICAL_MINI_NUMBERS_DIAL_ID_INT ||
             Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_DIAGONAL_MINI_NUMBERS_DIAL_ID_INT ||
             Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_RUNNING_CLOCK_ID_INT ||
-            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_ID_INT)
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_FIRST_MNT_DGT_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_SECOND_MNT_DGT_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_FIRST_HR_DGT_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_SECOND_HR_DGT_ID_INT)
 
         {
           addFormCheckBox(F("Leading zeros enabled"), F(PXLBLCK_WEBSERVER_FORM_ID_DIGITCLOCK_LEADING_ZEROS_ENABLED), Plugin_205_diallLeadingZerosEnabled);
@@ -5268,6 +5360,30 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
             Plugin_205_colorFourName = F("Background");
             break;
           case PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_ID_INT:
+            Plugin_205_colorOneName = F("Hour");
+            Plugin_205_colorTwoName = F("Minute");
+            Plugin_205_colorThreeName = F(PXLBLCK_WEBSERVER_FORM_COLOR_NOT_USED_VALUE);
+            Plugin_205_colorFourName = F("Background");
+            break;
+          case PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_FIRST_MNT_DGT_ID_INT:
+            Plugin_205_colorOneName = F("Hour");
+            Plugin_205_colorTwoName = F("Minute");
+            Plugin_205_colorThreeName = F(PXLBLCK_WEBSERVER_FORM_COLOR_NOT_USED_VALUE);
+            Plugin_205_colorFourName = F("Background");
+            break;
+          case PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_SECOND_MNT_DGT_ID_INT:
+            Plugin_205_colorOneName = F("Hour");
+            Plugin_205_colorTwoName = F("Minute");
+            Plugin_205_colorThreeName = F(PXLBLCK_WEBSERVER_FORM_COLOR_NOT_USED_VALUE);
+            Plugin_205_colorFourName = F("Background");
+            break;
+          case PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_FIRST_HR_DGT_ID_INT:
+            Plugin_205_colorOneName = F("Hour");
+            Plugin_205_colorTwoName = F("Minute");
+            Plugin_205_colorThreeName = F(PXLBLCK_WEBSERVER_FORM_COLOR_NOT_USED_VALUE);
+            Plugin_205_colorFourName = F("Background");
+            break;
+          case PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_SECOND_HR_DGT_ID_INT:
             Plugin_205_colorOneName = F("Hour");
             Plugin_205_colorTwoName = F("Minute");
             Plugin_205_colorThreeName = F(PXLBLCK_WEBSERVER_FORM_COLOR_NOT_USED_VALUE);
