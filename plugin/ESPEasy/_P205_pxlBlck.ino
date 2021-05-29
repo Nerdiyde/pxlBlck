@@ -1833,7 +1833,7 @@ struct P205_data_struct : public PluginTaskData_base
               {
                 //this dial shows the ringclock dial
                 pxlBlckUtils_clear_matrix();
-                Plugin_205_show_dial_ringClock(hours, minutes, seconds, colorOneTemp, colorTwoTemp, colorThreeTemp, colorFourTemp);
+                Plugin_205_show_dial_ringClock(hours, minutes, seconds, colorOneTemp, colorTwoTemp, colorThreeTemp, colorFourTemp, Plugin_205_twentyFourHr_mode_activated);
                 pxlBlckUtils_update_matrix();
               }
               break;
@@ -1852,7 +1852,7 @@ struct P205_data_struct : public PluginTaskData_base
               {
                 //this dial shows the digitClock dial
                 pxlBlckUtils_clear_matrix();
-                Plugin_205_show_dial_digitClock(hours, minutes, colorOneTemp, colorTwoTemp, colorThreeTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled);
+                Plugin_205_show_dial_digitClock(hours, minutes, colorOneTemp, colorTwoTemp, colorThreeTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled, Plugin_205_twentyFourHr_mode_activated);
                 pxlBlckUtils_update_matrix();
               }
               break;
@@ -1860,7 +1860,7 @@ struct P205_data_struct : public PluginTaskData_base
               {
                 //this dial shows the time with horizontal numbers using the standard font
                 pxlBlckUtils_clear_matrix();
-                Plugin_205_show_dial_numbersHorizontal(hours, minutes, colorOneTemp, colorTwoTemp, colorThreeTemp, colorFourTemp);
+                Plugin_205_show_dial_numbersHorizontal(hours, minutes, colorOneTemp, colorTwoTemp, colorThreeTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled, Plugin_205_twentyFourHr_mode_activated);
                 pxlBlckUtils_update_matrix();
               }
               break;
@@ -1868,7 +1868,7 @@ struct P205_data_struct : public PluginTaskData_base
               {
                 //this dial shows the time with the mini digits
                 pxlBlckUtils_clear_matrix();
-                Plugin_205_show_dial_horizontalMiniNumbers(hours, minutes, colorOneTemp, colorTwoTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled);
+                Plugin_205_show_dial_horizontalMiniNumbers(hours, minutes, colorOneTemp, colorTwoTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled, Plugin_205_twentyFourHr_mode_activated);
                 pxlBlckUtils_update_matrix();
               }
               break;
@@ -1876,7 +1876,7 @@ struct P205_data_struct : public PluginTaskData_base
               {
                 //this dial shows the time with the mini digits
                 pxlBlckUtils_clear_matrix();
-                Plugin_205_show_dial_verticalMiniNumbers(hours, minutes, colorOneTemp, colorTwoTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled);
+                Plugin_205_show_dial_verticalMiniNumbers(hours, minutes, colorOneTemp, colorTwoTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled, Plugin_205_twentyFourHr_mode_activated);
                 pxlBlckUtils_update_matrix();
               }
               break;
@@ -1884,7 +1884,7 @@ struct P205_data_struct : public PluginTaskData_base
               {
                 //this dial shows the time with the diagonal mini digits
                 pxlBlckUtils_clear_matrix();
-                Plugin_205_show_dial_diagonalMiniNumbers(hours, minutes, colorOneTemp, colorTwoTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled);
+                Plugin_205_show_dial_diagonalMiniNumbers(hours, minutes, colorOneTemp, colorTwoTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled, Plugin_205_twentyFourHr_mode_activated);
                 pxlBlckUtils_update_matrix();
               }
               break;
@@ -1892,7 +1892,7 @@ struct P205_data_struct : public PluginTaskData_base
               {
                 if (Plugin_205_previousMinute != minutes)
                 {
-                  Plugin_205_show_dial_runningClock(hours, minutes, colorOneTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled);
+                  Plugin_205_show_dial_runningClock(hours, minutes, colorOneTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled, Plugin_205_twentyFourHr_mode_activated);
                 }
               }
               break;
@@ -1906,7 +1906,7 @@ struct P205_data_struct : public PluginTaskData_base
               {
                 //this dial shows the pxlDigit_24 dial
                 pxlBlckUtils_clear_matrix();
-                Plugin_205_show_dial_pxlDigit24(hours, minutes, colorOneTemp, colorTwoTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled);
+                Plugin_205_show_dial_pxlDigit24(hours, minutes, colorOneTemp, colorTwoTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled, Plugin_205_twentyFourHr_mode_activated);
                 pxlBlckUtils_update_matrix();
               }
               break;
@@ -1946,8 +1946,24 @@ struct P205_data_struct : public PluginTaskData_base
 
   // == pxlBlck general dial functions and screensavers == start ===========================================================================================================================
 
-  void Plugin_205_show_dial_runningClock(uint8_t hours, uint8_t minutes, uint32_t timeColor, uint32_t bgColor, boolean leadingZerosEnabled)
+  void Plugin_205_convert_time_mode(uint8_t *hour, boolean twentyFourHrModeEnabled)
   {
+    if (!twentyFourHrModeEnabled && *hour > 12)
+    {
+      *hour = *hour - 12;
+    }
+    else if (!twentyFourHrModeEnabled && *hour == 0) //to handle the conversion from 00:00 to 12 pm
+    {
+      *hour = 12;
+    }
+  }
+
+
+  void Plugin_205_show_dial_runningClock(uint8_t hours, uint8_t minutes, uint32_t timeColor, uint32_t bgColor, boolean leadingZerosEnabled, boolean twentyFourHrModeEnabled)
+  {
+
+    Plugin_205_convert_time_mode(&hours, twentyFourHrModeEnabled);
+
     String hoursString = (leadingZerosEnabled && (hours < 10)) ? "0" + String(hours) : String(hours);
     String minutesString = (leadingZerosEnabled && (minutes < 10)) ? "0" + String(minutes) : String(minutes);
     String currentTime = hoursString + ":" + minutesString;
@@ -2044,9 +2060,11 @@ struct P205_data_struct : public PluginTaskData_base
     }
   }
 
-  void Plugin_205_show_dial_diagonalMiniNumbers(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t minuteColor, uint32_t bgColor, boolean leadingZerosEnabled)
+  void Plugin_205_show_dial_diagonalMiniNumbers(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t minuteColor, uint32_t bgColor, boolean leadingZerosEnabled, boolean twentyFourHrModeEnabled)
   {
     pxlBlckUtils_fill_matrix(bgColor);
+
+    Plugin_205_convert_time_mode(&hours, twentyFourHrModeEnabled);
 
     //prepare show of digits: select all the pixels that need to be switched on. PLUGIN_205_MAX_PIXELS_PER_DIGIT*2 because we want to save the coordinates of two digits per array
     uint8_t pixelsToShowHour[PLUGIN_205_MAX_PIXELS_PER_DIGIT * 2][PLUGIN_205_COORDINATES_PER_PIXEL];
@@ -2078,9 +2096,11 @@ struct P205_data_struct : public PluginTaskData_base
     Plugin_205_write_prepared_pixels_to_display(pixelsToShowMinute, &minutePixelsToShowCounter, &minuteColor);
   }
 
-  void Plugin_205_show_dial_verticalMiniNumbers(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t minuteColor, uint32_t bgColor, boolean leadingZerosEnabled)
+  void Plugin_205_show_dial_verticalMiniNumbers(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t minuteColor, uint32_t bgColor, boolean leadingZerosEnabled, boolean twentyFourHrModeEnabled)
   {
     pxlBlckUtils_fill_matrix(bgColor);
+
+    Plugin_205_convert_time_mode(&hours, twentyFourHrModeEnabled);
 
     //prepare show of digits: select all the pixels that need to be switched on. PLUGIN_205_MAX_PIXELS_PER_DIGIT*2 because we want to save the coordinates of two digits per array
     uint8_t pixelsToShowHour[PLUGIN_205_MAX_PIXELS_PER_DIGIT * 2][PLUGIN_205_COORDINATES_PER_PIXEL];
@@ -2113,9 +2133,11 @@ struct P205_data_struct : public PluginTaskData_base
     Plugin_205_write_prepared_pixels_to_display(pixelsToShowMinute, &minutePixelsToShowCounter, &minuteColor);
   }
 
-  void Plugin_205_show_dial_horizontalMiniNumbers(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t minuteColor, uint32_t bgColor, boolean leadingZerosEnabled)
+  void Plugin_205_show_dial_horizontalMiniNumbers(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t minuteColor, uint32_t bgColor, boolean leadingZerosEnabled, boolean twentyFourHrModeEnabled)
   {
     pxlBlckUtils_fill_matrix(bgColor);
+
+    Plugin_205_convert_time_mode(&hours, twentyFourHrModeEnabled);
 
     //prepare show of digits: select all the pixels that need to be switched on. PLUGIN_205_MAX_PIXELS_PER_DIGIT*2 because we want to save the coordinates of two digits per array
     uint8_t pixelsToShowHour[PLUGIN_205_MAX_PIXELS_PER_DIGIT * 2][PLUGIN_205_COORDINATES_PER_PIXEL];
@@ -2172,14 +2194,7 @@ struct P205_data_struct : public PluginTaskData_base
     }
 
     //limit hours to 12hr format if 24hr mode is deactivated and set hour color accordingly
-    if (!twentyFourHrModeEnabled && hours > 12)
-    {
-      hours = hours - 12;
-    }
-    else if (!twentyFourHrModeEnabled && hours == 0) //to handle the conversion from 00:00 to 12 pm
-    {
-      hours = 12;
-    }
+    Plugin_205_convert_time_mode(&hours, twentyFourHrModeEnabled);
 
     pxlBlckUtils_fill_matrix(bgColor);
 
@@ -2317,7 +2332,7 @@ struct P205_data_struct : public PluginTaskData_base
 
   // == pxlBlckRingclock dial functions == start ========================================================================================================
 
-  void Plugin_205_show_dial_ringClock(int16_t hours, int16_t minutes, int16_t seconds, uint32_t hr_color, uint32_t minute_color, uint32_t second_color, uint32_t marks_color)
+  void Plugin_205_show_dial_ringClock(int16_t hours, int16_t minutes, int16_t seconds, uint32_t hr_color, uint32_t minute_color, uint32_t second_color, uint32_t marks_color, boolean twentyFourHrModeEnabled)
   {
     //calculate mark positions
     int16_t markPositionsList[14] = {200};
@@ -2949,23 +2964,16 @@ struct P205_data_struct : public PluginTaskData_base
 
   // == pxlBlck24x8 dial functions == start ===========================================================================================================================
 
-  void Plugin_205_show_dial_numbersHorizontal(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t minuteColor, uint32_t dotColor, uint32_t bgColor)
+  void Plugin_205_show_dial_numbersHorizontal(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t minuteColor, uint32_t dotColor, uint32_t bgColor, boolean leadingZerosEnabled, boolean twentyFourHrModeEnabled)
   {
+
+    Plugin_205_convert_time_mode(&hours, twentyFourHrModeEnabled);
+
     boolean includingDots = PXLBLCK_MATRIX_WIDTH > 24;
     uint8_t offsetFromLeft = includingDots ? NUMBERS_HORIZONAL_OFFSET_FROM_LEFT_INCL_DOTS : NUMBERS_HORIZONAL_OFFSET_FROM_LEFT_NO_DOTS;
 
-    String hoursOut = String(hours);
-    String minutesOut = String(minutes);
-
-    if (hours < 10)
-    {
-      hoursOut = "0" + String(hours);
-    }
-
-    if (minutes < 10)
-    {
-      minutesOut = "0" + String(minutes);
-    }
+    String hoursOut = (leadingZerosEnabled && (hours < 10)) ? "0" + String(hours) : String(hours);
+    String minutesOut = (leadingZerosEnabled && (minutes < 10)) ? "0" + String(minutes) : String(minutes);
 
     //clear display
     pxlBlckUtils_fill_matrix(bgColor);
@@ -3007,8 +3015,10 @@ struct P205_data_struct : public PluginTaskData_base
 
   // == pxlBlckdigiClock dial functions == start ===========================================================================================================================
 
-  void Plugin_205_show_dial_digitClock(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t minuteColor, uint32_t dotColor, uint32_t bgColor, boolean inclLeadingZeros)
+  void Plugin_205_show_dial_digitClock(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t minuteColor, uint32_t dotColor, uint32_t bgColor, boolean inclLeadingZeros, boolean twentyFourHrModeEnabled)
   {
+
+    Plugin_205_convert_time_mode(&hours, twentyFourHrModeEnabled);
 
     pxlBlckUtils_fill_matrix(bgColor);
     if ((hours / 10) > 0 || inclLeadingZeros)
@@ -3129,8 +3139,11 @@ struct P205_data_struct : public PluginTaskData_base
     return (x * PXLDIGIT_TWENTY_FOUR_PIXEL_NUM) + y;
   }
 
-  void Plugin_205_show_dial_pxlDigit24(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t  minuteColor, uint32_t  bgColor, boolean inclLeadingZeros)
+  void Plugin_205_show_dial_pxlDigit24(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t  minuteColor, uint32_t  bgColor, boolean inclLeadingZeros, boolean twentyFourHrModeEnabled)
   {
+
+    Plugin_205_convert_time_mode(&hours, twentyFourHrModeEnabled);
+
     pxlBlckUtils_fill_matrix(bgColor);
 
     String log = F(PXLBLCK_DEVICE_NAME);
@@ -5136,19 +5149,27 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
           addFormNote(F("Brightness level of the hour marks (1-15)"));
         }
 
-        //digitClock specific form parts: CHANGED: Made this available for every matrix to make this variable usable for other (normal) dials
-        //if (Plugin_205_selectedMatrixId == PXLBLCK_DIGIT_CLOCK_MATRIX_ID)
-        //{
-        addFormCheckBox(F("Leading zeros enabled"), F(PXLBLCK_WEBSERVER_FORM_ID_DIGITCLOCK_LEADING_ZEROS_ENABLED), Plugin_205_diallLeadingZerosEnabled);
-        addFormNote(F("Enabling display of leading Zeros."));
-        //}
+        //dial specific form parts
+        if (Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_HR_NM_AND_MN_PNTS_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIGIT_CLOCK_MATRIX_ID ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_HORIZONTAL_NUMBERS_DIAL_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_HORIZONTAL_MINI_NUMBERS_DIAL_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_VERTICAL_MINI_NUMBERS_DIAL_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_DIAGONAL_MINI_NUMBERS_DIAL_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_RUNNING_CLOCK_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_ID_INT)
+
+        {
+          addFormCheckBox(F("Leading zeros enabled"), F(PXLBLCK_WEBSERVER_FORM_ID_DIGITCLOCK_LEADING_ZEROS_ENABLED), Plugin_205_diallLeadingZerosEnabled);
+          addFormNote(F("Enabling display of leading Zeros."));
+        }
 
         addFormCheckBox(F("24-hour-mode enabled"), F(PXLBLCK_WEBSERVER_FORM_ID_TWENTY_FOUR_HR_MODE_ENABLED), Plugin_205_twentyFourHr_mode_activated);
         addFormNote(F("Display time using 24hrs instead of 12hrs."));
 
         //General form parts
-        addFormNumericBox(F("Display brightness"), F(PXLBLCK_WEBSERVER_FORM_ID_BRIGHTNESS), Plugin_205_displayBrightness, 1, PXLBLCK_MAX_SETABLE_BRIGHTNESS);
-        addFormNote(F("Brightness level of Display (1-15)"));
+        addFormNumericBox(F("Display brightness"), F(PXLBLCK_WEBSERVER_FORM_ID_BRIGHTNESS), Plugin_205_displayBrightness, 0, PXLBLCK_MAX_SETABLE_BRIGHTNESS);
+        addFormNote(F("Brightness level of Display (0-15)"));
 
         addFormNumericBox(F("Minimal brightness"), F(PXLBLCK_WEBSERVER_FORM_ID_MINIMAL_BRIGHTNESS), Plugin_205_minimalBrightness, 3, 255);
         addFormNote(F("Minimal brightness level of Display (3-255)"));
