@@ -76,9 +76,9 @@
 //== Defines for permanent storage == End ============================
 
 //== Defines for Icon-Stuff == Start ============================
-
-#define PXLBLCK_ICON_WIDTH 8
-#define PXLBLCK_ICON_HEIGHT 8
+//This is the max width and height of an icon. In case bigger matrices are supported this needs to be increased.
+#define PXLBLCK_ICON_WIDTH 16
+#define PXLBLCK_ICON_HEIGHT 16
 
 #define PXLBLCK_ICON_STATE_START 0
 #define PXLBLCK_ICON_STATE_SHOWING 1
@@ -907,7 +907,7 @@ struct Plugin_205_rngTxtStruct
 struct Plugin_205_iconStruct
 {
   Plugin_205_iconStruct() : iconPending(false), iconState(PXLBLCK_ICON_STATE_END), inAnimation(PXLBLCK_ICON_ANIM_NONE_ANIMATION), outAnimation(PXLBLCK_ICON_ANIM_NONE_ANIMATION), logo(),
-    inDelay(0), outDelay(0), showDelay(0), showDelayTimestamp(0), brightness(100), textThatFollows(""), spiffsIcon(""), repetition(0) {}
+    inDelay(0), outDelay(0), showDelay(0), showDelayTimestamp(0), brightness(100), textThatFollows("-"), spiffsIcon(""), repetition(0) {}
   boolean iconPending = false;
   uint8_t iconState = PXLBLCK_ICON_STATE_END;
   uint8_t inAnimation = PXLBLCK_ICON_ANIM_NONE_ANIMATION;
@@ -3472,6 +3472,7 @@ struct P205_data_struct : public PluginTaskData_base
       PXLBLCK_ICON_STRUCT.repetition = repetition;
       PXLBLCK_ICON_STRUCT.spiffsIcon = spiffsIcon;
 
+
       //First check if file exists and then try to read/load it, If icon is available its data will be copied to PXLBLCK_ICON_STRUCT.logo
       if (!pxlBlckUtils_check_if_icon_file_exists(PXLBLCK_ICON_STRUCT.spiffsIcon) || !pxlBlckUtils_load_ppm_file_to_dynamic_array(PXLBLCK_ICON_STRUCT.spiffsIcon))
       {
@@ -3503,43 +3504,79 @@ struct P205_data_struct : public PluginTaskData_base
       else
       {
 
-        String log = F("pxlBlck: Icon found and loaded.");
-        SendStatus(event->Source, log);
+        if (PXLBLCK_ICON_STRUCT.iconState != PXLBLCK_ICON_STATE_START ||
+            PXLBLCK_ICON_STRUCT.inAnimation != inAnimation ||
+            PXLBLCK_ICON_STRUCT.outAnimation != outAnimation ||
+            PXLBLCK_ICON_STRUCT.inDelay != inDelay ||
+            PXLBLCK_ICON_STRUCT.outDelay != outDelay ||
+            PXLBLCK_ICON_STRUCT.showDelay != showDelay ||
+            PXLBLCK_ICON_STRUCT.brightness != brightness ||
+            PXLBLCK_ICON_STRUCT.showDelayTimestamp != 0 ||
+            PXLBLCK_ICON_STRUCT.textThatFollows != textThatFollows ||
+            PXLBLCK_ICON_STRUCT.repetition != repetition ||
+            PXLBLCK_ICON_STRUCT.spiffsIcon != spiffsIcon)
+        {
+          String log = F("pxlBlck: Error: Probably the icon resolution is bigger than width:");
+          log += String(PXLBLCK_ICON_WIDTH);
+          log += F(" or height:");
+          log += String(PXLBLCK_ICON_HEIGHT);
+          log += F(" ?");
+          SendStatus(event->Source, log);
 
-        log = F(PXLBLCK_DEVICE_NAME);
-        addLog(LOG_LEVEL_DEBUG, log);
-        log = F("   -Icon found and loaded: ");
-        addLog(LOG_LEVEL_DEBUG, log);
-        log = F("   -spiffsIcon: ");
-        log += PXLBLCK_ICON_STRUCT.spiffsIcon;
-        addLog(LOG_LEVEL_DEBUG, log);
-        log = F("   -inAnimation: ");
-        log += PXLBLCK_ICON_STRUCT.inAnimation;
-        addLog(LOG_LEVEL_DEBUG, log);
-        log = F("   -outAnimation: ");
-        log += PXLBLCK_ICON_STRUCT.outAnimation;
-        addLog(LOG_LEVEL_DEBUG, log);
-        log = F("   -inDelay: ");
-        log += PXLBLCK_ICON_STRUCT.inDelay;
-        addLog(LOG_LEVEL_DEBUG, log);
-        log = F("   -outDelay: ");
-        log += PXLBLCK_ICON_STRUCT.outDelay;
-        addLog(LOG_LEVEL_DEBUG, log);
-        log = F("   -showDelay: ");
-        log += PXLBLCK_ICON_STRUCT.showDelay;
-        addLog(LOG_LEVEL_DEBUG, log);
-        log = F("   -brightness: ");
-        log += PXLBLCK_ICON_STRUCT.brightness;
-        addLog(LOG_LEVEL_DEBUG, log);
-        log = F("   -textThatFollows: ");
-        log += PXLBLCK_ICON_STRUCT.textThatFollows;
-        addLog(LOG_LEVEL_DEBUG, log);
-        log = F("   -repetition: ");
-        log += PXLBLCK_ICON_STRUCT.repetition;
-        addLog(LOG_LEVEL_DEBUG, log);
-        log = F("   -spiffsIcon: ");
-        log += PXLBLCK_ICON_STRUCT.spiffsIcon;
-        addLog(LOG_LEVEL_DEBUG, log);
+          log = F(PXLBLCK_DEVICE_NAME);
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   -Error: Probably the icon resolution is bigger than width:");
+          log += String(PXLBLCK_ICON_WIDTH);
+          log += F(" or height:");
+          log += String(PXLBLCK_ICON_HEIGHT);
+          log += F(" ?");
+          addLog(LOG_LEVEL_DEBUG, log);
+          // A missmatch of the data in the icon struct was detected after the icon data was loaded to the struct.
+          // Most probably this is caused by an "overflow" of the data in the array PXLBLCK_ICON_STRUCT.logo which size is limited by the
+          // defines PXLBLCK_ICON_WIDTH and PXLBLCK_ICON_HEIGHT. So in case you wanted to load an icon file which has a higher resolution than the resolution specified by
+          // PXLBLCK_ICON_WIDTH and PXLBLCK_ICON_HEIGHT you need to either increase PXLBLCK_ICON_WIDTH and PXLBLCK_ICON_HEIGHT or decrease the resolution of your icon file.
+
+        } else
+        {
+
+          String log = F("pxlBlck: Icon found and loaded.");
+          SendStatus(event->Source, log);
+
+          log = F(PXLBLCK_DEVICE_NAME);
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   -Icon found and loaded: ");
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   -spiffsIcon: ");
+          log += PXLBLCK_ICON_STRUCT.spiffsIcon;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   -inAnimation: ");
+          log += PXLBLCK_ICON_STRUCT.inAnimation;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   -outAnimation: ");
+          log += PXLBLCK_ICON_STRUCT.outAnimation;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   -inDelay: ");
+          log += PXLBLCK_ICON_STRUCT.inDelay;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   -outDelay: ");
+          log += PXLBLCK_ICON_STRUCT.outDelay;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   -showDelay: ");
+          log += PXLBLCK_ICON_STRUCT.showDelay;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   -brightness: ");
+          log += PXLBLCK_ICON_STRUCT.brightness;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   -textThatFollows: ");
+          log += PXLBLCK_ICON_STRUCT.textThatFollows;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   -repetition: ");
+          log += PXLBLCK_ICON_STRUCT.repetition;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   -spiffsIcon: ");
+          log += PXLBLCK_ICON_STRUCT.spiffsIcon;
+          addLog(LOG_LEVEL_DEBUG, log);
+        }
       }
     }
     else
@@ -4183,11 +4220,17 @@ struct P205_data_struct : public PluginTaskData_base
     {
       String log = F(PXLBLCK_DEVICE_NAME);
       addLog(LOG_LEVEL_INFO, log);
-      log += F("   -Error: Failed to load icon-file");
+      log += F("   -Error: Failed to load icon-file.");
       addLog(LOG_LEVEL_INFO, log);
 
       return false;
     }
+
+    String log = F(PXLBLCK_DEVICE_NAME);
+    addLog(LOG_LEVEL_INFO, log);
+    log += F("   -Success: Icon file loaded.");
+    addLog(LOG_LEVEL_INFO, log);
+
 
     //Count lines(linebreaks) in file
     uint16_t lineCount = 0;
@@ -4335,19 +4378,32 @@ struct P205_data_struct : public PluginTaskData_base
     fs::File file = SPIFFS.open(name.c_str(), "r");
     if (!file)
     {
-      String errorMessage = "Can't open '" + name + "' !\r\n";
-      Serial.println(errorMessage);
+      String log = F(PXLBLCK_DEVICE_NAME);
+      addLog(LOG_LEVEL_INFO, log);
+      log += F("   -Error: Failed to open file:'");
+      log += name;
+      addLog(LOG_LEVEL_INFO, log);
       return "%ERROR%";
     }
     else
     {
-      // this is going to get the number of bytes in the file and give us the value in an integer
+      // this is going to get the number of bytes in the file and give us the value as integer
       uint16_t fileSize = file.size();
       uint16_t chunkSize = 128;
       //This is a character array to store a chunk of the file.
       //We'll store 1024 characters at a time
       char buf[chunkSize];
       uint16_t numberOfChunks = (fileSize / chunkSize) + 1;
+
+
+      String log = F(PXLBLCK_DEVICE_NAME);
+      addLog(LOG_LEVEL_INFO, log);
+      log += F("   -Success: Opened file:'");
+      log += name;
+      addLog(LOG_LEVEL_INFO, log);
+      log = F("   -  size:");
+      log += String(file.size());
+      addLog(LOG_LEVEL_INFO, log);
 
       uint16_t remainingBytes = fileSize;
       for (int i = 1; i <= numberOfChunks; i++)
