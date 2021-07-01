@@ -173,9 +173,9 @@
  #define USES_P001   // Switch
  #define USES_P002   // ADC
  #define USES_P003   // Pulse
- #define USES_P004   // Dallas
- #define USES_P005   // DHT
- #define USES_P006   // BMP085
+// #define USES_P004   // Dallas
+// #define USES_P005   // DHT
+// #define USES_P006   // BMP085
  #define USES_P007   // PCF8591
 // #define USES_P008   // RFID
  #define USES_P009   // MCP
@@ -187,17 +187,17 @@
 // #define USES_P014   // SI7021
  #define USES_P015   // TSL2561
 // #define USES_P017   // PN532
- #define USES_P018   // Dust
- #define USES_P019   // PCF8574
+// #define USES_P018   // Dust
+// #define USES_P019   // PCF8574
 
- #define USES_P020   // Ser2Net
- #define USES_P021   // Level
+// #define USES_P020   // Ser2Net
+// #define USES_P021   // Level
  #define USES_P022   // PCA9685
 // #define USES_P023   // OLED
 // #define USES_P024   // MLX90614
- #define USES_P025   // ADS1115
+// #define USES_P025   // ADS1115
  #define USES_P026   // SysInfo
- #define USES_P027   // INA219
+// #define USES_P027   // INA219
  #define USES_P028   // BME280
  #define USES_P029   // Output
 
@@ -215,7 +215,7 @@
 // #define USES_P042   // Candle
 // #define USES_P043   // ClkOutput
 // #define USES_P044   // P1WifiGateway
- #define USES_P045   // MPU6050
+// #define USES_P045   // MPU6050
 // #define USES_P046   // VentusW266
  #define USES_P047   // I2C_soil_misture
 // #define USES_P048   // Motoshield_v2
@@ -223,7 +223,7 @@
 
 // #define USES_P050   // TCS34725 RGB Color Sensor with IR filter and White LED
 // #define USES_P051   // AM2320
- #define USES_P052   // SenseAir
+// #define USES_P052   // SenseAir
 // #define USES_P053   // PMSx003
 // #define USES_P054   // DMX512
 // #define USES_P055   // Chiming

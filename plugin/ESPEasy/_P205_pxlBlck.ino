@@ -3284,7 +3284,7 @@ struct P205_data_struct : public PluginTaskData_base
       addLog(LOG_LEVEL_INFO, log);
       log = F("   -INFO: The character \"");
       log += character;
-      log += F("\" was not found int the character set for pxlDigit24.");
+      log += F("\" was not found int the character set for pxlDigit_24.");
       addLog(LOG_LEVEL_INFO, log);
     } else
     {
