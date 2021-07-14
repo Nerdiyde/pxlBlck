@@ -4426,7 +4426,7 @@ struct P205_data_struct : public PluginTaskData_base
 
   // == Start-animation == start ===============================================================================================================
 
-  void pxlBlckUtils_show_start_animation(uint16_t animation_time)
+  void pxlBlckUtils_show_rainbow_animation(uint16_t animation_time)
   {
     pxlBlckUtils_clear_matrix();
     float const dimming_step = 0.1;
@@ -5826,7 +5826,7 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
         if (Plugin_205_first_initialization_pending)
         {
           Plugin_205_first_initialization_pending = false;
-          P205_data->pxlBlckUtils_show_start_animation(300);
+          P205_data->pxlBlckUtils_show_rainbow_animation(300);
         }
 
         success = true;
@@ -6631,7 +6631,7 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
             uint16_t anim_delay = PXLBLCK_COMMAND_ANIMATION_STANDARD_TIME;
             if (param1 != "")
             {
-              if (param1.toInt() > 0 && param1.toInt() < 6)
+              if (param1.toInt() > 0 && param1.toInt() <= 7)
               {
                 anim_mode = param1.toInt();
               }
@@ -6716,13 +6716,13 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
             if (param8 != "")
             {
               int b = param8.toInt();
-              if (b > 10 && b < 500)
+              if (b > 10 && b < 1000)
               {
                 anim_delay = b;
               }
               else
               {
-                anim_delay = 500;
+                anim_delay = 1000;
               }
             }
 
@@ -6922,6 +6922,17 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
                     P205_data->pxlBlckUtils_draw_horizontal_bar(((PXLBLCK_MATRIX_HEIGHT - 1) - i), anim_red_on, anim_green_on, anim_blue_on, true);
                     delay(anim_delay);
                   }
+
+                  P205_data->pxlBlckUtils_clear_matrix();
+                  P205_data->pxlBlckUtils_update_matrix();
+                }
+                break;
+              case 7:
+                {
+                  //this animation shows the rainbow animation =================================================================================================
+                  P205_data->pxlBlckUtils_clear_matrix();
+
+                  P205_data->pxlBlckUtils_show_rainbow_animation(anim_delay);
 
                   P205_data->pxlBlckUtils_clear_matrix();
                   P205_data->pxlBlckUtils_update_matrix();

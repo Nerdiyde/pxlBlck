@@ -188,7 +188,7 @@
  #define USES_P015   // TSL2561
 // #define USES_P017   // PN532
 // #define USES_P018   // Dust
-// #define USES_P019   // PCF8574
+ #define USES_P019   // PCF8574
 
 // #define USES_P020   // Ser2Net
 // #define USES_P021   // Level
