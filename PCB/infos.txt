@@ -1,1 +1,6 @@
-The PCB can be ordered at
+Additonal build isntructions:
+English: https://nerdiy.de/en/howto-pcb-pxlblck_multipcb/
+German: https://nerdiy.de/howto-pcb-pxlblck_multipcb/
+
+The PCB can be ordered at: https://www.pcbway.com/project/shareproject/pxlBlck_multiPCB___a_multi_purpose_IOT_LED_Matrix_board.html
+
