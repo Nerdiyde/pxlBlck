@@ -1,11 +1,12 @@
 #include "_Plugin_Helper.h"
-#ifdef USES_P019
+#define USES_P206
+#ifdef USES_P206
 
 #include "src/DataStructs/PinMode.h"
 #include "src/Commands/GPIO.h"
 
 // #######################################################################################################
-// #################################### Plugin : PCF8574 ##############################################
+// #################################### Plugin : PCF8575 ##############################################
 // #######################################################################################################
 
 /**************************************************\
@@ -34,8 +35,8 @@
 \**************************************************/
 
 #define PLUGIN_206
-#define PLUGIN_ID_206         19
-#define PLUGIN_NAME_206       "Switch input - PCF8574"
+#define PLUGIN_ID_206         206
+#define PLUGIN_NAME_206       "GPIO Ext. - PCF8575"
 #define PLUGIN_VALUENAME1_206 "State"
 #define PLUGIN_206_DOUBLECLICK_MIN_INTERVAL 1000
 #define PLUGIN_206_DOUBLECLICK_MAX_INTERVAL 3000
@@ -96,12 +97,12 @@ boolean Plugin_206(byte function, struct EventStruct *event, String& string)
         globalMapPortStatus[key].previousTask = event->TaskIndex;
       }
 
-      addFormCheckBox(F("Send Boot state"), F("p019_boot"), PCONFIG(0));
+      addFormCheckBox(F("Send Boot state"), F("p206_boot"), PCONFIG(0));
 
       // @giig1967-20181022
       addFormSubHeader(F("Advanced event management"));
 
-      addFormNumericBox(F("De-bounce (ms)"), F("p019_debounce"), round(PCONFIG_FLOAT(0)), 0, 250);
+      addFormNumericBox(F("De-bounce (ms)"), F("p206_debounce"), round(PCONFIG_FLOAT(0)), 0, 250);
 
       // set minimum value for doubleclick MIN max speed
       if (PCONFIG_FLOAT(1) < PLUGIN_206_DOUBLECLICK_MIN_INTERVAL) {
@@ -115,10 +116,10 @@ boolean Plugin_206(byte function, struct EventStruct *event, String& string)
       buttonDC[2] = F("Active only on HIGH (EVENT=3)");
       buttonDC[3] = F("Active on LOW & HIGH (EVENT=3)");
       int buttonDCValues[4] = { PLUGIN_206_DC_DISABLED, PLUGIN_206_DC_LOW, PLUGIN_206_DC_HIGH, PLUGIN_206_DC_BOTH };
-      addFormSelector(F("Doubleclick event"), F("p019_dc"), 4, buttonDC, buttonDCValues, choiceDC);
+      addFormSelector(F("Doubleclick event"), F("p206_dc"), 4, buttonDC, buttonDCValues, choiceDC);
 
       addFormNumericBox(F("Doubleclick max. interval (ms)"),
-                        F("p019_dcmaxinterval"),
+                        F("p206_dcmaxinterval"),
                         round(PCONFIG_FLOAT(1)),
                         PLUGIN_206_DOUBLECLICK_MIN_INTERVAL,
                         PLUGIN_206_DOUBLECLICK_MAX_INTERVAL);
@@ -136,15 +137,15 @@ boolean Plugin_206(byte function, struct EventStruct *event, String& string)
       buttonLP[3] = F("Active on LOW & HIGH (EVENT= 10 or 11)");
       int buttonLPValues[4] =
       { PLUGIN_206_LONGPRESS_DISABLED, PLUGIN_206_LONGPRESS_LOW, PLUGIN_206_LONGPRESS_HIGH, PLUGIN_206_LONGPRESS_BOTH };
-      addFormSelector(F("Longpress event"), F("p019_lp"), 4, buttonLP, buttonLPValues, choiceLP);
+      addFormSelector(F("Longpress event"), F("p206_lp"), 4, buttonLP, buttonLPValues, choiceLP);
 
       addFormNumericBox(F("Longpress min. interval (ms)"),
-                        F("p019_lpmininterval"),
+                        F("p206_lpmininterval"),
                         round(PCONFIG_FLOAT(2)),
                         PLUGIN_206_LONGPRESS_MIN_INTERVAL,
                         PLUGIN_206_LONGPRESS_MAX_INTERVAL);
 
-      addFormCheckBox(F("Use Safe Button (slower)"), F("p019_sb"), round(PCONFIG_FLOAT(3)));
+      addFormCheckBox(F("Use Safe Button (slower)"), F("p206_sb"), round(PCONFIG_FLOAT(3)));
 
       success = true;
       break;
@@ -152,18 +153,18 @@ boolean Plugin_206(byte function, struct EventStruct *event, String& string)
 
     case PLUGIN_WEBFORM_SAVE:
     {
-      PCONFIG(0) = isFormItemChecked(F("p019_boot"));
+      PCONFIG(0) = isFormItemChecked(F("p206_boot"));
 
       // @giig1967-20181022
-      PCONFIG_FLOAT(0) = getFormItemInt(F("p019_debounce"));
+      PCONFIG_FLOAT(0) = getFormItemInt(F("p206_debounce"));
 
-      PCONFIG(4)       = getFormItemInt(F("p019_dc"));
-      PCONFIG_FLOAT(1) = getFormItemInt(F("p019_dcmaxinterval"));
+      PCONFIG(4)       = getFormItemInt(F("p206_dc"));
+      PCONFIG_FLOAT(1) = getFormItemInt(F("p206_dcmaxinterval"));
 
-      PCONFIG(5)       = getFormItemInt(F("p019_lp"));
-      PCONFIG_FLOAT(2) = getFormItemInt(F("p019_lpmininterval"));
+      PCONFIG(5)       = getFormItemInt(F("p206_lp"));
+      PCONFIG_FLOAT(2) = getFormItemInt(F("p206_lpmininterval"));
 
-      PCONFIG_FLOAT(3) = isFormItemChecked(F("p019_sb"));
+      PCONFIG_FLOAT(3) = isFormItemChecked(F("p206_sb"));
 
       // check if a task has been edited and remove task flag from the previous pin
       for (std::map<uint32_t, portStatusStruct>::iterator it = globalMapPortStatus.begin(); it != globalMapPortStatus.end(); ++it) {
@@ -621,7 +622,7 @@ boolean Plugin_206(byte function, struct EventStruct *event, String& string)
 }
 
 // ********************************************************************************
-// PCF8574 read
+// PCF8575 read
 // ********************************************************************************
 // @giig1967g-20181023: changed to int8_t
 int8_t Plugin_206_Read(byte Par1)
@@ -657,7 +658,7 @@ uint8_t Plugin_206_ReadAllPins(uint8_t address)
 }
 
 // ********************************************************************************
-// PCF8574 write
+// PCF8575 write
 // ********************************************************************************
 boolean Plugin_206_Write(byte Par1, byte Par2)
 {
@@ -699,4 +700,4 @@ boolean Plugin_206_Write(byte Par1, byte Par2)
   return true;
 }
 
-#endif // USES_P019
+#endif // USES_P206

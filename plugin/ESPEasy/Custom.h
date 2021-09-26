@@ -273,6 +273,8 @@
 // #define P016_P035_USE_RAW_RAW2 //Use the RAW and RAW2 encodings, disabling it saves 3.7Kb
 // #define USES_P088   // Heatpump IR
 
+#define USES_P130 // Vl53L0X laser distance sensor
+#define USES_P113 // Vl53L1X laser distance sensor
 #define USES_P133 // Vl53L0X laser distance sensor
 
 
