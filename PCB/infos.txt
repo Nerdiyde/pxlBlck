@@ -1,4 +1,4 @@
-Additonal build isntructions:
+Additonal build instructions:
 English: https://nerdiy.de/en/howto-pcb-pxlblck_multipcb/
 German: https://nerdiy.de/howto-pcb-pxlblck_multipcb/
 

@@ -5,35 +5,6 @@
 #include "src/DataStructs/PinMode.h"
 #include "src/Commands/GPIO.h"
 
-// #######################################################################################################
-// #################################### Plugin : PCF8575 ##############################################
-// #######################################################################################################
-
-/**************************************************\
-   CONFIG
-   TaskDevicePluginConfig settings:
-   0: send boot state (true,false)
-   1:
-   2:
-   3:
-   4: use doubleclick (0,1,2,3)
-   5: use longpress (0,1,2,3)
-   6: LP fired (true,false)
-   7: doubleclick counter (=0,1,2,3)
-
-   TaskDevicePluginConfigFloat settings:
-   0: debounce interval ms
-   1: doubleclick interval ms
-   2: longpress interval ms
-   3: use safebutton (=0,1)
-
-   TaskDevicePluginConfigLong settings:
-   0: clickTime debounce ms
-   1: clickTime doubleclick ms
-   2: clickTime longpress ms
-   3: safebutton counter (=0,1)
-\**************************************************/
-
 #define PLUGIN_206
 #define PLUGIN_ID_206         206
 #define PLUGIN_NAME_206       "GPIO Ext. - PCF8575"

@@ -2,7 +2,7 @@
 # Changelog
 ### 0.2.1
 #### Feature:
-- Extend "bar-graph"-feature by an additional parameter to make the "display-direction" selectable
+- Extend "bar-graph"-feature by an additional paramater to make the "display-direction" selectable
 ### 0.2
 #### Feature:
 - Add functionality to display "bar-graph"-values via command "pbbar"

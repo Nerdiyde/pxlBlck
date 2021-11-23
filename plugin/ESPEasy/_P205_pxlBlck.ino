@@ -1848,6 +1848,7 @@ struct P205_data_struct : public PluginTaskData_base
             case PXLBLCK_DIAL_NAME_RINGGCLOCK_DIAL_ID_INT:
               {
                 //this dial shows the ringclock dial
+                colorFourTemp = pxlBlckUtils_add_brightness_to_color(Plugin_205_ringclockHourMarksBrightness, Plugin_205_minimalBrightness, Plugin_205_colorFour); //in case of the ringClock dial we have a seperate brightness setting for the hands brightness,
                 pxlBlckUtils_clear_matrix();
                 Plugin_205_show_dial_ringClock(hours, minutes, seconds, colorOneTemp, colorTwoTemp, colorThreeTemp, colorFourTemp, Plugin_205_twentyFourHr_mode_activated);
                 pxlBlckUtils_update_matrix();
@@ -3828,8 +3829,6 @@ struct P205_data_struct : public PluginTaskData_base
                   log += String(outDelay);
                   addLog(LOG_LEVEL_DEBUG, log);
 
-                  Serial.println("Here1");
-
                   int8_t x = 0;
                   //if there is also a text displayed the number of steps for moving out the display-content needs to be increased depending on the number of characters of the displayed text
                   int16_t limit = (PXLBLCK_ICON_STRUCT.textThatFollows.length() > 1) ? (0 - (PXLBLCK_ICON_WIDTH + (PXLBLCK_ICON_STRUCT.textThatFollows.length() * 6) + 1)) : (0 - PXLBLCK_ICON_WIDTH);
@@ -5258,7 +5257,7 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
         }
         addLog(LOG_LEVEL_DEBUG, log);
 
-        addFormSelector(F("Dial version"), F(PXLBLCK_WEBSERVER_FORM_ID_DIAL), possibleDialValueLength, possibleDials, possibleDialsValues, Plugin_205_selectedDial, true);
+        addFormSelector(F("Dial type"), F(PXLBLCK_WEBSERVER_FORM_ID_DIAL), possibleDialValueLength, possibleDials, possibleDialsValues, Plugin_205_selectedDial, true);
         addFormNote(F("Select the dial that will be used to display time."));
 
         //=== preparing the available dials for the selected Plugin_205_selectedMatrixId === end ==
@@ -5312,8 +5311,12 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
           addFormNote(F("Enabling display of leading Zeros."));
         }
 
-        addFormCheckBox(F("24-hour-mode enabled"), F(PXLBLCK_WEBSERVER_FORM_ID_TWENTY_FOUR_HR_MODE_ENABLED), Plugin_205_twentyFourHr_mode_activated);
-        addFormNote(F("Display time using 24hrs instead of 12hrs."));
+        //support the following option only for dials that support 24hr mode
+        if (Plugin_205_selectedDial != PXLBLCK_DIAL_NAME_WORDCLOCK_DIAL_ID_INT)
+        {
+          addFormCheckBox(F("24-hour-mode enabled"), F(PXLBLCK_WEBSERVER_FORM_ID_TWENTY_FOUR_HR_MODE_ENABLED), Plugin_205_twentyFourHr_mode_activated);
+          addFormNote(F("Display time using 24hrs instead of 12hrs."));
+        }
 
         //General form parts
         addFormNumericBox(F("Display brightness"), F(PXLBLCK_WEBSERVER_FORM_ID_BRIGHTNESS), Plugin_205_displayBrightness, 0, PXLBLCK_MAX_SETABLE_BRIGHTNESS);
@@ -5781,7 +5784,6 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
             Plugin_205_matrixArrangement,
             PXLBLCK_LED_COLOR_ORDER +
             NEO_KHZ800);
-          String log = F("pxlBlck : Here1: ");
           addLog(LOG_LEVEL_INFO, log);
         }
         else
@@ -5797,7 +5799,7 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
             PXLBLCK_LED_COLOR_ORDER +
             NEO_KHZ800 +
             Plugin_205_matrixTileArrangement);
-          String log = F("pxlBlck : Here2: ");
+
           addLog(LOG_LEVEL_INFO, log);
         }
 
@@ -6629,19 +6631,33 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
             uint8_t anim_blue_off = 0;
             uint8_t anim_mode = 1;
             uint16_t anim_delay = PXLBLCK_COMMAND_ANIMATION_STANDARD_TIME;
+
+
+              #define ANIMATION_MAX_DURATION 1000
+              #define ANIMATION_MIN_DURATION 10
+              #define ANIMATION_MAX_ID 7
+              #define ANIMATION_MIN_ID 0
+              #define ANIMATION_STANDARD_ID 1
+              #define ANIMATION_MAX_COLOR_BRIGHTNESS 255
+              #define ANIMATION_MIN_COLOR_BRIGHTNESS 0
+            
             if (param1 != "")
             {
-              if (param1.toInt() > 0 && param1.toInt() <= 7)
+              
+              anim_delay = (param1.toInt() > 0 && param1.toInt() <= ANIMATION_MAX_ID) ? param1.toInt() : ANIMATION_STANDARD_ID;
+              /*if (param1.toInt() > 0 && param1.toInt() <= ANIMATION_MAX_ID)
               {
                 anim_mode = param1.toInt();
               }
               else
               {
                 anim_mode = 1;
-              }
+              }*/
             }
             if (param2 != "")
             {
+              anim_red_on = (param2.toInt() >= ANIMATION_MIN_COLOR_BRIGHTNESS && param2.toInt() <= ANIMATION_MAX_COLOR_BRIGHTNESS) ? param2.toInt() : ANIMATION_MAX_COLOR_BRIGHTNESS;
+              /*
               int r = param2.toInt();
               if (r > -1 && r < 255)
               {
@@ -6650,11 +6666,12 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
               else
               {
                 anim_red_on = 255;
-              }
+              }*/
             }
             if (param3 != "")
             {
-              int g = param3.toInt();
+              anim_green_on = (param3.toInt() >= ANIMATION_MIN_COLOR_BRIGHTNESS && param3.toInt() <= ANIMATION_MAX_COLOR_BRIGHTNESS) ? param3.toInt() : ANIMATION_MAX_COLOR_BRIGHTNESS;
+              /*int g = param3.toInt();
               if (g > -1 && g < 255)
               {
                 anim_green_on = g;
@@ -6662,11 +6679,12 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
               else
               {
                 anim_green_on = 255;
-              }
+              }*/
             }
             if (param4 != "")
             {
-              int b = param4.toInt();
+              anim_blue_on = (param4.toInt() >= ANIMATION_MIN_COLOR_BRIGHTNESS && param4.toInt() <= ANIMATION_MAX_COLOR_BRIGHTNESS) ? param4.toInt() : ANIMATION_MAX_COLOR_BRIGHTNESS;
+              /*int b = param4.toInt();
               if (b > -1 && b < 255)
               {
                 anim_blue_on = b;
@@ -6674,12 +6692,13 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
               else
               {
                 anim_blue_on = 255;
-              }
+              }*/
             }
 
             if (param5 != "")
             {
-              int r = param5.toInt();
+              anim_red_off = (param5.toInt() >= ANIMATION_MIN_COLOR_BRIGHTNESS && param5.toInt() <= ANIMATION_MAX_COLOR_BRIGHTNESS) ? param5.toInt() : ANIMATION_MAX_COLOR_BRIGHTNESS;
+              /*int r = param5.toInt();
               if (r > -1 && r < 255)
               {
                 anim_red_off = r;
@@ -6687,11 +6706,12 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
               else
               {
                 anim_red_off = 255;
-              }
+              }*/
             }
             if (param6 != "")
             {
-              int g = param6.toInt();
+              anim_green_off = (param6.toInt() >= ANIMATION_MIN_COLOR_BRIGHTNESS && param6.toInt() <= ANIMATION_MAX_COLOR_BRIGHTNESS) ? param6.toInt() : ANIMATION_MAX_COLOR_BRIGHTNESS;
+              /*int g = param6.toInt();
               if (g > -1 && g < 255)
               {
                 anim_green_off = g;
@@ -6699,11 +6719,12 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
               else
               {
                 anim_green_off = 255;
-              }
+              }*/
             }
             if (param7 != "")
             {
-              int b = param7.toInt();
+              anim_blue_off = (param7.toInt() >= ANIMATION_MIN_COLOR_BRIGHTNESS && param7.toInt() <= ANIMATION_MAX_COLOR_BRIGHTNESS) ? param7.toInt() : ANIMATION_MAX_COLOR_BRIGHTNESS;
+              /*int b = param7.toInt();
               if (b > -1 && b < 255)
               {
                 anim_blue_off = b;
@@ -6711,19 +6732,22 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
               else
               {
                 anim_blue_off = 255;
-              }
+              }*/
             }
             if (param8 != "")
             {
-              int b = param8.toInt();
-              if (b > 10 && b < 1000)
+              //int b = param8.toInt();
+              anim_delay = (param8.toInt() >= ANIMATION_MIN_DURATION && param8.toInt() <= ANIMATION_MAX_DURATION) ? param8.toInt() : ANIMATION_MIN_DURATION;
+
+              
+              /*if (b > 10 && b < 1000)
               {
                 anim_delay = b;
               }
               else
               {
                 anim_delay = 1000;
-              }
+              }*/
             }
 
             switch (anim_mode)
