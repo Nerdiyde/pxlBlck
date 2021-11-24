@@ -6,8 +6,8 @@
     \_/\_/    \_/\_/    \_/\_/(_)|_| \_| \___||_|   \__,_||_| \__, |(_)\__,_| \___|
                                                                __/ |
                                                               |___/
-     Plugin 2216: DS3231 Syncer Plugin by Fabian Steppat
-     Infos on www.nerdiy.de/ds3231syncerplugin
+     Plugin 2216: DS323X Syncer Plugin by Fabian Steppat
+     Infos on www.nerdiy.de/espeasy_ds323X_sync_plugin
 
      This program is free software: you can redistribute it and/or modify
      it under the terms of the GNU General Public License as published by
@@ -23,21 +23,18 @@
      along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
      You will find additional information to this project at the following address:
-     https://www.Nerdiy.de/ds3231syncerplugin
+     https://www.nerdiy.de/espeasy_ds323X_sync_plugin
 
      Credits:
       - ESPEasy:  A big thank you to the guys who started, maintain and in general care about whats going on with ESPEasy. This plugin wouldn't have been possible without them.
                   See more about it here: https://www.letscontrolit.com/wiki/index.php/ESPEasy
       - Adafruit: A big thank you to the awesome ladies and gentleman at adafruit.com who made many awesome and important libraries and products.
                   If you want to thank/support them, buy one(or more) of their products on www.adafruit.com.
-      - RingClock functionality: The RingClock functionality is roughly inspired by the ESPEasy-Plugin: Plugin 070: NeoPixel ring clock
 
 
       TODO:
-       - EInstellcommands um die RTC Uhrzeit manuell einstellen zu können
-       - RTC zu systemzeit sync manuell anstoßen
+       - EInstellcommands um die RTC Uhrzeit manuell einstellen zu können inkl. bestätigung im Webmenü
        - Uhrzeit auch im menu des plugins einstellbar machen, dazu sollte die zeit in den eingabefeldern aber mitlaufen
-
 
 
 */
@@ -52,15 +49,27 @@
 
 #define PLUGIN_216
 #define PLUGIN_ID_216     216
-#define PLUGIN_NAME_216   "TIME - DS3231"
+#define PLUGIN_NAME_216   "TIME - DS323X"
 #define PLUGIN_VALUENAME1_216 "Temperature"
-#define PLUGIN_VALUENAME2_216 "Tick"
+#define PLUGIN_VALUENAME2_216 "Ticks"
 
-#define PLUGIN_216_DS3231_ADDRESS_TEMPERATURE 0x11
-#define PLUGIN_216_DS3231_ADDRESS 0x68
+#define PLUGIN_216_DS323X_ADDRESS_TEMPERATURE 0x11
+#define PLUGIN_216_DS323X_ADDRESS 0x68
 
 #define PLUGIN_216_NO_WIFI_MAX_TRIES 20
 
+#define DOCU_LINK_STRING "espeasy_ds323X_sync_plugin"
+
+#define COMMAND_STRING_INCR_HR "nrdy_rtc_incrhr"
+#define COMMAND_STRING_DECR_HR "nrdy_rtc_decrhr"
+#define COMMAND_STRING_INCR_MNT "nrdy_rtc_incrmnt"
+#define COMMAND_STRING_DECR_MNT "nrdy_rtc_decrmnt"
+
+#define WEBFORM_HEADER_STRING "DS323X-Syncer configuration"
+#define WEBFORM_HEADER_NOTE_STRING "To get more information click on the ?"
+#define WEBFORM_NTP_SYNC_ENABLE_DESCRIPTION_STRING "Enable NTP sync at startup"
+#define WEBFORM_NTP_SYNC_ENABLE_HINT_STRING "If the NTP-sync is activated the time will fetched at start once from NTP-server and synced with the DS323X. After that the RTC-time will be synced to the system-time every data-acquisition-read-interval."
+#define WEBFORM_NTP_SYNC_ENABLE_ID_STRING "ntpSyncAct"
 
 #ifndef PLUGIN_216_CONFIG
 #define PLUGIN_216_CONFIG(n) (Settings.TaskDevicePluginConfig[event->TaskIndex][n])
@@ -114,15 +123,17 @@ boolean Plugin_216(byte function, struct EventStruct *event, String& string)
         break;
       }
 
+#define WEBFORM_
+
     case PLUGIN_WEBFORM_LOAD:
       {
-        addFormSubHeader(F("DS3231-Syncer configuration"));
+        addFormSubHeader(F(WEBFORM_HEADER_STRING));
 
-        Plugin_216_addHelpButton(F("Help"), F("ds3231syncerplugin"));
-        addFormNote(F("To get more information click on the ?"));
+        Plugin_216_addHelpButton(F("Help"), F(DOCU_LINK_STRING));
+        addFormNote(F(WEBFORM_HEADER_NOTE_STRING));
 
-        addFormCheckBox(F("Enable NTP sync at startup"), F("ntpSyncAct"), Plugin_216_initialNtpSyncActivated);
-        addFormNote(F("If the NTP-sync is activated the time will fetched at start once from NTP-server and synced with RTC. After that the RTC-time will be synced to the system-time every data-acquisition-read-interval."));
+        addFormCheckBox(F(WEBFORM_NTP_SYNC_ENABLE_DESCRIPTION_STRING), F(WEBFORM_NTP_SYNC_ENABLE_ID_STRING), Plugin_216_initialNtpSyncActivated);
+        addFormNote(F(WEBFORM_NTP_SYNC_ENABLE_HINT_STRING));
 
         //int choice = Settings.TaskDevicePluginConfig[event->TaskIndex][1];
         //String alarmOptions[4];
@@ -142,7 +153,7 @@ boolean Plugin_216(byte function, struct EventStruct *event, String& string)
 
     case PLUGIN_WEBFORM_SAVE:
       {
-        PLUGIN_216_CONFIG(0) = isFormItemChecked(F("ntpSyncAct"));
+        PLUGIN_216_CONFIG(0) = isFormItemChecked(F(WEBFORM_NTP_SYNC_ENABLE_ID_STRING));
 
         Plugin_216_initialNtpSyncActivated = PLUGIN_216_CONFIG(0);
 
@@ -187,7 +198,7 @@ boolean Plugin_216(byte function, struct EventStruct *event, String& string)
     case PLUGIN_READ:
       {
         unsigned long unixTime = Plugin_216_writeRtcTimeToSystemTime(Settings.TaskDeviceTimer[event->TaskIndex]);
-        float rtcTemperature = Plugin_216_returnDS3231Temperature();
+        float rtcTemperature = Plugin_216_returnDS323XTemperature();
 
         UserVar[event->BaseVarIndex] = rtcTemperature;
         UserVar[event->BaseVarIndex + 1] = unixTime;
@@ -197,7 +208,7 @@ boolean Plugin_216(byte function, struct EventStruct *event, String& string)
         log = F("   - RTC-Time in unixtime: ");
         log += unixTime;
         addLog(LOG_LEVEL_DEBUG, log);
-        log = F("   - DS3231-Temperature: ");
+        log = F("   - DS323X-Temperature: ");
         log += rtcTemperature;
         addLog(LOG_LEVEL_DEBUG, log);
 
@@ -222,22 +233,22 @@ boolean Plugin_216(byte function, struct EventStruct *event, String& string)
         String param11 = parseString(string, 12);
         String param12 = parseString(string, 13);
 
-        if (command == F("incrhr"))
+        if (command == F(COMMAND_STRING_INCR_HR))
         {
           Plugin_216_modifyTimeBySeconds(3600);
           Plugin_216_writeRtcTimeToSystemTime(Settings.TaskDeviceTimer[event->TaskIndex]);
           success = true;
-        } else if (command == F("incrmnt"))
+        } else if (command == F(COMMAND_STRING_INCR_MNT))
         {
           Plugin_216_modifyTimeBySeconds(60);
           Plugin_216_writeRtcTimeToSystemTime(Settings.TaskDeviceTimer[event->TaskIndex]);
           success = true;
-        } else if (command == F("decrhr"))
+        } else if (command == F(COMMAND_STRING_DECR_HR))
         {
           Plugin_216_modifyTimeBySeconds(-3600);
           Plugin_216_writeRtcTimeToSystemTime(Settings.TaskDeviceTimer[event->TaskIndex]);
           success = true;
-        } else if (command == F("decrmnt"))
+        } else if (command == F(COMMAND_STRING_DECR_MNT))
         {
           Plugin_216_modifyTimeBySeconds(-60);
           Plugin_216_writeRtcTimeToSystemTime(Settings.TaskDeviceTimer[event->TaskIndex]);
@@ -280,18 +291,18 @@ unsigned long Plugin_216_actualRtcUnixtime()
   return timeT;
 }
 
-float Plugin_216_returnDS3231Temperature()
+float Plugin_216_returnDS323XTemperature()
 {
-  //get temperature fo DS3231
+  //get temperature fo DS323X
   uint8_t tempMsb = 0;
   uint8_t tempLsb = 0;
   int8_t temp;
 
-  Wire.beginTransmission(PLUGIN_216_DS3231_ADDRESS);
-  Wire.write(PLUGIN_216_DS3231_ADDRESS_TEMPERATURE);
+  Wire.beginTransmission(PLUGIN_216_DS323X_ADDRESS);
+  Wire.write(PLUGIN_216_DS323X_ADDRESS_TEMPERATURE);
   Wire.endTransmission();
 
-  Wire.requestFrom(PLUGIN_216_DS3231_ADDRESS, 2);
+  Wire.requestFrom(PLUGIN_216_DS323X_ADDRESS, 2);
   tempMsb = Wire.read();
   tempLsb = Wire.read() >> 6;
 
@@ -421,7 +432,7 @@ unsigned long Plugin_216_writeRtcTimeToSystemTime(uint16_t pluginIntervalTime)
   unsigned long unixTime = Plugin_216_actualRtcUnixtime();
 
   node_time.setExternalTimeSource(unixTime, Restore_RTC_time_source);
-  
+
   return unixTime;
 }
 
