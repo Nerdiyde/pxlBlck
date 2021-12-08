@@ -3475,21 +3475,38 @@ struct P205_data_struct : public PluginTaskData_base
 
 
       //First check if file exists and then try to read/load it, If icon is available its data will be copied to PXLBLCK_ICON_STRUCT.logo
-      if (!pxlBlckUtils_check_if_icon_file_exists(PXLBLCK_ICON_STRUCT.spiffsIcon) || !pxlBlckUtils_load_ppm_file_to_dynamic_array(PXLBLCK_ICON_STRUCT.spiffsIcon))
+      boolean icon_found = pxlBlckUtils_check_if_icon_file_exists(PXLBLCK_ICON_STRUCT.spiffsIcon);
+      boolean icon_loaded = pxlBlckUtils_load_ppm_file_to_dynamic_array(PXLBLCK_ICON_STRUCT.spiffsIcon);
+      if (!icon_found || !icon_loaded)
       {
         //deactivate icon because spiffs-file was not found or could not read
         PXLBLCK_ICON_STRUCT.iconPending = false;
         PXLBLCK_ICON_STRUCT.textThatFollows = "";
 
-        String log = F("pxlBlck: Icon not shown. Icon file not found.");
-        SendStatus(event->Source, log);
+        if (!icon_found)
+        {
+          String log = F("pxlBlck: Icon file not found.");
+          SendStatus(event->Source, log);
 
-        log = F(PXLBLCK_DEVICE_NAME);
-        addLog(LOG_LEVEL_INFO, log);
-        log = F("   -Error: Icon-file \"");
-        log += PXLBLCK_ICON_STRUCT.spiffsIcon;
-        log += F("\" does not exist");
-        addLog(LOG_LEVEL_INFO, log);
+          log = F(PXLBLCK_DEVICE_NAME);
+          addLog(LOG_LEVEL_INFO, log);
+          log = F("   -Error: Icon-file \"");
+          log += PXLBLCK_ICON_STRUCT.spiffsIcon;
+          log += F("\" does not exist");
+          addLog(LOG_LEVEL_INFO, log);
+        } else if (!icon_loaded)
+        {
+          String log = F("pxlBlck: Loading of icon-file failed.");
+          SendStatus(event->Source, log);
+
+          log = F(PXLBLCK_DEVICE_NAME);
+          addLog(LOG_LEVEL_INFO, log);
+          log = F("   -Error: Loading of icon-file \"");
+          log += PXLBLCK_ICON_STRUCT.spiffsIcon;
+          log += F("\" failed.");
+          addLog(LOG_LEVEL_INFO, log);
+        }
+
 
         //let matrix blink five times to show that icon was not found
         for (uint8_t i = 0; i < 5; i++)
@@ -3502,7 +3519,8 @@ struct P205_data_struct : public PluginTaskData_base
           delay(250);
         }
       }
-      else
+
+      if (icon_found && icon_loaded)
       {
 
         if (PXLBLCK_ICON_STRUCT.iconState != PXLBLCK_ICON_STATE_START ||
@@ -3536,6 +3554,7 @@ struct P205_data_struct : public PluginTaskData_base
           // Most probably this is caused by an "overflow" of the data in the array PXLBLCK_ICON_STRUCT.logo which size is limited by the
           // defines PXLBLCK_ICON_WIDTH and PXLBLCK_ICON_HEIGHT. So in case you wanted to load an icon file which has a higher resolution than the resolution specified by
           // PXLBLCK_ICON_WIDTH and PXLBLCK_ICON_HEIGHT you need to either increase PXLBLCK_ICON_WIDTH and PXLBLCK_ICON_HEIGHT or decrease the resolution of your icon file.
+          // Maybe cool to catch this in the future.
 
         } else
         {
@@ -6633,121 +6652,121 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
             uint16_t anim_delay = PXLBLCK_COMMAND_ANIMATION_STANDARD_TIME;
 
 
-              #define ANIMATION_MAX_DURATION 1000
-              #define ANIMATION_MIN_DURATION 10
-              #define ANIMATION_MAX_ID 7
-              #define ANIMATION_MIN_ID 0
-              #define ANIMATION_STANDARD_ID 1
-              #define ANIMATION_MAX_COLOR_BRIGHTNESS 255
-              #define ANIMATION_MIN_COLOR_BRIGHTNESS 0
-            
+#define ANIMATION_MAX_DURATION 1000
+#define ANIMATION_MIN_DURATION 10
+#define ANIMATION_MAX_ID 7
+#define ANIMATION_MIN_ID 0
+#define ANIMATION_STANDARD_ID 1
+#define ANIMATION_MAX_COLOR_BRIGHTNESS 255
+#define ANIMATION_MIN_COLOR_BRIGHTNESS 0
+
             if (param1 != "")
             {
-              
+
               anim_delay = (param1.toInt() > 0 && param1.toInt() <= ANIMATION_MAX_ID) ? param1.toInt() : ANIMATION_STANDARD_ID;
               /*if (param1.toInt() > 0 && param1.toInt() <= ANIMATION_MAX_ID)
-              {
+                {
                 anim_mode = param1.toInt();
-              }
-              else
-              {
+                }
+                else
+                {
                 anim_mode = 1;
-              }*/
+                }*/
             }
             if (param2 != "")
             {
               anim_red_on = (param2.toInt() >= ANIMATION_MIN_COLOR_BRIGHTNESS && param2.toInt() <= ANIMATION_MAX_COLOR_BRIGHTNESS) ? param2.toInt() : ANIMATION_MAX_COLOR_BRIGHTNESS;
               /*
-              int r = param2.toInt();
-              if (r > -1 && r < 255)
-              {
+                int r = param2.toInt();
+                if (r > -1 && r < 255)
+                {
                 anim_red_on = r;
-              }
-              else
-              {
+                }
+                else
+                {
                 anim_red_on = 255;
-              }*/
+                }*/
             }
             if (param3 != "")
             {
               anim_green_on = (param3.toInt() >= ANIMATION_MIN_COLOR_BRIGHTNESS && param3.toInt() <= ANIMATION_MAX_COLOR_BRIGHTNESS) ? param3.toInt() : ANIMATION_MAX_COLOR_BRIGHTNESS;
               /*int g = param3.toInt();
-              if (g > -1 && g < 255)
-              {
+                if (g > -1 && g < 255)
+                {
                 anim_green_on = g;
-              }
-              else
-              {
+                }
+                else
+                {
                 anim_green_on = 255;
-              }*/
+                }*/
             }
             if (param4 != "")
             {
               anim_blue_on = (param4.toInt() >= ANIMATION_MIN_COLOR_BRIGHTNESS && param4.toInt() <= ANIMATION_MAX_COLOR_BRIGHTNESS) ? param4.toInt() : ANIMATION_MAX_COLOR_BRIGHTNESS;
               /*int b = param4.toInt();
-              if (b > -1 && b < 255)
-              {
+                if (b > -1 && b < 255)
+                {
                 anim_blue_on = b;
-              }
-              else
-              {
+                }
+                else
+                {
                 anim_blue_on = 255;
-              }*/
+                }*/
             }
 
             if (param5 != "")
             {
               anim_red_off = (param5.toInt() >= ANIMATION_MIN_COLOR_BRIGHTNESS && param5.toInt() <= ANIMATION_MAX_COLOR_BRIGHTNESS) ? param5.toInt() : ANIMATION_MAX_COLOR_BRIGHTNESS;
               /*int r = param5.toInt();
-              if (r > -1 && r < 255)
-              {
+                if (r > -1 && r < 255)
+                {
                 anim_red_off = r;
-              }
-              else
-              {
+                }
+                else
+                {
                 anim_red_off = 255;
-              }*/
+                }*/
             }
             if (param6 != "")
             {
               anim_green_off = (param6.toInt() >= ANIMATION_MIN_COLOR_BRIGHTNESS && param6.toInt() <= ANIMATION_MAX_COLOR_BRIGHTNESS) ? param6.toInt() : ANIMATION_MAX_COLOR_BRIGHTNESS;
               /*int g = param6.toInt();
-              if (g > -1 && g < 255)
-              {
+                if (g > -1 && g < 255)
+                {
                 anim_green_off = g;
-              }
-              else
-              {
+                }
+                else
+                {
                 anim_green_off = 255;
-              }*/
+                }*/
             }
             if (param7 != "")
             {
               anim_blue_off = (param7.toInt() >= ANIMATION_MIN_COLOR_BRIGHTNESS && param7.toInt() <= ANIMATION_MAX_COLOR_BRIGHTNESS) ? param7.toInt() : ANIMATION_MAX_COLOR_BRIGHTNESS;
               /*int b = param7.toInt();
-              if (b > -1 && b < 255)
-              {
+                if (b > -1 && b < 255)
+                {
                 anim_blue_off = b;
-              }
-              else
-              {
+                }
+                else
+                {
                 anim_blue_off = 255;
-              }*/
+                }*/
             }
             if (param8 != "")
             {
               //int b = param8.toInt();
               anim_delay = (param8.toInt() >= ANIMATION_MIN_DURATION && param8.toInt() <= ANIMATION_MAX_DURATION) ? param8.toInt() : ANIMATION_MIN_DURATION;
 
-              
+
               /*if (b > 10 && b < 1000)
-              {
+                {
                 anim_delay = b;
-              }
-              else
-              {
+                }
+                else
+                {
                 anim_delay = 1000;
-              }*/
+                }*/
             }
 
             switch (anim_mode)
