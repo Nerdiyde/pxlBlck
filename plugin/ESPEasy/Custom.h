@@ -174,7 +174,7 @@
  #define USES_P002   // ADC
  #define USES_P003   // Pulse
 // #define USES_P004   // Dallas
-// #define USES_P005   // DHT
+ #define USES_P005   // DHT
 // #define USES_P006   // BMP085
  #define USES_P007   // PCF8591
 // #define USES_P008   // RFID
@@ -193,7 +193,7 @@
 // #define USES_P020   // Ser2Net
 // #define USES_P021   // Level
  #define USES_P022   // PCA9685
-// #define USES_P023   // OLED
+ #define USES_P023   // OLED
 // #define USES_P024   // MLX90614
 // #define USES_P025   // ADS1115
  #define USES_P026   // SysInfo
@@ -204,7 +204,7 @@
 // #define USES_P031   // SHT1X
 // #define USES_P032   // MS5611
 // #define USES_P033   // Dummy
-// #define USES_P034   // DHT12
+ #define USES_P034   // DHT12
 // #define USES_P036   // FrameOLED
  #define USES_P037   // MQTTImport
  #define USES_P038   // NeoPixel
