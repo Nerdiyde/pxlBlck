@@ -4398,7 +4398,7 @@ struct P205_data_struct : public PluginTaskData_base
     {
       String log = F(PXLBLCK_DEVICE_NAME);
       addLog(LOG_LEVEL_INFO, log);
-      log += F("   -Error: Failed to open file:'");
+      log += F("   -Error: Failed to open file: ");
       log += name;
       addLog(LOG_LEVEL_INFO, log);
       return "%ERROR%";
