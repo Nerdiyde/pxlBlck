@@ -576,7 +576,7 @@ void loop()
   bool firstLoopConnectionsEstablished = NetworkConnected() && firstLoop;
   if (firstLoopConnectionsEstablished || wifi_deactivated_by_fab)
   {
-    wifi_deactivated_by_fab=false;
+    wifi_deactivated_by_fab = false;
     addLog(LOG_LEVEL_INFO, F("firstLoopConnectionsEstablished"));
     firstLoop = false;
     timerAwakeFromDeepSleep = millis(); // Allow to run for "awake" number of seconds, now we have wifi.

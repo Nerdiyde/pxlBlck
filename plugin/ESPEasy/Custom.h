@@ -8,6 +8,32 @@
     3) define USE_CUSTOM_H as a build flags. ie : export PLATFORMIO_BUILD_FLAGS="'-DUSE_CUSTOM_H'"
  */
 
+ /*
+#define T0 4
+#define T1 0
+#define T2 2
+#define T3 15
+#define T4 13
+#define T5 12
+#define T6 14
+#define T7 27
+#define T8 33
+#define T9 32
+*/
+
+/*
+static const uint8_t T0 = 4;
+static const uint8_t T1 = 0;
+static const uint8_t T2 = 2;
+static const uint8_t T3 = 15;
+static const uint8_t T4 = 13;
+static const uint8_t T5 = 12;
+static const uint8_t T6 = 14;
+static const uint8_t T7 = 27;
+static const uint8_t T8 = 33;
+static const uint8_t T9 = 32;
+*/
+
 /*
  #######################################################################################################
    Your Own Default Settings
@@ -267,7 +293,7 @@
 // Special plugins needing IR library
 // #define USES_P016   // IR
 // #define P016_SEND_IR_TO_CONTROLLER false //IF true then the JSON replay solution is transmited back to the condroller.
-// #define USES_P035   // IRTX
+#define USES_P035   // IRTX = Used for transmitting infrared signals
 // #define P016_P035_Extended_AC // The following define is needed for extended decoding of A/C Messages and or using standardised 
                                  //common arguments for controlling all deeply supported A/C units
 // #define P016_P035_USE_RAW_RAW2 //Use the RAW and RAW2 encodings, disabling it saves 3.7Kb

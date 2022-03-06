@@ -33,7 +33,6 @@ DRAM_ATTR uint32_t p097_pinTouched     = 0;
 DRAM_ATTR uint32_t p097_pinTouchedPrev = 0;
 DRAM_ATTR uint32_t p097_timestamp[10]  = { 0 };
 
-
 boolean Plugin_097(byte function, struct EventStruct *event, String& string)
 {
   boolean success = false;
