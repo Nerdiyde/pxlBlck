@@ -109,7 +109,7 @@ boolean Plugin_206(byte function, struct EventStruct *event, String& string)
         break;
       }
 
-    case PLUGIN_TEN_PER_SECOND:
+    case PLUGIN_ONCE_A_SECOND:
       {
 
         Plugin_206_current_state = Plugin_206_PCF8575_instance->read16();

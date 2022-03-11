@@ -60,12 +60,12 @@ bool P120_data_struct::read_sensor(struct EventStruct *event) {
     init_sensor(event);
     # if PLUGIN_120_DEBUG
 
-    if (loglevelActiveFor(LOG_LEVEL_DEBUG) &&
-        log.reserve(55)) {
+    if (loglevelActiveFor(LOG_LEVEL_DEBUG))
+    	{
       if (i2c_mode) {
         #  ifdef USES_P120
         log  = F("ADXL345: i2caddress: 0x");
-        log += String(_i2cAddress, HEX);
+        log += String(_i2c_addr, HEX);
         #  endif // ifdef USES_P120
       } else {
         #  ifdef USES_P125
@@ -75,14 +75,13 @@ bool P120_data_struct::read_sensor(struct EventStruct *event) {
       }
       log += F(", initialized: ");
       log += String(initialized() ? F("true") : F("false"));
-      log += F(", ID=0x");
-      log += String(adxl345->getDevID(), HEX);
       addLog(LOG_LEVEL_DEBUG, log);
     }
     # endif // if PLUGIN_120_DEBUG
   }
 
-  if (initialized()) {
+  if (initialized()) 
+  	{
     _x = 0; _y = 0; _z = 0;
     adxl345->readAccel(&_x, &_y, &_z);
     _XA[_aUsed] = _x;
@@ -91,18 +90,20 @@ bool P120_data_struct::read_sensor(struct EventStruct *event) {
 
     _aUsed++;
 
-    if ((_aMax < _aUsed) && (_aUsed < _aSize)) {
+    if ((_aMax < _aUsed) && (_aUsed < _aSize)) 
+    {
       _aMax = _aUsed;
     }
 
-    if (_aUsed == _aSize) {
+    if (_aUsed == _aSize) 
+    {
       _aUsed = 0;
     }
 
     # if PLUGIN_120_DEBUG
 
-    if (loglevelActiveFor(LOG_LEVEL_DEBUG) &&
-        log.reserve(40)) {
+    if (loglevelActiveFor(LOG_LEVEL_DEBUG))
+    {
       log  = F("ADXL345: X: ");
       log += _x;
       log += F(", Y: ");
@@ -144,7 +145,7 @@ bool P120_data_struct::read_data(struct EventStruct *event, int& X, int& Y, int&
     if (loglevelActiveFor(LOG_LEVEL_DEBUG)) {
       String log;
 
-      if (log.reserve(40)) {
+      //if (log.reserve(40)) {
         log  = F("ADXL345: averages, X: ");
         log += X;
         log += F(", Y: ");
@@ -152,7 +153,7 @@ bool P120_data_struct::read_data(struct EventStruct *event, int& X, int& Y, int&
         log += F(", Z: ");
         log += Z;
         addLog(LOG_LEVEL_DEBUG, log);
-      }
+      //}
     }
     # endif // if PLUGIN_120_DEBUG
   }
@@ -431,14 +432,14 @@ bool P120_data_struct::plugin_webform_load(struct EventStruct *event) {
 
   // Range
   {
-    const __FlashStringHelper *rangeOptions[] = {
+    String rangeOptions[] = {
       F("2g"),
       F("4g"),
       F("8g"),
       F("16g (default)") };
     int rangeValues[] = { P120_RANGE_2G, P120_RANGE_4G, P120_RANGE_8G, P120_RANGE_16G };
-    addFormSelector(F("Range"), F("p120_range"), 4, rangeOptions, rangeValues,
-                    get2BitFromUL(P120_CONFIG_FLAGS1, P120_FLAGS1_RANGE));
+    byte rangeChoice = get2BitFromUL(P120_CONFIG_FLAGS1, P120_FLAGS1_RANGE);
+    addFormSelector(F("Range"), F("p120_range"), 4, rangeOptions, rangeValues, rangeChoice);
   }
 
   // Axis selection
@@ -527,7 +528,7 @@ bool P120_data_struct::plugin_webform_load(struct EventStruct *event) {
     addFormNumericBox(F("Averaging buffer size"), F("p120_average_buf"), P120_AVERAGE_BUFFER, 1, 100);
     addUnit(F("1..100"));
 
-    const __FlashStringHelper *frequencyOptions[] = {
+    String frequencyOptions[] = {
       F("10x per second"),
       F("50x per second") };
     int frequencyValues[] = { P120_FREQUENCY_10, P120_FREQUENCY_50 };

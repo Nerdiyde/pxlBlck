@@ -14,7 +14,7 @@
 // https://github.com/sparkfun/SparkFun_ADXL345_Arduino_Library
 # include <SparkFun_ADXL345.h>
 
-# define PLUGIN_120_DEBUG false // Set to true to enable debug out log
+# define PLUGIN_120_DEBUG true // Set to true to enable debug out log
 
 // Make accessing specific parameters more readable in the code
 // # define P120_I2C_OR_SPI      PCONFIG(0)

@@ -138,10 +138,10 @@ static const uint8_t T9 = 32;
 #define DEFAULT_MQTT_LWT_DISCONNECT_MESSAGE     "Connection Lost" // Default lwt message
 #define DEFAULT_MQTT_USE_UNITNAME_AS_CLIENTID   0
 
-#define DEFAULT_USE_NTP                         false             // (true|false) Use NTP Server
-#define DEFAULT_NTP_HOST                        ""                // NTP Server Hostname
-#define DEFAULT_TIME_ZONE                       0                 // Time Offset (in minutes)
-#define DEFAULT_USE_DST                         false             // (true|false) Use Daily Time Saving
+#define DEFAULT_USE_NTP                         true             // (true|false) Use NTP Server
+#define DEFAULT_NTP_HOST                        "0.de.pool.ntp.org"                // NTP Server Hostname
+#define DEFAULT_TIME_ZONE                       60                 // Time Offset (in minutes)
+#define DEFAULT_USE_DST                         true             // (true|false) Use Daily Time Saving
 
 #define DEFAULT_LATITUDE                        0.0f              // Default Latitude  
 #define DEFAULT_LONGITUDE                       0.0f              // Default Longitude
@@ -160,7 +160,7 @@ static const uint8_t T9 = 32;
 #define DEFAULT_SYNC_UDP_PORT                   0                 // Used for ESPEasy p2p. (IANA registered port: 8266)
 
 
-#define BUILD_NO_DEBUG
+//#define BUILD_NO_DEBUG
 
 
 #define USES_SSDP
@@ -299,7 +299,7 @@ static const uint8_t T9 = 32;
 // #define P016_P035_USE_RAW_RAW2 //Use the RAW and RAW2 encodings, disabling it saves 3.7Kb
 // #define USES_P088   // Heatpump IR
 
-//#define USES_P120 // ADXL345 Acceleration sensor
+#define USES_P120 // ADXL345 Acceleration sensor
 #define USES_P130 // Vl53L0X laser distance sensor
 #define USES_P113 // Vl53L1X laser distance sensor
 #define USES_P133 // Vl53L0X laser distance sensor

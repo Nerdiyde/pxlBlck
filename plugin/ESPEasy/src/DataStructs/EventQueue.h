@@ -12,6 +12,8 @@ struct EventQueueStruct {
   EventQueueStruct();
 
   void add(const String& event);
+  
+  void addMove(String&& event);
 
   bool getNext(String& event);
 
