@@ -65,9 +65,11 @@ boolean Plugin_113(uint8_t function, struct EventStruct *event, String& string)
     case PLUGIN_WEBFORM_SHOW_I2C_PARAMS:
     {
       const int i2cAddressValues[] = { 0x29, 0x30 };
-      if (function == PLUGIN_WEBFORM_SHOW_I2C_PARAMS) {
+      if (function == PLUGIN_WEBFORM_SHOW_I2C_PARAMS) 
+      {
         addFormSelectorI2C(F("plugin_113_vl53l1x_i2c"), 2, i2cAddressValues, PCONFIG(0));
-      } else {
+      } else 
+      {
         success = intArrayContains(2, i2cAddressValues, event->Par1);
       }
       break;

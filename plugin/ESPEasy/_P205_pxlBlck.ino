@@ -628,9 +628,9 @@ uint8_t Plugin_205_previousSecond = 0;
 
 uint8_t Plugin_205_matrixLayoutStartPosition = NEO_MATRIX_TOP + NEO_MATRIX_RIGHT;
 uint8_t Plugin_205_matrixArrangement = NEO_MATRIX_COLUMNS + NEO_MATRIX_PROGRESSIVE;
-uint8_t Plugin_205_matrixTileArrangement = PXLBLCK_ONE_TILE_ONLY_VALUE;
-uint8_t Plugin_205_matrixTilesWidth = 0;
-uint8_t Plugin_205_matrixTilesHeight = 0;
+//uint8_t Plugin_205_matrixTileArrangement = PXLBLCK_ONE_TILE_ONLY_VALUE;
+//uint8_t Plugin_205_matrixTilesWidth = 0;
+//uint8_t Plugin_205_matrixTilesHeight = 0;
 uint8_t Plugin_205_ledColorOrder = NEO_GRB;
 
 uint8_t Plugin_205_selectedMatrixId = 0;
@@ -5181,7 +5181,7 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
                         addFormNote(F("Select the start-position of the first tile."));
           */
 
-          String possibleTileArrangement[17] = {
+          /*String possibleTileArrangement[17] = {
             F("0: OneTileOnly"),
 
             F("1: Column-Progressive-Top-Left"),
@@ -5203,8 +5203,8 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
             F("14: Column-ZigZag-Bottom-Right"),
             F("15: Row-Progressive-Bottom-Right"),
             F("16: Row-ZigZag-Bottom-Right"),
-          };
-          int possibleTileArrangementValues[17] = {
+            };
+            int possibleTileArrangementValues[17] = {
             PXLBLCK_ONE_TILE_ONLY_VALUE,
 
             NEO_TILE_COLUMNS + NEO_TILE_PROGRESSIVE + NEO_TILE_TOP + NEO_TILE_LEFT,
@@ -5226,15 +5226,15 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
             NEO_TILE_COLUMNS + NEO_TILE_ZIGZAG + NEO_TILE_BOTTOM + NEO_TILE_RIGHT,
             NEO_TILE_ROWS + NEO_TILE_PROGRESSIVE + NEO_TILE_BOTTOM + NEO_TILE_RIGHT,
             NEO_TILE_ROWS + NEO_TILE_ZIGZAG + NEO_TILE_BOTTOM + NEO_TILE_RIGHT,
-          };
-          addFormSelector(F("Tile-Arrangement"), F(PXLBLCK_WEBSERVER_FORM_ID_TILE_MATRIX_ARRANGEMENT), 17, possibleTileArrangement, possibleTileArrangementValues, Plugin_205_matrixTileArrangement, true);
-          addFormNote(F("Select the Arrangement of your tile-Matrix."));
+            };
+            addFormSelector(F("Tile-Arrangement"), F(PXLBLCK_WEBSERVER_FORM_ID_TILE_MATRIX_ARRANGEMENT), 17, possibleTileArrangement, possibleTileArrangementValues, Plugin_205_matrixTileArrangement, true);
+            addFormNote(F("Select the Arrangement of your tile-Matrix."));
 
-          addFormNumericBox(F("Matrix tiles in X-direction"), F(PXLBLCK_WEBSERVER_FORM_ID_MATRIX_TILES_WIDTH), Plugin_205_matrixTilesWidth, 1, PXLBLCK_MAX_SETABLE_MATRIX_TILES_IN_X_DIR);
-          addFormNote(F("Number of matrix-tiles in X-direction"));
+            addFormNumericBox(F("Matrix tiles in X-direction"), F(PXLBLCK_WEBSERVER_FORM_ID_MATRIX_TILES_WIDTH), Plugin_205_matrixTilesWidth, 1, PXLBLCK_MAX_SETABLE_MATRIX_TILES_IN_X_DIR);
+            addFormNote(F("Number of matrix-tiles in X-direction"));
 
-          addFormNumericBox(F("Matrix tiles in Y-direction"), F(PXLBLCK_WEBSERVER_FORM_ID_MATRIX_TILES_HEIGHT), Plugin_205_matrixTilesHeight, 1, PXLBLCK_MAX_SETABLE_MATRIX_TILES_IN_Y_DIR);
-          addFormNote(F("Number of matrix-tiles in Y-direction"));
+            addFormNumericBox(F("Matrix tiles in Y-direction"), F(PXLBLCK_WEBSERVER_FORM_ID_MATRIX_TILES_HEIGHT), Plugin_205_matrixTilesHeight, 1, PXLBLCK_MAX_SETABLE_MATRIX_TILES_IN_Y_DIR);
+            addFormNote(F("Number of matrix-tiles in Y-direction"));*/
 
           addFormNumericBox(F("Matrix rotation"), F(PXLBLCK_WEBSERVER_FORM_ID_ROTATION), Plugin_205_matrixRotation, 0, 3);
           addFormNote(F("Increase to rotate clockwise (0-3)"));
@@ -5281,8 +5281,8 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
 
         //=== preparing the available dials for the selected Plugin_205_selectedMatrixId === end ==
 
-        //Wordclock specific form parts
-        if (Plugin_205_selectedMatrixId == PXLBLCK_WORDCLOCK_MATRIX_ID)
+        //Wordclock dial specific form parts
+        if (Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_WORDCLOCK_DIAL_ID_INT)
         {
           String possibleWordclockLanguages[1] = {F("German")};
           int wordclockLanguageValues[1] = {PLUGIN_205_WORDCLOCK_LANGUAGE_VALUE_GERMAN};
@@ -5295,8 +5295,8 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
           addFormNote(F("Control the visibility of the \"It is\" part"));
         }
 
-        //Ringclock specific form parts
-        if (Plugin_205_selectedMatrixId == PXLBLCK_RINGCLOCK_MATRIX_ID)
+        //Ringclock dial specific form parts
+        if (Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_RINGGCLOCK_DIAL_ID_INT)
         {
           addFormNumericBox(F("12 o'clock LED position"), F(PXLBLCK_WEBSERVER_FORM_ID_RINGCLOCK_LED_OFFSET), Plugin_205_ringclockClockTopOffset, 0, 59);
           addFormNote(F("Position of the 12 o'clock LED in the strip"));
@@ -5324,14 +5324,25 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
             Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_SECOND_MNT_DGT_ID_INT ||
             Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_FIRST_HR_DGT_ID_INT ||
             Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_SECOND_HR_DGT_ID_INT)
-
         {
           addFormCheckBox(F("Leading zeros enabled"), F(PXLBLCK_WEBSERVER_FORM_ID_DIGITCLOCK_LEADING_ZEROS_ENABLED), Plugin_205_diallLeadingZerosEnabled);
           addFormNote(F("Enabling display of leading Zeros."));
         }
 
         //support the following option only for dials that support 24hr mode
-        if (Plugin_205_selectedDial != PXLBLCK_DIAL_NAME_WORDCLOCK_DIAL_ID_INT)
+        if (Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_HR_NM_AND_MN_PNTS_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIGIT_CLOCK_MATRIX_ID ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_HORIZONTAL_NUMBERS_DIAL_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_HORIZONTAL_MINI_NUMBERS_DIAL_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_VERTICAL_MINI_NUMBERS_DIAL_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_DIAGONAL_MINI_NUMBERS_DIAL_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_RUNNING_CLOCK_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_FIRST_MNT_DGT_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_SECOND_MNT_DGT_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_FIRST_HR_DGT_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_PXL_DIGIT_TWENTY_FOUR_SECOND_HR_DGT_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_RINGGCLOCK_DIAL_ID_INT)
         {
           addFormCheckBox(F("24-hour-mode enabled"), F(PXLBLCK_WEBSERVER_FORM_ID_TWENTY_FOUR_HR_MODE_ENABLED), Plugin_205_twentyFourHr_mode_activated);
           addFormNote(F("Display time using 24hrs instead of 12hrs."));
@@ -5595,9 +5606,11 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
         Plugin_205_ledColorOrder = getFormItemInt(F(PXLBLCK_WEBSERVER_FORM_ID_LED_TYPE));
 
         //Tile layout
-        Plugin_205_matrixTileArrangement = getFormItemInt(F(PXLBLCK_WEBSERVER_FORM_ID_TILE_MATRIX_ARRANGEMENT));
-        Plugin_205_matrixTilesWidth = getFormItemInt(F(PXLBLCK_WEBSERVER_FORM_ID_MATRIX_TILES_WIDTH));
-        Plugin_205_matrixTilesHeight = getFormItemInt(F(PXLBLCK_WEBSERVER_FORM_ID_MATRIX_TILES_HEIGHT));
+        /*
+          Plugin_205_matrixTileArrangement = getFormItemInt(F(PXLBLCK_WEBSERVER_FORM_ID_TILE_MATRIX_ARRANGEMENT));
+          Plugin_205_matrixTilesWidth = getFormItemInt(F(PXLBLCK_WEBSERVER_FORM_ID_MATRIX_TILES_WIDTH));
+          Plugin_205_matrixTilesHeight = getFormItemInt(F(PXLBLCK_WEBSERVER_FORM_ID_MATRIX_TILES_HEIGHT));
+        */
 
         //Wordclock
         Plugin_205_wordclockShowItIsEnabled = isFormItemChecked(F(PXLBLCK_WEBSERVER_FORM_ID_WORDCLOCK_IT_IS_ENABLED));
@@ -5709,13 +5722,14 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
         P205_data->pxlBlckUtils_save_two_bytes_in_uint16(&intVariable, Plugin_205_ringclockClockTopOffset, Plugin_205_ringclockHourMarksBrightness);
         PLUGIN_205_CONFIG(5) = intVariable;
 
-        intVariable = PLUGIN_205_CONFIG(6);
-        P205_data->pxlBlckUtils_save_two_bytes_in_uint16(&intVariable, Plugin_205_minimalBrightness, Plugin_205_matrixTileArrangement);
+        //intVariable = PLUGIN_205_CONFIG(6);
+        //P205_data->pxlBlckUtils_save_two_bytes_in_uint16(&intVariable, Plugin_205_minimalBrightness, Plugin_205_matrixTileArrangement);
+        //P205_data->pxlBlckUtils_save_two_bytes_in_uint16(&intVariable, Plugin_205_minimalBrightness, 0);
         PLUGIN_205_CONFIG(6) = intVariable;
 
-        intVariable = PLUGIN_205_CONFIG(7);
-        P205_data->pxlBlckUtils_save_two_bytes_in_uint16(&intVariable, Plugin_205_matrixTilesWidth, Plugin_205_matrixTilesHeight);
-        PLUGIN_205_CONFIG(7) = intVariable;
+        /*intVariable = PLUGIN_205_CONFIG(7);
+          P205_data->pxlBlckUtils_save_two_bytes_in_uint16(&intVariable, Plugin_205_matrixTilesWidth, Plugin_205_matrixTilesHeight);
+          PLUGIN_205_CONFIG(7) = intVariable;*/
 
         //write values to user-vars: so the data showd in the plugin overview will also updated
         P205_data->pxlBlckUtils_update_user_vars(event, Plugin_205_displayEnabled, Plugin_205_displayBrightness, Plugin_205_matrixRotation);
@@ -5768,9 +5782,11 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
 
         P205_data->pxlBlckUtils_return_byte_values_from_uint16(PLUGIN_205_CONFIG(5), &Plugin_205_ringclockClockTopOffset, &Plugin_205_ringclockHourMarksBrightness);
 
-        P205_data->pxlBlckUtils_return_byte_values_from_uint16(PLUGIN_205_CONFIG(6), &Plugin_205_minimalBrightness, &Plugin_205_matrixTileArrangement);
+        //P205_data->pxlBlckUtils_return_byte_values_from_uint16(PLUGIN_205_CONFIG(6), &Plugin_205_minimalBrightness, &Plugin_205_matrixTileArrangement);
+        PLUGIN_205_CONFIG(6)=Plugin_205_minimalBrightness;
+        //P205_data->pxlBlckUtils_return_byte_values_from_uint16(PLUGIN_205_CONFIG(6), &Plugin_205_minimalBrightness, 0);
 
-        P205_data->pxlBlckUtils_return_byte_values_from_uint16(PLUGIN_205_CONFIG(7), &Plugin_205_matrixTilesWidth, &Plugin_205_matrixTilesHeight);
+        //P205_data->pxlBlckUtils_return_byte_values_from_uint16(PLUGIN_205_CONFIG(7), &Plugin_205_matrixTilesWidth, &Plugin_205_matrixTilesHeight);
 
         //This stuff is needed to get all the boolean variables back from the byte variable.
         uint8_t boolArray[8] = {0};
@@ -5793,20 +5809,20 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
           PXLBLCK_LED_COLOR_ORDER = NEO_GRB;
 
         //initialize led-matrix
-        if (Plugin_205_matrixTileArrangement == PXLBLCK_ONE_TILE_ONLY_VALUE || Plugin_205_matrixWidth == 1)
-        {
-          Plugin_205_matrix_instance = new Adafruit_NeoMatrix(
-            (int)Plugin_205_matrixWidth,
-            (int)Plugin_205_matrixHeight,
-            CONFIG_PIN1,
-            Plugin_205_matrixLayoutStartPosition +
-            Plugin_205_matrixArrangement,
-            PXLBLCK_LED_COLOR_ORDER +
-            NEO_KHZ800);
-          addLog(LOG_LEVEL_INFO, log);
-        }
-        else
-        {
+        //if (Plugin_205_matrixTileArrangement == PXLBLCK_ONE_TILE_ONLY_VALUE || Plugin_205_matrixWidth == 1)
+        //{
+        Plugin_205_matrix_instance = new Adafruit_NeoMatrix(
+          (int)Plugin_205_matrixWidth,
+          (int)Plugin_205_matrixHeight,
+          CONFIG_PIN1,
+          Plugin_205_matrixLayoutStartPosition +
+          Plugin_205_matrixArrangement,
+          PXLBLCK_LED_COLOR_ORDER +
+          NEO_KHZ800);
+        addLog(LOG_LEVEL_INFO, log);
+        /*}
+          else
+          {
           Plugin_205_matrix_instance = new Adafruit_NeoMatrix(
             (int)Plugin_205_matrixWidth,
             (int)Plugin_205_matrixHeight,
@@ -5820,7 +5836,7 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
             Plugin_205_matrixTileArrangement);
 
           addLog(LOG_LEVEL_INFO, log);
-        }
+          }*/
 
         Plugin_205_matrix_instance->begin();
         Plugin_205_matrix_instance->setBrightness(PLUGIN_205_STANDARD_BRIGHTNESS);
@@ -6121,9 +6137,10 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
             if (param10.toInt() > -1 && param10.toInt() < 255)
             {
               Plugin_205_minimalBrightness = param10.toInt();
-              uint16_t intVariable = PLUGIN_205_CONFIG(6);
-              P205_data->pxlBlckUtils_save_two_bytes_in_uint16(&intVariable, Plugin_205_minimalBrightness, Plugin_205_matrixTileArrangement);
-              PLUGIN_205_CONFIG(6) = intVariable;
+              /*uint16_t intVariable = PLUGIN_205_CONFIG(6);
+              P205_data->pxlBlckUtils_save_two_bytes_in_uint16(&intVariable, Plugin_205_minimalBrightness, 0);
+              PLUGIN_205_CONFIG(6) = intVariable;*/
+              PLUGIN_205_CONFIG(6) = Plugin_205_minimalBrightness;
             }
           }
 
