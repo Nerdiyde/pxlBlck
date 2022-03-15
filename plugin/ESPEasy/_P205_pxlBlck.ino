@@ -42,6 +42,12 @@
       - RingClock functionality: The RingClock functionality is roughly inspired by the ESPEasy-Plugin: Plugin 070: NeoPixel ring clock
 */
 
+/*History:
+
+   12.03.2022
+   - Started history
+*/
+
 #include "_Plugin_Helper.h"
 
 // == Variable, Constants & Object Defintions ===========================================================================================================================
@@ -136,6 +142,7 @@
 #define PXLBLCK_COMMAND_SET_BOOLEANS "pbbo"
 #define PXLBLCK_COMMAND_SET_DIAL "pbdia"
 #define PXLBLCK_COMMAND_SET_BAR_GRAPH "pbbar"
+#define PXLBLCK_COMMAND_SHOW_GIF "pbgif"
 
 //== Defines for Matrix-Stuff == End ============================
 
@@ -599,6 +606,7 @@ String Plugin_205_possibleDialList[][PLUGIN_205_MAX_DIAL_NUM][2] = {
 
 #define PXLBLCK_WEBSERVER_FORM_ID_DIGITCLOCK_LEADING_ZEROS_ENABLED "dcLzE"
 #define PXLBLCK_WEBSERVER_FORM_ID_TWENTY_FOUR_HR_MODE_ENABLED "tfHrME"
+#define PXLBLCK_WEBSERVER_FORM_ID_COLON_SEPERATOR_ENABLED "clnSprEn"
 
 #define PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS "ClrOne"
 #define PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS "ClrTwo"
@@ -640,6 +648,7 @@ boolean Plugin_205_wordclockShowItIsEnabled = true;
 uint8_t Plugin_205_wordclockLanguageId = 0;
 boolean Plugin_205_diallLeadingZerosEnabled = true;
 boolean Plugin_205_twentyFourHr_mode_activated = false;
+boolean Plugin_205_hr_minute_seperator_dots_activated = true;
 
 uint8_t Plugin_205_colorWheelPosition[5] = {0};
 
@@ -1869,7 +1878,7 @@ struct P205_data_struct : public PluginTaskData_base
               {
                 //this dial shows the digitClock dial
                 pxlBlckUtils_clear_matrix();
-                Plugin_205_show_dial_digitClock(hours, minutes, colorOneTemp, colorTwoTemp, colorThreeTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled, Plugin_205_twentyFourHr_mode_activated);
+                Plugin_205_show_dial_digitClock(hours, minutes, colorOneTemp, colorTwoTemp, colorThreeTemp, colorFourTemp, Plugin_205_diallLeadingZerosEnabled, Plugin_205_twentyFourHr_mode_activated, Plugin_205_hr_minute_seperator_dots_activated);
                 pxlBlckUtils_update_matrix();
               }
               break;
@@ -2717,10 +2726,16 @@ struct P205_data_struct : public PluginTaskData_base
       }
     }
 
-    if (y & 1)
-      return ((y + 1) * PXLBLCK_MATRIX_WIDTH - 1 - x) + 4;
-    else
+    if (Plugin_205_matrixArrangement == NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG || Plugin_205_matrixArrangement == NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG)
+    {
+      if (y & 1)
+        return ((y + 1) * PXLBLCK_MATRIX_WIDTH - 1 - x) + 4;
+      else
+        return (y * PXLBLCK_MATRIX_WIDTH + x) + 4;
+    } else // if any non zigzag configuration is used
+    {
       return (y * PXLBLCK_MATRIX_WIDTH + x) + 4;
+    }
   }
 
   // == pxlBlckWordclock dial functions == end ===================================================================================================================
@@ -3064,7 +3079,7 @@ struct P205_data_struct : public PluginTaskData_base
 
   // == pxlBlckdigiClock dial functions == start ===========================================================================================================================
 
-  void Plugin_205_show_dial_digitClock(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t minuteColor, uint32_t dotColor, uint32_t bgColor, boolean inclLeadingZeros, boolean twentyFourHrModeEnabled)
+  void Plugin_205_show_dial_digitClock(uint8_t hours, uint8_t minutes, uint32_t hourColor, uint32_t minuteColor, uint32_t dotColor, uint32_t bgColor, boolean inclLeadingZeros, boolean twentyFourHrModeEnabled, boolean including_dots)
   {
 
     Plugin_205_convert_time_mode(&hours, twentyFourHrModeEnabled);
@@ -3074,11 +3089,12 @@ struct P205_data_struct : public PluginTaskData_base
       Plugin_205_display_digitClock_digit(hours / 10, 0, hourColor); //0 is the y coordinate of the matrix that represents the bottom segment of the first digit
     Plugin_205_display_digitClock_digit(hours % 10, 7, hourColor);   //7 is the y coordinate of the matrix that represents the bottom segment of the second digit
 
-    pxlBlckUtils_draw_horizontal_bar(14, dotColor, false); //dots: Regarding the digitClock matrix pattern the dots are located in row 14
+    if (including_dots)
+      pxlBlckUtils_draw_horizontal_bar(14, dotColor, false); //dots: Regarding the digitClock matrix pattern the dots are located in row 14
 
     if ((minutes / 10) > 0 || inclLeadingZeros)
-      Plugin_205_display_digitClock_digit(minutes / 10, 15, minuteColor); //15 is the y coordinate of the matrix that represents the bottom segment of the third digit (here is the offset of the dots included.)
-    Plugin_205_display_digitClock_digit(minutes % 10, 22, minuteColor);   //22 is the y coordinate of the matrix that represents the bottom segment of the fourth digit
+      Plugin_205_display_digitClock_digit(minutes / 10, including_dots ? 15 : 14, minuteColor); //15 is the y coordinate of the matrix that represents the bottom segment of the third digit (here is the offset of the dots included.)
+    Plugin_205_display_digitClock_digit(minutes % 10, including_dots ? 22 : 21, minuteColor); //22 is the y coordinate of the matrix that represents the bottom segment of the fourth digit
   }
 
   void Plugin_205_display_digitClock_digit(uint8_t number, uint8_t baseSegmentOffset, uint32_t color)
@@ -5074,7 +5090,7 @@ struct P205_data_struct : public PluginTaskData_base
       Plugin_205_ringclockClockDirInversed,
       Plugin_205_diallLeadingZerosEnabled,
       Plugin_205_twentyFourHr_mode_activated,
-      10
+      Plugin_205_hr_minute_seperator_dots_activated
     };
     uint8_t byteVariable = 0;
 
@@ -5159,15 +5175,24 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
         addFormSelector(F("Led type"), F(PXLBLCK_WEBSERVER_FORM_ID_LED_TYPE), 3, possibleLedTypes, possibleLedTypeValues, PXLBLCK_LED_COLOR_ORDER, true);
         addFormNote(F("Select LED-Color-Order"));
 
-        //in case of led matrix that is not the Ringlock matrix show settings for matrix layout
-        if (Plugin_205_selectedMatrixId != PXLBLCK_RINGCLOCK_MATRIX_ID && Plugin_205_selectedMatrixId != PXLBLCK_FIBOCLOCK_MATRIX_ID && Plugin_205_selectedMatrixId != PXLBLCK_DIGIT_CLOCK_MATRIX_ID)
+        // If led start position is supported by the matrix show settings for matrix layout
+        if (Plugin_205_selectedMatrixId != PXLBLCK_RINGCLOCK_MATRIX_ID
+            && Plugin_205_selectedMatrixId != PXLBLCK_FIBOCLOCK_MATRIX_ID
+            && Plugin_205_selectedMatrixId != PXLBLCK_DIGIT_CLOCK_MATRIX_ID
+            && Plugin_205_selectedMatrixId != PXLBLCK_WORDCLOCK_MATRIX_ID)
         {
           //Settings for single LED matrix
           String possibleStartPositions[4] = {F("1: Top-Left"), F("2: Top-Right"), F("3: Bottom-Left"), F("4: Bottom-Right")};
           int possibleStartPositionsValues[4] = {(NEO_MATRIX_TOP + NEO_MATRIX_LEFT), (NEO_MATRIX_TOP + NEO_MATRIX_RIGHT), (NEO_MATRIX_BOTTOM + NEO_MATRIX_LEFT), (NEO_MATRIX_BOTTOM + NEO_MATRIX_RIGHT)};
           addFormSelector(F("Start positions"), F(PXLBLCK_WEBSERVER_FORM_ID_START_POSITION), 4, possibleStartPositions, possibleStartPositionsValues, Plugin_205_matrixLayoutStartPosition, true);
           addFormNote(F("Select the start-position of your LED-Matrix."));
+        }
 
+        // If led arrangement is supported by the matrix show settings for matrix layout
+        if (Plugin_205_selectedMatrixId != PXLBLCK_RINGCLOCK_MATRIX_ID
+            && Plugin_205_selectedMatrixId != PXLBLCK_FIBOCLOCK_MATRIX_ID
+            && Plugin_205_selectedMatrixId != PXLBLCK_DIGIT_CLOCK_MATRIX_ID)
+        {
           String possibleArrangement[4] = {F("1: Column-Progressive"), F("2: Column-ZigZag"), F("3: Row-Progressive"), F("4: Row-ZigZag")};
           int possibleArrangementValues[4] = {(NEO_MATRIX_COLUMNS + NEO_MATRIX_PROGRESSIVE), (NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG), (NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE), (NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG)};
           addFormSelector(F("LED-Arrangement"), F(PXLBLCK_WEBSERVER_FORM_ID_MATRIX_ARRANGEMENT), 4, possibleArrangement, possibleArrangementValues, Plugin_205_matrixArrangement, true);
@@ -5313,7 +5338,7 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
 
         //dial specific form parts
         if (Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_HR_NM_AND_MN_PNTS_ID_INT ||
-            Plugin_205_selectedDial == PXLBLCK_DIGIT_CLOCK_MATRIX_ID ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_DIGIT_CLOCK_DIAL_ID_INT ||
             Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_HORIZONTAL_NUMBERS_DIAL_ID_INT ||
             Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_HORIZONTAL_MINI_NUMBERS_DIAL_ID_INT ||
             Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_VERTICAL_MINI_NUMBERS_DIAL_ID_INT ||
@@ -5331,7 +5356,7 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
 
         //support the following option only for dials that support 24hr mode
         if (Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_HR_NM_AND_MN_PNTS_ID_INT ||
-            Plugin_205_selectedDial == PXLBLCK_DIGIT_CLOCK_MATRIX_ID ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_DIGIT_CLOCK_DIAL_ID_INT ||
             Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_HORIZONTAL_NUMBERS_DIAL_ID_INT ||
             Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_HORIZONTAL_MINI_NUMBERS_DIAL_ID_INT ||
             Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_VERTICAL_MINI_NUMBERS_DIAL_ID_INT ||
@@ -5346,6 +5371,15 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
         {
           addFormCheckBox(F("24-hour-mode enabled"), F(PXLBLCK_WEBSERVER_FORM_ID_TWENTY_FOUR_HR_MODE_ENABLED), Plugin_205_twentyFourHr_mode_activated);
           addFormNote(F("Display time using 24hrs instead of 12hrs."));
+        }
+
+        //support the following option only for dials that support 24hr mode
+        if (Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_DIGIT_CLOCK_DIAL_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_HORIZONTAL_NUMBERS_DIAL_ID_INT ||
+            Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_HORIZONTAL_MINI_NUMBERS_DIAL_ID_INT)
+        {
+          addFormCheckBox(F("HR/MNT seperator enabled"), F(PXLBLCK_WEBSERVER_FORM_ID_COLON_SEPERATOR_ENABLED), Plugin_205_hr_minute_seperator_dots_activated);
+          addFormNote(F("Control display of hour/minute seperating by colon."));
         }
 
         //General form parts
@@ -5415,7 +5449,7 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
           case PXLBLCK_DIAL_NAME_DIGIT_CLOCK_DIAL_ID_INT:
             Plugin_205_colorOneName = F("Hour");
             Plugin_205_colorTwoName = F("Minute");
-            Plugin_205_colorThreeName = F("Dots");
+            Plugin_205_colorThreeName = Plugin_205_hr_minute_seperator_dots_activated ? F("Dots") : F(PXLBLCK_WEBSERVER_FORM_COLOR_NOT_USED_VALUE);
             Plugin_205_colorFourName = F("Background");
             break;
           case PXLBLCK_DIAL_NAME_HORIZONTAL_NUMBERS_DIAL_ID_INT:
@@ -5581,6 +5615,9 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
         log = F("   24_hr_mode_enabled=");
         log += isFormItemChecked(F(PXLBLCK_WEBSERVER_FORM_ID_TWENTY_FOUR_HR_MODE_ENABLED));
         addLog(LOG_LEVEL_DEBUG, log);
+        log = F("   hr_minute_seperator_dots_activated=");
+        log += isFormItemChecked(F(PXLBLCK_WEBSERVER_FORM_ID_COLON_SEPERATOR_ENABLED));
+        addLog(LOG_LEVEL_DEBUG, log);
 
         //Colors
         P205_data->pxlBlckUtils_add_color_values_to_debug_log(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS);
@@ -5598,6 +5635,7 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
         Plugin_205_matrixRotation = getFormItemInt(F(PXLBLCK_WEBSERVER_FORM_ID_ROTATION));
         Plugin_205_diallLeadingZerosEnabled = isFormItemChecked(F(PXLBLCK_WEBSERVER_FORM_ID_DIGITCLOCK_LEADING_ZEROS_ENABLED));
         Plugin_205_twentyFourHr_mode_activated = isFormItemChecked(F(PXLBLCK_WEBSERVER_FORM_ID_TWENTY_FOUR_HR_MODE_ENABLED));
+        Plugin_205_hr_minute_seperator_dots_activated = isFormItemChecked(F(PXLBLCK_WEBSERVER_FORM_ID_COLON_SEPERATOR_ENABLED));
 
         //Matrix layout
         Plugin_205_selectedMatrixId = getFormItemInt(F(PXLBLCK_WEBSERVER_FORM_ID_MATRIX_TYPE));
@@ -5783,7 +5821,7 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
         P205_data->pxlBlckUtils_return_byte_values_from_uint16(PLUGIN_205_CONFIG(5), &Plugin_205_ringclockClockTopOffset, &Plugin_205_ringclockHourMarksBrightness);
 
         //P205_data->pxlBlckUtils_return_byte_values_from_uint16(PLUGIN_205_CONFIG(6), &Plugin_205_minimalBrightness, &Plugin_205_matrixTileArrangement);
-        PLUGIN_205_CONFIG(6)=Plugin_205_minimalBrightness;
+        PLUGIN_205_CONFIG(6) = Plugin_205_minimalBrightness;
         //P205_data->pxlBlckUtils_return_byte_values_from_uint16(PLUGIN_205_CONFIG(6), &Plugin_205_minimalBrightness, 0);
 
         //P205_data->pxlBlckUtils_return_byte_values_from_uint16(PLUGIN_205_CONFIG(7), &Plugin_205_matrixTilesWidth, &Plugin_205_matrixTilesHeight);
@@ -5800,6 +5838,7 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
         Plugin_205_ringclockClockDirInversed = boolArray[4];
         Plugin_205_diallLeadingZerosEnabled = boolArray[5];
         Plugin_205_twentyFourHr_mode_activated = boolArray[6];
+        Plugin_205_hr_minute_seperator_dots_activated = boolArray[7];
 
         //Save matrix dimensions to working variables
         Plugin_205_matrixHeight = Plugin_205_matrixSizesById[Plugin_205_selectedMatrixId][1];
@@ -6138,8 +6177,8 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
             {
               Plugin_205_minimalBrightness = param10.toInt();
               /*uint16_t intVariable = PLUGIN_205_CONFIG(6);
-              P205_data->pxlBlckUtils_save_two_bytes_in_uint16(&intVariable, Plugin_205_minimalBrightness, 0);
-              PLUGIN_205_CONFIG(6) = intVariable;*/
+                P205_data->pxlBlckUtils_save_two_bytes_in_uint16(&intVariable, Plugin_205_minimalBrightness, 0);
+                PLUGIN_205_CONFIG(6) = intVariable;*/
               PLUGIN_205_CONFIG(6) = Plugin_205_minimalBrightness;
             }
           }
@@ -6213,7 +6252,7 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
         else if (command == F(PXLBLCK_COMMAND_SET_BOOLEANS))
         {
           uint8_t boolValueId = param1.toInt(); //This defines which of the available boolean-values will be set.
-          uint8_t boolValue = param2.toInt();   //Boolean-value that should be set. If this is set to two the regarding variable will be toggled
+          uint8_t boolValue = param2.toInt();   //Boolean-value that should be set. If this is set to "2" the regarding variable will be toggled
 
           String log = F(PXLBLCK_DEVICE_NAME);
           addLog(LOG_LEVEL_DEBUG, log);
@@ -6243,6 +6282,9 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
                 break;
               case 7: //save Plugin_205_twentyFourHr_mode_activated
                 Plugin_205_twentyFourHr_mode_activated = ((boolValue == 2) ? !Plugin_205_twentyFourHr_mode_activated : boolValue);
+                break;
+              case 8: //save Plugin_205_hr_minute_seperator_dots_activated
+                Plugin_205_hr_minute_seperator_dots_activated = ((boolValue == 2) ? !Plugin_205_hr_minute_seperator_dots_activated : boolValue);
                 break;
               default:
                 break;
@@ -7248,6 +7290,10 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
 
           //now save the actual timestamp including the display duration to remember when to clear the display
           Plugin_205_barGraphDisplayClearTimestamp = millis() + displayDuration;
+
+          success = true;
+        } else if (command == F(PXLBLCK_COMMAND_SHOW_GIF))
+        {
 
           success = true;
         }
