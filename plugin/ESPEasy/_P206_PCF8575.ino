@@ -1,6 +1,6 @@
 #include "_Plugin_Helper.h"
 
-//#define USES_P206
+#define USES_P206
 
 #ifdef USES_P206
 
@@ -109,7 +109,7 @@ boolean Plugin_206(byte function, struct EventStruct *event, String& string)
         break;
       }
 
-    case PLUGIN_ONCE_A_SECOND:
+    case PLUGIN_TEN_PER_SECOND:
       {
 
         Plugin_206_current_state = Plugin_206_PCF8575_instance->read16();
@@ -120,7 +120,7 @@ boolean Plugin_206(byte function, struct EventStruct *event, String& string)
           {
             uint8_t old_pin_state = (Plugin_206_old_state >> i) & 1;
             uint8_t new_pin_state = (Plugin_206_current_state >> i) & 1;
-            
+
             if (old_pin_state != new_pin_state)
             {
               Plugin_206_last_changed_pin_id = i;
@@ -140,9 +140,13 @@ boolean Plugin_206(byte function, struct EventStruct *event, String& string)
           log += F(" changed to state ");
           log += String(Plugin_206_last_changed_pin_state);
           addLog(LOG_LEVEL_DEBUG, log);
+
+          UserVar[event->BaseVarIndex] = Plugin_206_current_state;
+          UserVar[event->BaseVarIndex + 1] = Plugin_206_last_changed_pin_id;
+          UserVar[event->BaseVarIndex + 2] = Plugin_206_last_changed_pin_state;
+          sendData(event);
         }
         Plugin_206_old_state = Plugin_206_current_state;
-
 
         success = true;
         break;
@@ -173,9 +177,9 @@ boolean Plugin_206(byte function, struct EventStruct *event, String& string)
 
         } else
         {
-          UserVar[event->BaseVarIndex] = 0;
-          UserVar[event->BaseVarIndex + 1] = 0;
-          UserVar[event->BaseVarIndex + 2] = 0;
+          UserVar[event->BaseVarIndex] = -1;
+          UserVar[event->BaseVarIndex + 1] = -1;
+          UserVar[event->BaseVarIndex + 2] = -1;
           log = F("   - Current state: ");
           log += F("Not yet initialized.");
         }

@@ -1,0 +1,42 @@
+on PCF#State=63487 do 
+   pbbo,3,2,
+endon 
+
+on PCF#State=65531 do 
+   pbbr,0,1,0,1,15,
+endon 
+
+on PCF#State=57343 do 
+   pbbr,0,-1,0,1,15, 
+endon 
+
+on PCF#State=65534 do 
+   nrdy_rtc_incrhr
+endon 
+
+on PCF#State=32767 do 
+   nrdy_rtc_decrhr
+endon 
+
+on PCF#State=65533 do 
+   nrdy_rtc_incrmnt
+endon 
+
+on PCF#State=49151 do 
+   nrdy_rtc_decrmnt
+endon 
+
+on PCF#State=65527 do 
+   pbclrwhl,1,5,0, 
+   pbclrwhl,2,5,0, 
+endon 
+
+on PCF#State=61439 do 
+   pbclrwhl,1,-5,0, 
+   pbclrwhl,2,-5,0, 
+endon 
+
+on PCF#State=64511 do 
+   pbclr,1,255,255,255, 
+   pbclr,2,255,255,255, 
+endon
