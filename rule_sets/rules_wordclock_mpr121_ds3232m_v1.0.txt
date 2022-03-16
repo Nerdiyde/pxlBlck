@@ -1,0 +1,42 @@
+on Button#ScanCode=64.00 do 
+   pbbo,3,2,
+endon 
+
+on Button#ScanCode=128.00 do 
+   decrhr 
+endon 
+
+on Button#ScanCode=16.00 do 
+   incrhr 
+endon 
+
+on Button#ScanCode=256.00 do 
+   decrmnt 
+endon 
+
+on Button#ScanCode=8.00 do 
+   incrmnt 
+endon 
+
+on Button#ScanCode=512.00 do 
+   pbclrwhl,1,5,0, 
+   pbclrwhl,2,5,0, 
+endon 
+
+on Button#ScanCode=4.00 do 
+   pbclrwhl,1,-5,0, 
+   pbclrwhl,2,-5,0, 
+endon 
+
+on Button#ScanCode=1024.00 do 
+   pbbr,0,1,0,1,15,
+endon 
+
+on Button#ScanCode=2.00 do 
+   pbbr,0,-1,0,1,15, 
+endon 
+
+on Button#ScanCode=2048.00 do 
+   pbclr,1,255,255,255, 
+   pbclr,2,255,255,255, 
+endon

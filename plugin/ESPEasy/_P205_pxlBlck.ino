@@ -5379,7 +5379,7 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
             Plugin_205_selectedDial == PXLBLCK_DIAL_NAME_HORIZONTAL_MINI_NUMBERS_DIAL_ID_INT)
         {
           addFormCheckBox(F("HR/MNT seperator enabled"), F(PXLBLCK_WEBSERVER_FORM_ID_COLON_SEPERATOR_ENABLED), Plugin_205_hr_minute_seperator_dots_activated);
-          addFormNote(F("Control display of hour/minute seperating by colon."));
+          addFormNote(F("Display hour/minute seperator (colon)."));
         }
 
         //General form parts
