@@ -4825,31 +4825,31 @@ struct P205_data_struct : public PluginTaskData_base
     //quick and dirty "blocking" implementation of a test mode because this will(should really) only used for testing the led-matrix
     if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW)
     {
-      log += F("  ...(rgb)white.");
+      log = F("  ...(rgb)white.");
       addLog(LOG_LEVEL_INFO, log);
       pxlBlckUtils_fill_matrix(pxlBlckUtils_convert_color_values_to_32bit(100, 100, 100, 0));
       pxlBlckUtils_update_matrix();
       delay(1000);
 
-      log += F("  ...red.");
+      log = F("  ...red.");
       addLog(LOG_LEVEL_INFO, log);
       pxlBlckUtils_fill_matrix(pxlBlckUtils_convert_color_values_to_32bit(100, 0, 0, 0));
       pxlBlckUtils_update_matrix();
       delay(1000);
 
-      log += F("  ...green.");
+      log = F("  ...green.");
       addLog(LOG_LEVEL_INFO, log);
       pxlBlckUtils_fill_matrix(pxlBlckUtils_convert_color_values_to_32bit(0, 100, 0, 0));
       pxlBlckUtils_update_matrix();
       delay(1000);
 
-      log += F("  ...blue.");
+      log = F("  ...blue.");
       addLog(LOG_LEVEL_INFO, log);
       pxlBlckUtils_fill_matrix(pxlBlckUtils_convert_color_values_to_32bit(0, 0, 100, 0));
       pxlBlckUtils_update_matrix();
       delay(1000);
 
-      log += F("  ...(warm)white.");
+      log = F("  ...(warm)white.");
       addLog(LOG_LEVEL_INFO, log);
       pxlBlckUtils_fill_matrix(pxlBlckUtils_convert_color_values_to_32bit(0, 0, 0, 100));
       pxlBlckUtils_update_matrix();

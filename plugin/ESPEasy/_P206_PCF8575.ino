@@ -222,10 +222,8 @@ boolean Plugin_206(byte function, struct EventStruct *event, String& string)
 
             }
           }
+          success = true;
         }
-
-
-        success = true;
         break;
       }
   }

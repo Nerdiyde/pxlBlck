@@ -546,7 +546,7 @@ int getLoopCountPerSec() {
 
 
 
-bool wifi_deactivated_by_fab = false;
+bool wifi_deactivated_by_fab = true;
 
 /*********************************************************************************************\
    MAIN LOOP

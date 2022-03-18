@@ -176,17 +176,17 @@ boolean Plugin_216(byte function, struct EventStruct *event, String& string)
         } else
         {
           String log = F(PLUGIN_NAME_216);
-          addLog(LOG_LEVEL_ERROR, log);
+          addLog(LOG_LEVEL_INFO, log);
           log = F("  -RTC initialised! :)");
-          addLog(LOG_LEVEL_ERROR, log);
+          addLog(LOG_LEVEL_INFO, log);
           log = F("  -In RTC saved unixtime is: ");
           log += String(Plugin_216_actualRtcUnixtime());
-          addLog(LOG_LEVEL_ERROR, log);
+          addLog(LOG_LEVEL_INFO, log);
 
           if (Plugin_216_rtcInstance->lostPower())
           {
             log = F("  -RTC initialised for the first time.");
-            addLog(LOG_LEVEL_ERROR, log);
+            addLog(LOG_LEVEL_INFO, log);
           }
 
           Plugin_216_writeRtcTimeToSystemTime(Settings.TaskDeviceTimer[event->TaskIndex]);
@@ -204,13 +204,13 @@ boolean Plugin_216(byte function, struct EventStruct *event, String& string)
         UserVar[event->BaseVarIndex + 1] = unixTime;
 
         String log = F(PLUGIN_NAME_216);
-        addLog(LOG_LEVEL_DEBUG, log);
+        addLog(LOG_LEVEL_INFO, log);
         log = F("   - RTC-Time in unixtime: ");
         log += unixTime;
         addLog(LOG_LEVEL_DEBUG, log);
         log = F("   - DS323X-Temperature: ");
         log += rtcTemperature;
-        addLog(LOG_LEVEL_DEBUG, log);
+        addLog(LOG_LEVEL_INFO, log);
 
         success = true;
         break;
@@ -317,10 +317,26 @@ float Plugin_216_returnDS323XTemperature()
   return (float)(0.25 * tempLsb + temp);
 }
 
-void Plugin_216_modifyTimeBySeconds(int16_t deltaSeconds)
+void Plugin_216_modifyTimeBySeconds(int16_t delta_seconds)
 {
-  unsigned long rtcTime = Plugin_216_actualRtcUnixtime() + deltaSeconds;
-  Plugin_216_rtcInstance->adjust(DateTime(rtcTime));
+  unsigned long current_rtc_time = Plugin_216_actualRtcUnixtime();
+  uint32_t new_rtc_time = current_rtc_time + delta_seconds;
+  
+  String log = F(PLUGIN_NAME_216);
+  addLog(LOG_LEVEL_INFO, log);
+  log = F("   modifying rtc time: ");
+  addLog(LOG_LEVEL_INFO, log);
+  log = F("   delta_seconds: ");
+  log += String(delta_seconds);
+  addLog(LOG_LEVEL_INFO, log);
+  log = F("   current rtc time: ");
+  log += String(current_rtc_time);
+  addLog(LOG_LEVEL_INFO, log);
+  log = F("   new rtc time: ");
+  log += String(new_rtc_time);
+  addLog(LOG_LEVEL_INFO, log);
+  
+  Plugin_216_rtcInstance->adjust(DateTime(new_rtc_time));
 }
 
 void Plugin_216_syncNtpToRtcTime()
@@ -328,9 +344,9 @@ void Plugin_216_syncNtpToRtcTime()
   double ntpTime;
 
   String log = F(PLUGIN_NAME_216);
-  addLog(LOG_LEVEL_ERROR, log);
+  addLog(LOG_LEVEL_INFO, log);
   log = F("   Starting NTP-to-RTC-sync");
-  addLog(LOG_LEVEL_ERROR, log);
+  addLog(LOG_LEVEL_INFO, log);
 
   boolean wifiGood = WiFiConnected();
   boolean ntpActivated = Settings.UseNTP;
@@ -375,34 +391,34 @@ void Plugin_216_syncNtpToRtcTime()
     node_time.breakTime(rtcTime, rtcTimeElements);
 
     log = F(PLUGIN_NAME_216);
-    addLog(LOG_LEVEL_DEBUG, log);
+    addLog(LOG_LEVEL_INFO, log);
     log = F("   - Data fetched from NTP and saved to RTC: ");
-    addLog(LOG_LEVEL_DEBUG, log);
+    addLog(LOG_LEVEL_INFO, log);
     log = F("   - Hour: ");
-    log += rtcTimeElements.tm_hour;
-    addLog(LOG_LEVEL_DEBUG, log);
+    log += String(rtcTimeElements.tm_hour);
+    addLog(LOG_LEVEL_INFO, log);
     log = F("   - Minute: ");
-    log += rtcTimeElements.tm_min;
-    addLog(LOG_LEVEL_DEBUG, log);
+    log += String(rtcTimeElements.tm_min);
+    addLog(LOG_LEVEL_INFO, log);
     log = F("   - Second: ");
-    log += rtcTimeElements.tm_sec;
-    addLog(LOG_LEVEL_DEBUG, log);
+    log += String(rtcTimeElements.tm_sec);
+    addLog(LOG_LEVEL_INFO, log);
     log = F("   - Day: ");
-    log += rtcTimeElements.tm_mday;
-    addLog(LOG_LEVEL_DEBUG, log);
+    log += String(rtcTimeElements.tm_mday);
+    addLog(LOG_LEVEL_INFO, log);
     log = F("   - Month: ");
-    log += rtcTimeElements.tm_mon + 1;
-    addLog(LOG_LEVEL_DEBUG, log);
+    log += String(rtcTimeElements.tm_mon + 1);
+    addLog(LOG_LEVEL_INFO, log);
     log = F("   - Year: ");
-    log += 1970 + rtcTimeElements.tm_year;
+    log += String(1970 + rtcTimeElements.tm_year);
     addLog(LOG_LEVEL_DEBUG, log);
 
   } else
   {
     String log = F(PLUGIN_NAME_216);
-    addLog(LOG_LEVEL_DEBUG, log);
+    addLog(LOG_LEVEL_ERROR, log);
     log = F("   - NTP-to-RTC-sync failed. RTC-time was not updated.");
-    addLog(LOG_LEVEL_DEBUG, log);
+    addLog(LOG_LEVEL_ERROR, log);
 
     if (!wifiGood && (Plugin_216_noWifiCounter < PLUGIN_216_NO_WIFI_MAX_TRIES))
     {
@@ -420,7 +436,7 @@ void Plugin_216_syncNtpToRtcTime()
     else if (!ntpFetchSuccessfull)
       log = F("   - Reason: NTP data could not be retrieved.");
 
-    addLog(LOG_LEVEL_DEBUG, log);
+    addLog(LOG_LEVEL_ERROR, log);
   }
 }
 
