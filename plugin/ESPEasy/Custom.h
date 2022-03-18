@@ -260,7 +260,7 @@ static const uint8_t T9 = 32;
 
 // #define USES_P060   // MCP3221
 // #define USES_P061   // Keypad
-// #define USES_P062   // MPR121_KeyPad
+ #define USES_P062   // MPR121_KeyPad
 // #define USES_P063   // TTP229_KeyPad
 // #define USES_P064   // APDS9960 Gesture
 // #define USES_P065   // DRF0299
