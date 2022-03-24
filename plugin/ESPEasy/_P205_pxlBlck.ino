@@ -54,13 +54,24 @@
 #define USES_P205
 #ifdef USES_P205
 
+#define USE_NEOMATRIX
+//#define USE_FASTLED
+
+#if (defined(USE_NEOMATRIX) && defined(USE_FASTLED)) || (!defined(USE_NEOMATRIX) && !defined(USE_FASTLED))
+#error Please use either USE_NEOMATRIX or USE_FASTLED
+#endif
+
 #include <Adafruit_GFX.h>
+
+#if defined(USE_NEOMATRIX)
 #include <Adafruit_NeoMatrix.h>
 #include <Adafruit_NeoPixel.h>
+#elif defined(USE_FASTLED)
+#include <FastLED.h>
+#include <FastLED_NeoMatrix.h>
+#endif //defined(USE_NEOMATRIX)
 
 
-//#include <FastLED.h>
-// #include <FastLED_NeoMatrix.h>
 
 //== Defines for plugin-values == Start ============================
 
@@ -147,6 +158,7 @@
 #define PXLBLCK_COMMAND_SET_DIAL "pbdia"
 #define PXLBLCK_COMMAND_SET_BAR_GRAPH "pbbar"
 #define PXLBLCK_COMMAND_SHOW_GIF "pbgif"
+#define PXLBLCK_COMMAND_SHOW_GAUGE "pbgauge"
 
 //== Defines for Matrix-Stuff == End ============================
 
@@ -695,14 +707,18 @@ String Plugin_205_possibleDialList[][PLUGIN_205_MAX_DIAL_NUM][2] = {
 
 //== Variables for runtime-values == Start ============================
 
-Adafruit_NeoMatrix *Plugin_205_matrix_instance = nullptr;
-//FastLED_NeoMatrix *Plugin_205_matrix_instance = nullptr;
 
+#if defined(USE_NEOMATRIX)
+Adafruit_NeoMatrix *Plugin_205_matrix_instance = nullptr;
+#elif defined(USE_FASTLED)
+FastLED_NeoMatrix *Plugin_205_matrix_instance = nullptr;
 // cLEDMatrix creates a FastLED array inside its object and we need to retrieve
 // a pointer to its first element to act as a regular FastLED array, necessary
 // for NeoMatrix and other operations that may work directly on the array like FadeAll.
 //CRGB *Plugin_205_led_matrix_object = ledmatrix[0];
-//CRGB *Plugin_205_led_matrix_object;
+CRGB *Plugin_205_led_matrix_object;
+#endif //defined(USE_NEOMATRIX)
+
 
 
 boolean Plugin_205_initialDebugOutputDone = false;
@@ -994,6 +1010,14 @@ unsigned long Plugin_205_animationExecutedTimestamp = 0;
 unsigned long Plugin_205_barGraphDisplayClearTimestamp = 0; //This will hold the timestamp at which the displayed bar graph can be overwritten/cleared by the set or not set dial
 
 //== Defines for bar graph display == End ============================
+
+//== Defines for gauge display == Start ============================
+
+#define GAUGE_MAX_DISPLAY_DURATION 86400000 //Defines the max possible display duration. The value 86400000 is 24hrs in milliseconds. (This should be enough)
+
+unsigned long Plugin_205_gauge_display_clear_timestamp = 0; //This will hold the timestamp at which the displayed gauge can be overwritten/cleared by the set or not set dial
+
+//== Defines for gauge display == End ============================
 
 //== Wordclock-specific values == Start ============================
 
@@ -1942,7 +1966,8 @@ struct P205_data_struct : public PluginTaskData_base
         if (Plugin_205_displayEnabled                               //dials are not displayed if the display is disabled
             && PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime == 0          //time should only be displayed if there is no running text already "on the run"(this is the case if the PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime is set)
             && !PXLBLCK_ICON_STRUCT.iconPending                     //no update in case an icon is pending
-            && Plugin_205_barGraphDisplayClearTimestamp < millis()) //no update if bar graph display duration is not passed
+            && Plugin_205_barGraphDisplayClearTimestamp < millis()  //no update if bar graph display duration is not passed
+            && Plugin_205_gauge_display_clear_timestamp < millis()) //no update if gauge display duration is not passed
         {
 
           //handle actual set up brightness settings and merge them to the output color
@@ -6052,24 +6077,30 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
         if (Plugin_205_matrix_tiles_arrangement == PXLBLCK_ONE_TILE_ONLY_VALUE)
         {
 
+#if defined(USE_NEOMATRIX)
+
           Plugin_205_matrix_instance = new Adafruit_NeoMatrix(
             Plugin_205_matrix_tile_height,
             Plugin_205_matrix_tile_width,
             matrixPin,
             Plugin_205_matrixLayoutStartPosition + Plugin_205_matrixArrangement,
             PXLBLCK_LED_COLOR_ORDER + NEO_KHZ800);
-          /*
-                    Plugin_205_matrix_instance = new FastLED_NeoMatrix(
-                      Plugin_205_led_matrix_object,
-                      Plugin_205_matrixWidth * Plugin_205_matrixHeight,
-                      CONFIG_PIN1,
-                      Plugin_205_matrixLayoutStartPosition + Plugin_205_matrixArrangement,
-                      PXLBLCK_LED_COLOR_ORDER + NEO_KHZ800);
-          */
+
+#elif defined(USE_FASTLED)
+
+          Plugin_205_matrix_instance = new FastLED_NeoMatrix(
+            Plugin_205_led_matrix_object,
+            Plugin_205_matrixWidth * Plugin_205_matrixHeight,
+            CONFIG_PIN1,
+            Plugin_205_matrixLayoutStartPosition + Plugin_205_matrixArrangement,
+            PXLBLCK_LED_COLOR_ORDER + NEO_KHZ800);
+
+#endif //defined(USE_NEOMATRIX)
 
         }
         else
         {
+#if defined(USE_NEOMATRIX)
 
           Plugin_205_matrix_instance = new Adafruit_NeoMatrix(
             Plugin_205_matrix_tile_height,
@@ -6079,28 +6110,31 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
             matrixPin,
             Plugin_205_matrixLayoutStartPosition + Plugin_205_matrixArrangement + Plugin_205_matrix_tiles_arrangement,
             PXLBLCK_LED_COLOR_ORDER + NEO_KHZ800);
-          /*
 
-                    Plugin_205_matrix_instance = new FastLED_NeoMatrix(
-                      Plugin_205_led_matrix_object,
-                      Plugin_205_matrixWidth,
-                      Plugin_205_matrixHeight,
-                      Plugin_205_matrix_tiles_horizontal_num,
-                      Plugin_205_matrix_tiles_vertical_num,
-                      Plugin_205_matrixLayoutStartPosition + Plugin_205_matrixArrangement + Plugin_205_matrix_tiles_arrangement);
-          */
+#elif defined(USE_FASTLED)
+
+          Plugin_205_matrix_instance = new FastLED_NeoMatrix(
+            Plugin_205_led_matrix_object,
+            Plugin_205_matrixWidth,
+            Plugin_205_matrixHeight,
+            Plugin_205_matrix_tiles_horizontal_num,
+            Plugin_205_matrix_tiles_vertical_num,
+            Plugin_205_matrixLayoutStartPosition + Plugin_205_matrixArrangement + Plugin_205_matrix_tiles_arrangement);
+
+#endif //defined(USE_NEOMATRIX)
         }
 
-        //quick check if the calculated led num is correct (had a difficult bug in the passed that is absed on the wrong led number. So this is here to avoid this happening again)
+        //quick check if the calculated led num is correct (had a difficult bug in the passed that is based on the wrong led number. So this is here to avoid this happening again)
         if (Plugin_205_matrix_instance->numPixels() != Plugin_205_matrix_tile_height * Plugin_205_matrix_tile_width)
         {
-        log = F(PXLBLCK_DEVICE_NAME);
-        log += F(": LED number mismatch was detgected. Please check your code. :)");
-        addLog(LOG_LEVEL_ERROR, log);
+          log = F(PXLBLCK_DEVICE_NAME);
+          log += F(": LED number mismatch was detgected. Please check your code. :)");
+          addLog(LOG_LEVEL_ERROR, log);
 
         }
-
-        //FastLED.addLeds<NEOPIXEL, led_pin>(Plugin_205_led_matrix_object, MATRIX_WIDTH * MATRIX_HEIGHT).setCorrection(TypicalLEDStrip);
+#if defined(USE_FASTLED)
+        FastLED.addLeds<NEOPIXEL, led_pin>(Plugin_205_led_matrix_object, MATRIX_WIDTH * MATRIX_HEIGHT).setCorrection(TypicalLEDStrip);
+#endif //defined(USE_FASTLED)
 
         Plugin_205_matrix_instance->begin();
         Plugin_205_matrix_instance->setBrightness(PLUGIN_205_STANDARD_BRIGHTNESS);
@@ -7533,7 +7567,92 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
         {
 
           success = true;
+        } else if (command == F(PXLBLCK_COMMAND_SHOW_GAUGE))
+        {
+          uint32_t display_duration = P205_data->pxlBlckUtils_parseString(string, 2).toInt() <= GAUGE_MAX_DISPLAY_DURATION ? P205_data->pxlBlckUtils_parseString(string, 2).toInt() : BAR_GRAP_MAX_DISPLAY_DURATION; //First parameter: Defines how long the gauge will be displayed until it will be overwritten by the set (or not set) dial
+          uint8_t range_bottom_border = P205_data->pxlBlckUtils_parseString(string, 3).toInt() > 1 ? P205_data->pxlBlckUtils_parseString(string, 3).toInt() : 0;                       //Fourth parameter: Defines the start/direction of the bargraph. Currently the following settings are available: 0=bottom->top; 1=left->right
+          uint8_t range_top_border = P205_data->pxlBlckUtils_parseString(string, 4).toInt() > 1 ? P205_data->pxlBlckUtils_parseString(string, 4).toInt() : 0;
+          uint8_t display_value = P205_data->pxlBlckUtils_parseString(string, 5).toInt() > 1 ? P205_data->pxlBlckUtils_parseString(string, 5).toInt() : 0;
+          uint8_t circle_color_r = (P205_data->pxlBlckUtils_parseString(string, 6).toInt() >= 0 && P205_data->pxlBlckUtils_parseString(string, 6).toInt() <= 255) ? P205_data->pxlBlckUtils_parseString(string, 6).toInt() : 0;
+          uint8_t circle_color_g = (P205_data->pxlBlckUtils_parseString(string, 7).toInt() >= 0 && P205_data->pxlBlckUtils_parseString(string, 7).toInt() <= 255) ? P205_data->pxlBlckUtils_parseString(string, 7).toInt() : 0;
+          uint8_t circle_color_b = (P205_data->pxlBlckUtils_parseString(string, 8).toInt() >= 0 && P205_data->pxlBlckUtils_parseString(string, 8).toInt() <= 255) ? P205_data->pxlBlckUtils_parseString(string, 8).toInt() : 0;
+          uint8_t pointer_color_r = (P205_data->pxlBlckUtils_parseString(string, 9).toInt() >= 0 && P205_data->pxlBlckUtils_parseString(string, 9).toInt() <= 255) ? P205_data->pxlBlckUtils_parseString(string, 9).toInt() : 0;
+          uint8_t pointer_color_g = (P205_data->pxlBlckUtils_parseString(string, 10).toInt() >= 0 && P205_data->pxlBlckUtils_parseString(string, 10).toInt() <= 255) ? P205_data->pxlBlckUtils_parseString(string, 10).toInt() : 0;
+          uint8_t pointer_color_b = (P205_data->pxlBlckUtils_parseString(string, 11).toInt() >= 0 && P205_data->pxlBlckUtils_parseString(string, 11).toInt() <= 255) ? P205_data->pxlBlckUtils_parseString(string, 11).toInt() : 0;
+          boolean circle_background_filled = P205_data->pxlBlckUtils_parseString(string, 12).toInt() == 1; // Controls if the gauge will be displayed in a "filled-way"
+          String optional_text = P205_data->pxlBlckUtils_parseString(string, 13); // here you can define an optional string that will be displayed under the gauge. perfect to show the displayed value
+
+          uint8_t pointer_position = map(display_value, range_bottom_border, range_top_border, 0, PXLBLCK_MATRIX_WIDTH);
+
+          if (circle_background_filled)
+          {
+            Plugin_205_matrix_instance->fillCircle(
+              PXLBLCK_MATRIX_WIDTH / 2,
+              PXLBLCK_MATRIX_HEIGHT / 2,
+              PXLBLCK_MATRIX_WIDTH / 2,
+              P205_data->pxlBlckUtils_convert_color_values_to_32bit(circle_color_r, circle_color_g, circle_color_b));
+          } else
+          {
+            Plugin_205_matrix_instance->drawCircle(
+              PXLBLCK_MATRIX_WIDTH / 2,
+              PXLBLCK_MATRIX_HEIGHT / 2,
+              PXLBLCK_MATRIX_WIDTH / 2,
+              P205_data->pxlBlckUtils_convert_color_values_to_32bit(circle_color_r, circle_color_g, circle_color_b));
+          };
+
+          Plugin_205_matrix_instance->drawLine(
+            PXLBLCK_MATRIX_WIDTH / 2,
+            PXLBLCK_MATRIX_HEIGHT / 2,
+            pointer_position,
+            PXLBLCK_MATRIX_HEIGHT / 2, //This needs to be adapted to fit to the circle radius
+            P205_data->pxlBlckUtils_convert_color_values_to_32bit(pointer_color_r, pointer_color_g, pointer_color_b));
+
+          String log = F(PXLBLCK_DEVICE_NAME);
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   - display_duration: ");
+          log += display_duration;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   - range_bottom_border: ");
+          log += range_bottom_border;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   - range_top_border: ");
+          log += range_top_border;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   - display_value: ");
+          log += display_value;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   - circle_color_r: ");
+          log += circle_color_r;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   - circle_color_g: ");
+          log += circle_color_g;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   - circle_color_b: ");
+          log += circle_color_b;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   - pointer_color_r: ");
+          log += pointer_color_r;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   - pointer_color_g: ");
+          log += pointer_color_g;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   - pointer_color_b: ");
+          log += pointer_color_b;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   - circle_background_filled: ");
+          log += circle_background_filled;
+          addLog(LOG_LEVEL_DEBUG, log);
+          log = F("   - pointer_position: ");
+          log += pointer_position;
+          addLog(LOG_LEVEL_DEBUG, log);
+
+          //now save the actual timestamp including the display duration to remember when to clear the display
+          Plugin_205_gauge_display_clear_timestamp = millis() + display_duration;
+
+          success = true;
         }
+
+
 
         break;
       }
