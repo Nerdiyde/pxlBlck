@@ -7582,30 +7582,51 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
           boolean circle_background_filled = P205_data->pxlBlckUtils_parseString(string, 12).toInt() == 1; // Controls if the gauge will be displayed in a "filled-way"
           String optional_text = P205_data->pxlBlckUtils_parseString(string, 13); // here you can define an optional string that will be displayed under the gauge. perfect to show the displayed value
 
-          uint8_t pointer_position = map(display_value, range_bottom_border, range_top_border, 0, PXLBLCK_MATRIX_WIDTH);
+          uint8_t pointer_angle = map(display_value, range_bottom_border, range_top_border, 0, PI);
+
+          P205_data->pxlBlckUtils_clear_matrix();
+
+          uint32_t circle_color = P205_data->pxlBlckUtils_convert_color_values_to_32bit(circle_color_r, circle_color_g, circle_color_b);
+          Plugin_205_matrix_instance->setPassThruColor(circle_color);
 
           if (circle_background_filled)
           {
-            Plugin_205_matrix_instance->fillCircle(
-              PXLBLCK_MATRIX_WIDTH / 2,
-              PXLBLCK_MATRIX_HEIGHT / 2,
-              PXLBLCK_MATRIX_WIDTH / 2,
-              P205_data->pxlBlckUtils_convert_color_values_to_32bit(circle_color_r, circle_color_g, circle_color_b));
+            Plugin_205_matrix_instance->fillRoundRect(
+              0,                              //x0
+              0,    //y0
+              PXLBLCK_MATRIX_WIDTH,           //w
+              PXLBLCK_MATRIX_HEIGHT,          //h
+              (PXLBLCK_MATRIX_WIDTH / 2),     // radius
+              circle_color);
           } else
           {
-            Plugin_205_matrix_instance->drawCircle(
-              PXLBLCK_MATRIX_WIDTH / 2,
-              PXLBLCK_MATRIX_HEIGHT / 2,
-              PXLBLCK_MATRIX_WIDTH / 2,
-              P205_data->pxlBlckUtils_convert_color_values_to_32bit(circle_color_r, circle_color_g, circle_color_b));
+            Plugin_205_matrix_instance->drawRoundRect(
+              0,                              //x0
+              0,    //y0
+              PXLBLCK_MATRIX_WIDTH,           //w
+              PXLBLCK_MATRIX_HEIGHT,          //h
+              (PXLBLCK_MATRIX_WIDTH / 2),     // radius
+              circle_color);
           };
+
+          uint32_t pointer_color = P205_data->pxlBlckUtils_convert_color_values_to_32bit(pointer_color_r, pointer_color_g, pointer_color_b);
+          Plugin_205_matrix_instance->setPassThruColor(pointer_color);
 
           Plugin_205_matrix_instance->drawLine(
             PXLBLCK_MATRIX_WIDTH / 2,
             PXLBLCK_MATRIX_HEIGHT / 2,
-            pointer_position,
-            PXLBLCK_MATRIX_HEIGHT / 2, //This needs to be adapted to fit to the circle radius
-            P205_data->pxlBlckUtils_convert_color_values_to_32bit(pointer_color_r, pointer_color_g, pointer_color_b));
+            pointer_angle,
+            0, //This needs to be adapted to fit to the circle radius
+            pointer_color);
+
+          Plugin_205_matrix_instance->drawLine(
+            (PXLBLCK_MATRIX_WIDTH / 2) - 1,
+            PXLBLCK_MATRIX_HEIGHT / 2,
+            pointer_angle - 1,
+            0, //This needs to be adapted to fit to the circle radius
+            pointer_color);
+
+          P205_data->pxlBlckUtils_update_matrix();
 
           String log = F(PXLBLCK_DEVICE_NAME);
           addLog(LOG_LEVEL_DEBUG, log);
@@ -7642,8 +7663,8 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
           log = F("   - circle_background_filled: ");
           log += circle_background_filled;
           addLog(LOG_LEVEL_DEBUG, log);
-          log = F("   - pointer_position: ");
-          log += pointer_position;
+          log = F("   - pointer_angle: ");
+          log += pointer_angle;
           addLog(LOG_LEVEL_DEBUG, log);
 
           //now save the actual timestamp including the display duration to remember when to clear the display
