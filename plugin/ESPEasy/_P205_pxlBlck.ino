@@ -1962,7 +1962,7 @@ struct P205_data_struct : public PluginTaskData_base
       addLog(LOG_LEVEL_DEBUG, log);
 
       if (Plugin_205_matrix_instance != NULL)
-      {
+      { 
         if (Plugin_205_displayEnabled                               //dials are not displayed if the display is disabled
             && PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime == 0          //time should only be displayed if there is no running text already "on the run"(this is the case if the PXLBLCK_RNG_TXT_STRUCT.runtxtDelayTime is set)
             && !PXLBLCK_ICON_STRUCT.iconPending                     //no update in case an icon is pending
@@ -2642,6 +2642,13 @@ struct P205_data_struct : public PluginTaskData_base
       }
     }
 
+    Serial.print("Ringclock hands: hours: ");
+    Serial.print(hours);
+    Serial.print(" ,minutes: ");
+    Serial.print(minutes);
+    Serial.print(" ,seconds: ");
+    Serial.println(seconds);
+
     //draw the clock hands
     for (int i = 0; i < PXLBLCK_MATRIX_HEIGHT; i++)
     {
@@ -2923,7 +2930,6 @@ struct P205_data_struct : public PluginTaskData_base
     for (int i = 0; i < PXLBLCK_FIBOCLOCK_MATRIX_HEIGHT; i++)
     {
       set_fibonacci_pixel(i, Plugin_205_color_value_from_pallete(Plugin_205_bits[i]));
-      //Plugin_205_update_strip();
     }
   }
 
@@ -5962,7 +5968,6 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
         if (matrixPin >= 0)
         {
           pinMode(matrixPin, OUTPUT);
-          //digitalWrite(matrixPin, HIGH);
           uint32_t key = createKey(PLUGIN_ID_205, matrixPin);
           // WARNING: operator [] creates an entry in the map if key does not exist
           portState = globalMapPortStatus[key];
@@ -5970,7 +5975,6 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
           portState.mode = PIN_MODE_OUTPUT;
           portState.state = 0;
           savePortStatus(key, portState);
-          //setPinState(PLUGIN_ID_063, pinSCL, PIN_MODE_OUTPUT, 0);
         }
 
         //initPluginTaskData(event->TaskIndex, new (std::nothrow) P205_data_struct());
@@ -6080,8 +6084,8 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
 #if defined(USE_NEOMATRIX)
 
           Plugin_205_matrix_instance = new Adafruit_NeoMatrix(
-            Plugin_205_matrix_tile_height,
             Plugin_205_matrix_tile_width,
+            Plugin_205_matrix_tile_height,
             matrixPin,
             Plugin_205_matrixLayoutStartPosition + Plugin_205_matrixArrangement,
             PXLBLCK_LED_COLOR_ORDER + NEO_KHZ800);
@@ -6097,8 +6101,7 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
 
 #endif //defined(USE_NEOMATRIX)
 
-        }
-        else
+        } else
         {
 #if defined(USE_NEOMATRIX)
 
@@ -6959,7 +6962,6 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
               spiffsIcon,
               repetition);
           }
-
           success = true;
         }
         else if (command == F(PXLBLCK_COMMAND_MATRIX_TEST))
@@ -6992,111 +6994,35 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
 
             if (param1 != "")
             {
-
-              anim_delay = (param1.toInt() > 0 && param1.toInt() <= ANIMATION_MAX_ID) ? param1.toInt() : ANIMATION_STANDARD_ID;
-              /*if (param1.toInt() > 0 && param1.toInt() <= ANIMATION_MAX_ID)
-                {
-                anim_mode = param1.toInt();
-                }
-                else
-                {
-                anim_mode = 1;
-                }*/
+              anim_mode = (param1.toInt() > 0 && param1.toInt() <= ANIMATION_MAX_ID) ? param1.toInt() : ANIMATION_STANDARD_ID;
             }
             if (param2 != "")
             {
               anim_red_on = (param2.toInt() >= ANIMATION_MIN_COLOR_BRIGHTNESS && param2.toInt() <= ANIMATION_MAX_COLOR_BRIGHTNESS) ? param2.toInt() : ANIMATION_MAX_COLOR_BRIGHTNESS;
-              /*
-                int r = param2.toInt();
-                if (r > -1 && r < 255)
-                {
-                anim_red_on = r;
-                }
-                else
-                {
-                anim_red_on = 255;
-                }*/
             }
             if (param3 != "")
             {
               anim_green_on = (param3.toInt() >= ANIMATION_MIN_COLOR_BRIGHTNESS && param3.toInt() <= ANIMATION_MAX_COLOR_BRIGHTNESS) ? param3.toInt() : ANIMATION_MAX_COLOR_BRIGHTNESS;
-              /*int g = param3.toInt();
-                if (g > -1 && g < 255)
-                {
-                anim_green_on = g;
-                }
-                else
-                {
-                anim_green_on = 255;
-                }*/
             }
             if (param4 != "")
             {
               anim_blue_on = (param4.toInt() >= ANIMATION_MIN_COLOR_BRIGHTNESS && param4.toInt() <= ANIMATION_MAX_COLOR_BRIGHTNESS) ? param4.toInt() : ANIMATION_MAX_COLOR_BRIGHTNESS;
-              /*int b = param4.toInt();
-                if (b > -1 && b < 255)
-                {
-                anim_blue_on = b;
-                }
-                else
-                {
-                anim_blue_on = 255;
-                }*/
             }
-
             if (param5 != "")
             {
               anim_red_off = (param5.toInt() >= ANIMATION_MIN_COLOR_BRIGHTNESS && param5.toInt() <= ANIMATION_MAX_COLOR_BRIGHTNESS) ? param5.toInt() : ANIMATION_MAX_COLOR_BRIGHTNESS;
-              /*int r = param5.toInt();
-                if (r > -1 && r < 255)
-                {
-                anim_red_off = r;
-                }
-                else
-                {
-                anim_red_off = 255;
-                }*/
             }
             if (param6 != "")
             {
               anim_green_off = (param6.toInt() >= ANIMATION_MIN_COLOR_BRIGHTNESS && param6.toInt() <= ANIMATION_MAX_COLOR_BRIGHTNESS) ? param6.toInt() : ANIMATION_MAX_COLOR_BRIGHTNESS;
-              /*int g = param6.toInt();
-                if (g > -1 && g < 255)
-                {
-                anim_green_off = g;
-                }
-                else
-                {
-                anim_green_off = 255;
-                }*/
             }
             if (param7 != "")
             {
               anim_blue_off = (param7.toInt() >= ANIMATION_MIN_COLOR_BRIGHTNESS && param7.toInt() <= ANIMATION_MAX_COLOR_BRIGHTNESS) ? param7.toInt() : ANIMATION_MAX_COLOR_BRIGHTNESS;
-              /*int b = param7.toInt();
-                if (b > -1 && b < 255)
-                {
-                anim_blue_off = b;
-                }
-                else
-                {
-                anim_blue_off = 255;
-                }*/
             }
             if (param8 != "")
             {
-              //int b = param8.toInt();
               anim_delay = (param8.toInt() >= ANIMATION_MIN_DURATION && param8.toInt() <= ANIMATION_MAX_DURATION) ? param8.toInt() : ANIMATION_MIN_DURATION;
-
-
-              /*if (b > 10 && b < 1000)
-                {
-                anim_delay = b;
-                }
-                else
-                {
-                anim_delay = 1000;
-                }*/
             }
 
             switch (anim_mode)
@@ -7672,9 +7598,6 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
 
           success = true;
         }
-
-
-
         break;
       }
 
