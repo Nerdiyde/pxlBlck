@@ -1,0 +1,24 @@
+{
+  "name": "ESPEasy including pxlBlck plugin",
+  "version": "18.06.2022",
+  "new_install_prompt_erase": true,
+  "new_install_improv_wait_time": 0,
+  "funding_url": "https://esphome.io/guides/supporters.html",
+  "builds": [
+    {
+      "chipFamily": "ESP32",
+      "parts": [
+        { "path": "bin/ESP32_misc_files/bootloader_dio_80m.bin", "offset": 4096 },
+        { "path": "bin/ESP32_misc_files/ESP32_ESPEasy_incl_pxlBlck_4M_2M_SPIFFS_NO_OTA.ino.partitions.bin", "offset": 32768 },
+        { "path": "bin/ESP32_misc_files/boot_app0.bin", "offset": 57344 },
+        { "path": "bin/ESP32_ESPEasy_incl_pxlBlck_4M_2M_SPIFFS_NO_OTA.bin", "offset": 65536 }
+      ]
+    },
+    {
+      "chipFamily": "ESP8266",
+      "parts": [
+        { "path": "bin/ESP8266_ESPEasy_incl_pxlBlck_4M.bin", "offset": 0 }
+      ]
+    }
+  ]
+}
