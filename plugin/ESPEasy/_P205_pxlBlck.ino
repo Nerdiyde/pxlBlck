@@ -4955,7 +4955,6 @@ struct P205_data_struct : public PluginTaskData_base
     //This seperate function is needed because the (in ESPEasy) integrated function does not allow capital letters
     String tmpString = string;
     tmpString += ",";
-    //tmpString.replace(" ", ",");  //removed this becaus it blocks Message strings including space. Why was it integrated here? :D
     String locateString = "";
     byte count = 0;
     int index = tmpString.indexOf(',');
