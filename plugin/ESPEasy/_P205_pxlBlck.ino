@@ -554,6 +554,20 @@ String Plugin_205_possibleDialList[][PLUGIN_205_MAX_DIAL_NUM][2] = {
     {PXLBLCK_DIAL_NAME_RUNNING_CLOCK, PXLBLCK_DIAL_NAME_RUNNING_CLOCK_ID},
     {PXLBLCK_DIAL_NONE, PXLBLCK_DIAL_NONE_ID},
     {PXLBLCK_DIAL_NONE, PXLBLCK_DIAL_NONE_ID}
+  },
+  { //Available dials for 64x16 made from four 16x16 tiles matrix: PXLBLCK_64x16_MATRIX_ID
+    {PXLBLCK_DIAL_NAME_BLANK, PXLBLCK_DIAL_NAME_BLANK_ID},
+    {PXLBLCK_DIAL_NAME_HR_NM_AND_MN_PNTS, PXLBLCK_DIAL_NAME_HR_NM_AND_MN_PNTS_ID},
+    {PXLBLCK_DIAL_NAME_RANDOM_PIXELS, PXLBLCK_DIAL_NAME_RANDOM_PIXELS_ID},
+    {PXLBLCK_DIAL_NAME_WANDERING_PIXELS, PXLBLCK_DIAL_NAME_WANDERING_PIXELS_ID},
+    {PXLBLCK_DIAL_NAME_TV_SIMULATOR, PXLBLCK_DIAL_NAME_TV_SIMULATOR_ID},
+    {PXLBLCK_DIAL_NAME_CAMP_FIRE, PXLBLCK_DIAL_NAME_CAMP_FIRE_ID},
+    {PXLBLCK_DIAL_NAME_HORIZONTAL_MINI_NUMBERS_DIAL, PXLBLCK_DIAL_NAME_HORIZONTAL_MINI_NUMBERS_DIAL_ID},
+    {PXLBLCK_DIAL_NAME_VERTICAL_MINI_NUMBERS_DIAL, PXLBLCK_DIAL_NAME_VERTICAL_MINI_NUMBERS_DIAL_ID},
+    {PXLBLCK_DIAL_NAME_DIAGONAL_MINI_NUMBERS_DIAL, PXLBLCK_DIAL_NAME_DIAGONAL_MINI_NUMBERS_DIAL_ID},
+    {PXLBLCK_DIAL_NAME_RUNNING_CLOCK, PXLBLCK_DIAL_NAME_RUNNING_CLOCK_ID},
+    {PXLBLCK_DIAL_NONE, PXLBLCK_DIAL_NONE_ID},
+    {PXLBLCK_DIAL_NONE, PXLBLCK_DIAL_NONE_ID}
   }
 };
 
@@ -721,6 +735,15 @@ String Plugin_205_possibleDialList[][PLUGIN_205_MAX_DIAL_NUM][2] = {
 #define PXLBLCK_32x32_MATRIX_TILE_HORIZONTAL_NUM 2
 #define PXLBLCK_32x32_MATRIX_TILE_VERTICAL_NUM 2
 
+//A matrix that consists of four 16x16 tiles to create a total sized matrix of 64x16 pixel
+#define PXLBLCK_64x16_MATRIX_ID 17
+#define PXLBLCK_64x16_MATRIX_WIDTH 16
+#define PXLBLCK_64x16_MATRIX_HEIGHT 16
+#define PXLBLCK_64x16_MATRIX_NAME "64x16_made_of_4_horizontal_tiles"
+#define PXLBLCK_64x16_MATRIX_TILE_ARRANGMENT (NEO_TILE_ROWS + NEO_TILE_PROGRESSIVE + NEO_TILE_TOP + NEO_TILE_LEFT)
+#define PXLBLCK_64x16_MATRIX_TILE_HORIZONTAL_NUM 4
+#define PXLBLCK_64x16_MATRIX_TILE_VERTICAL_NUM 1
+
 //== Matrix Type definitions == End ============================
 
 //== Webserver Form definitions == Start ============================
@@ -763,7 +786,6 @@ String Plugin_205_possibleDialList[][PLUGIN_205_MAX_DIAL_NUM][2] = {
 
 //== Variables for runtime-values == Start ============================
 
-
 #if defined(USE_NEOMATRIX)
 Adafruit_NeoMatrix *Plugin_205_matrix_instance = nullptr;
 #elif defined(USE_FASTLED)
@@ -774,8 +796,6 @@ FastLED_NeoMatrix *Plugin_205_matrix_instance = nullptr;
 //CRGB *Plugin_205_led_matrix_object = ledmatrix[0];
 CRGB *Plugin_205_led_matrix_object;
 #endif //defined(USE_NEOMATRIX)
-
-
 
 boolean Plugin_205_initialDebugOutputDone = false;
 boolean Plugin_205_first_initialization_pending = true;
@@ -836,7 +856,8 @@ static uint8_t Plugin_205_matrixSizesById[][2] = {
   {PXLBLCK_CASSETTE_LAMP_MATRIX_WIDTH, PXLBLCK_CASSETTE_LAMP_MATRIX_HEIGHT},
   {PXLBLCK_ATOM_MATRIX_WIDTH, PXLBLCK_ATOM_MATRIX_HEIGHT},
   {PXLBLCK_PXLDIGIT24_MATRIX_WIDTH, PXLBLCK_PXLDIGIT24_MATRIX_HEIGHT},
-  {PXLBLCK_32x32_MATRIX_WIDTH, PXLBLCK_32x32_MATRIX_HEIGHT}
+  {PXLBLCK_32x32_MATRIX_WIDTH, PXLBLCK_32x32_MATRIX_HEIGHT},
+  {PXLBLCK_64x16_MATRIX_WIDTH, PXLBLCK_64x16_MATRIX_HEIGHT}
 };
 
 static uint16_t Plugin_205_matrix_arrangements_by_id[] = {
@@ -856,7 +877,8 @@ static uint16_t Plugin_205_matrix_arrangements_by_id[] = {
   PXLBLCK_CASSETTE_LAMP_MATRIX_TILE_ARRANGMENT,
   PXLBLCK_ATOM_MATRIX_TILE_ARRANGMENT,
   PXLBLCK_PXLDIGIT24_MATRIX_TILE_ARRANGMENT,
-  PXLBLCK_32x32_MATRIX_TILE_ARRANGMENT
+  PXLBLCK_32x32_MATRIX_TILE_ARRANGMENT,
+  PXLBLCK_64x16_MATRIX_TILE_ARRANGMENT
 };
 
 static String Plugin_205_matrixNamesById[] = {
@@ -876,7 +898,8 @@ static String Plugin_205_matrixNamesById[] = {
   PXLBLCK_CASSETTE_LAMP_MATRIX_NAME,
   PXLBLCK_ATOM_MATRIX_NAME,
   PXLBLCK_PXLDIGIT24_MATRIX_NAME,
-  PXLBLCK_32x32_MATRIX_NAME
+  PXLBLCK_32x32_MATRIX_NAME,
+  PXLBLCK_64x16_MATRIX_NAME
 };
 
 static uint8_t Plugin_205_matrix_tile_sizes_by_id[][2] = {
@@ -896,7 +919,8 @@ static uint8_t Plugin_205_matrix_tile_sizes_by_id[][2] = {
   {PXLBLCK_CASSETTE_LAMP_MATRIX_TILE_HORIZONTAL_NUM, PXLBLCK_CASSETTE_LAMP_MATRIX_TILE_VERTICAL_NUM},
   {PXLBLCK_ATOM_MATRIX_TILE_HORIZONTAL_NUM, PXLBLCK_ATOM_MATRIX_TILE_VERTICAL_NUM},
   {PXLBLCK_PXLDIGIT24_MATRIX_TILE_HORIZONTAL_NUM, PXLBLCK_PXLDIGIT24_MATRIX_TILE_VERTICAL_NUM},
-  {PXLBLCK_32x32_MATRIX_TILE_HORIZONTAL_NUM, PXLBLCK_32x32_MATRIX_TILE_VERTICAL_NUM}
+  {PXLBLCK_32x32_MATRIX_TILE_HORIZONTAL_NUM, PXLBLCK_32x32_MATRIX_TILE_VERTICAL_NUM},
+  {PXLBLCK_64x16_MATRIX_TILE_HORIZONTAL_NUM, PXLBLCK_64x16_MATRIX_TILE_VERTICAL_NUM}
 };
 
 static char pxlDigit24_character_to_segment_id_mapping[58] =
@@ -4171,21 +4195,48 @@ struct P205_data_struct : public PluginTaskData_base
 
   uint32_t pxlBlckUtils_add_brightness_to_color(uint8_t brightness, uint8_t minimalBrightness, uint32_t color)
   {
+    String log = F(PXLBLCK_DEVICE_NAME);
+    addLog(LOG_LEVEL_INFO, log);
+    log = F("   -input brightness: ");
+    log += String(brightness);
+    log += F("   -input minimalBrightness: ");
+    log += String(minimalBrightness);
+
     float brightnessFactor = 0;
     if (brightness >= 1)
+    {
+      Plugin_205_matrix_instance->setBrightness(PLUGIN_205_STANDARD_BRIGHTNESS);  // Set led brightness range to standard value
       brightnessFactor = (float)brightness / PXLBLCK_MAX_SETABLE_BRIGHTNESS;
+      log += F("   -applied brightnessFactor(normal): ");
+      log += String(brightnessFactor);
+    }
     else //Plugin_203_displayBrightness is set to zero so we will use Plugin_203_minimalBrightness-value instead
+    {      
+      Plugin_205_matrix_instance->setBrightness(255); // Set led brightness range to max possible
       brightnessFactor = (float)minimalBrightness / 255.0;
+      log += F("   -applied brightnessFactor(minimal): ");
+      log += String(brightnessFactor);
+    }
 
     uint8_t red = pxlBlckUtils_return_red_from_config(color) * brightnessFactor;
     uint8_t green = pxlBlckUtils_return_green_from_config(color) * brightnessFactor;
     uint8_t blue = pxlBlckUtils_return_blue_from_config(color) * brightnessFactor;
-
     uint8_t warmWhite = 0;
+
     if (PXLBLCK_LED_COLOR_ORDER == NEO_RGBW)
     {
       warmWhite = pxlBlckUtils_return_warmwhite_from_config(color) * brightnessFactor;
     }
+
+    log += F("   -new red value: ");
+    log += String(red);
+    log += F("   -new green value: ");
+    log += String(green);
+    log += F("   -new blue value: ");
+    log += String(blue);
+    log += F("   -new warmWhite value: ");
+    log += String(warmWhite);
+    addLog(LOG_LEVEL_INFO, log);
 
     return pxlBlckUtils_return_correct_color_value(red, green, blue, warmWhite);
   }
@@ -5605,8 +5656,8 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
         addFormNumericBox(F("Display brightness"), F(PXLBLCK_WEBSERVER_FORM_ID_BRIGHTNESS), Plugin_205_displayBrightness, 0, PXLBLCK_MAX_SETABLE_BRIGHTNESS);
         addFormNote(F("Brightness level of Display (0-15)"));
 
-        addFormNumericBox(F("Minimal brightness"), F(PXLBLCK_WEBSERVER_FORM_ID_MINIMAL_BRIGHTNESS), Plugin_205_minimalBrightness, 3, 255);
-        addFormNote(F("Minimal brightness level of Display (3-255)"));
+        addFormNumericBox(F("Minimal brightness"), F(PXLBLCK_WEBSERVER_FORM_ID_MINIMAL_BRIGHTNESS), Plugin_205_minimalBrightness, 1, 50);
+        addFormNote(F("Minimal brightness level of Display (1-50)"));
 
         //Color specific form parts
         Plugin_205_colorOneName = "";
@@ -5882,7 +5933,6 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
 
         //Save color values to permanent storage
         //First color value
-        //uint32_t tempConfigVariable = PXLBLCK_COLOR_PERMANENT_STORAGE(0);
 
         P205_data->pxlBlckUtils_process_color_inputs(
           P205_data->pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "CP"),
@@ -5894,11 +5944,8 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_ONE_PARTS) + "WwSld"));
 
         PXLBLCK_COLOR_PERMANENT_STORAGE(0) = Plugin_205_colorOne;
-        //PXLBLCK_COLOR_PERMANENT_STORAGE(0) = tempConfigVariable;
-        //Plugin_205_colorOne = tempConfigVariable;
 
         //Second color value
-        //tempConfigVariable = PXLBLCK_COLOR_PERMANENT_STORAGE(1);
 
         P205_data->pxlBlckUtils_process_color_inputs(
           P205_data->pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_TWO_PARTS) + "CP"),
@@ -5914,7 +5961,6 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
         //Plugin_205_colorTwo = tempConfigVariable;
 
         //Third color value
-        //tempConfigVariable = PXLBLCK_COLOR_PERMANENT_STORAGE(2);
 
         P205_data->pxlBlckUtils_process_color_inputs(
           P205_data->pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_THREE_PARTS) + "CP"),
@@ -5930,7 +5976,6 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
         //Plugin_205_colorThree = tempConfigVariable;
 
         //Fourth color value
-        //tempConfigVariable = PXLBLCK_COLOR_PERMANENT_STORAGE(3);
 
         P205_data->pxlBlckUtils_process_color_inputs(
           P205_data->pxlBlckUtils_getFormItemString(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "CP"),
@@ -5942,8 +5987,6 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
           getFormItemInt(String(PXLBLCK_WEBSERVER_FORM_ID_COLOR_FOUR_PARTS) + "WwSld"));
 
         PXLBLCK_COLOR_PERMANENT_STORAGE(3) = Plugin_205_colorFour;
-        //PXLBLCK_COLOR_PERMANENT_STORAGE(3) = tempConfigVariable;
-        //Plugin_205_colorFour = tempConfigVariable;
 
         //Save matrix dimensions to working variables
         Plugin_205_matrix_tile_height = Plugin_205_matrixSizesById[Plugin_205_selectedMatrixId][1];
@@ -6079,8 +6122,8 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
         Plugin_205_matrix_tiles_horizontal_num = Plugin_205_matrix_tile_sizes_by_id[Plugin_205_selectedMatrixId][0];
         Plugin_205_matrix_tiles_vertical_num = Plugin_205_matrix_tile_sizes_by_id[Plugin_205_selectedMatrixId][1];
 
-        Plugin_205_matrixHeight = Plugin_205_matrix_tile_height * Plugin_205_matrix_tiles_horizontal_num;
-        Plugin_205_matrixWidth = Plugin_205_matrix_tile_width * Plugin_205_matrix_tiles_vertical_num;
+        Plugin_205_matrixHeight = Plugin_205_matrix_tile_height * Plugin_205_matrix_tiles_vertical_num;
+        Plugin_205_matrixWidth = Plugin_205_matrix_tile_width * Plugin_205_matrix_tiles_horizontal_num;
 
         Plugin_205_matrix_tiles_arrangement = Plugin_205_matrix_arrangements_by_id[Plugin_205_selectedMatrixId];
 
@@ -6141,48 +6184,39 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
 
         log = F(PXLBLCK_DEVICE_NAME);
         log += F(" will be initalized with the following parameters:");
-        //addLog(LOG_LEVEL_INFO, log);
         log = F("   matrixPin=");
         log += String(matrixPin);
         Serial.println(log);
         log = F("   width=");
         log += String(Plugin_205_matrixWidth);
-        //addLog(LOG_LEVEL_INFO, log);
         Serial.println(log);
         log = F("   height=");
         log += String(Plugin_205_matrixHeight);
-        //addLog(LOG_LEVEL_INFO, log);
         Serial.println(log);
         log = F("   tile_width=");
         log += String(Plugin_205_matrix_tiles_horizontal_num);
-        //addLog(LOG_LEVEL_INFO, log);
         Serial.println(log);
         log = F("   tile_height=");
         log += String(Plugin_205_matrix_tiles_vertical_num);
-        //addLog(LOG_LEVEL_INFO, log);
         Serial.println(log);
         log = F("   Plugin_205_matrixLayoutStartPosition=");
         log += String(Plugin_205_matrixLayoutStartPosition);
-        //addLog(LOG_LEVEL_INFO, log);
         Serial.println(log);
         log = F("   Plugin_205_matrixArrangement=");
         log += String(Plugin_205_matrixArrangement);
-        //addLog(LOG_LEVEL_INFO, log);
         Serial.println(log);
         log = F("   Plugin_205_matrix_tiles_arrangement=");
         log += String(Plugin_205_matrix_tiles_arrangement);
-        //addLog(LOG_LEVEL_INFO, log);
         Serial.println(log);
         log = F("   matrix_arrangement_tiles_all=");
         log += String(Plugin_205_matrixLayoutStartPosition + Plugin_205_matrixArrangement + Plugin_205_matrix_tiles_arrangement);
-        //addLog(LOG_LEVEL_INFO, log);
         Serial.println(log);
 
         //quick check if the calculated led num is correct (had a difficult bug in the passed that is based on the wrong led number. So this is here to avoid this happening again)
         if (Plugin_205_matrix_instance->numPixels() != Plugin_205_matrix_tile_height * Plugin_205_matrix_tile_width)
         {
           log = F(PXLBLCK_DEVICE_NAME);
-          log += F(": LED number mismatch was detgected. Please check your code. :)");
+          log += F(": LED number mismatch was detected. Please check your code. :)");
           addLog(LOG_LEVEL_ERROR, log);
 
         }
@@ -7741,7 +7775,7 @@ boolean Plugin_205(byte function, struct EventStruct * event, String & string)
             log += F("\" executed successful.");
             SendStatus(event->Source, log);
 
-          } else 
+          } else
           {
             //matrix does not support this command
             log = F("pxlBlck: Command \"");

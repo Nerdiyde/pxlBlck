@@ -206,7 +206,7 @@ static const uint8_t T9 = 32;
 // #define USES_P008   // RFID
 // #define USES_P009   // MCP
 
-// #define USES_P010   // BH1750
+#define USES_P010   // BH1750
 // #define USES_P011   // PME
 // #define USES_P012   // LCD
 // #define USES_P013   // HCSR04
